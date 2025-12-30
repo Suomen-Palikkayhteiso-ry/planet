@@ -1,18 +1,13 @@
 # Planet Configuration
 
-title = "My Haskell Planet"
+title = "Palikkaverse"
 
 [[feeds]]
 type = "blog"
-title = "Haskell Weekly"
-url = "https://haskellweekly.news/rss.xml"
+title = "Cyclopic Bricks"
+url = "https://cyclopicbricks.blogspot.com/feeds/posts/default?alt=rss"
 
 [[feeds]]
 type = "youtube"
-title = "Computerphile"
-url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC9-y-6csu5WGm29I7JiwpnA"
-
-[[feeds]]
-type = "blog"
-title = "Tweag"
-url = "https://www.tweag.io/rss.xml"
+title = "FinnBrixStudio"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1gpjceZQv8qKxcCJB4BKhw"

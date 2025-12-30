@@ -28,6 +28,9 @@ import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Network.HTTP.Simple (httpLBS, getResponseBody, parseRequest, Response)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
+import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
+
+import I18n
 
 -- Configuration Types
 data FeedType = Blog | YouTube
@@ -42,6 +45,7 @@ data FeedConfig = FeedConfig
 data Config = Config
   { configTitle :: Text
   , configFeeds :: [FeedConfig]
+  , configLocale :: Locale
   } deriving (Show)
 
 -- App Data Types
@@ -62,6 +66,8 @@ parseConfig content = do
         Right t -> Right t
     
     let title = fromMaybe "Planet" $ HM.lookup "title" toml >>= extractText
+    let localeStr = fromMaybe "fi" $ HM.lookup "locale" toml >>= extractText
+    let locale = parseLocale localeStr
     
     feeds <- case HM.lookup "feeds" toml of
         Just (Toml.VTArray nodes) -> do
@@ -69,7 +75,7 @@ parseConfig content = do
              return configs
         _ -> Right []
 
-    return $ Config title feeds
+    return $ Config title feeds locale
   where
     extractText (Toml.VString t) = Just t
     extractText _ = Nothing
@@ -129,32 +135,59 @@ join :: Maybe (Maybe a) -> Maybe a
 join (Just (Just x)) = Just x
 join _ = Nothing
 
+-- HTML Processing for Consent
+processHtml :: Text -> Text
+processHtml rawHtml = renderTags $ map processTag (parseTags rawHtml)
+  where
+    processTag (TagOpen "img" attrs) = TagOpen "img" (modifyImgAttrs attrs)
+    processTag other = other
+
+    modifyImgAttrs :: [(Text, Text)] -> [(Text, Text)]
+    modifyImgAttrs attrs =
+        let src = fromMaybe "" $ lookup "src" attrs
+            otherAttrs = filter (\(k, _) -> k /= "src" && k /= "class") attrs
+            classes = fromMaybe "" $ lookup "class" attrs
+        in ("data-src", src) : ("class", "lazy-consent " <> classes) : otherAttrs
+
 -- HTML Generation
-generateHtml :: Config -> [AppItem] -> UTCTime -> LBS.ByteString
-generateHtml config items now = renderHtml $ H.docTypeHtml $ do
+generateHtml :: Config -> Messages -> [AppItem] -> UTCTime -> LBS.ByteString
+generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
     H.head $ do
         H.meta H.! A.charset "UTF-8"
         H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
         H.title (H.toHtml $ configTitle config)
         H.style $ H.toHtml css
     H.body $ do
+        -- Cookie Consent Banner
+        H.div H.! A.id "cookie-consent" H.! A.class_ "cookie-consent hidden" $ do
+            H.div H.! A.class_ "consent-content" $ do
+                H.h3 $ H.toHtml (msgCookieConsentTitle msgs)
+                H.p $ H.toHtml (msgCookieConsentText msgs)
+                H.button H.! A.id "consent-btn" $ H.toHtml (msgCookieConsentButton msgs)
+
         H.header $ do
             H.h1 (H.toHtml $ configTitle config)
-            H.p $ "Generated on " >> H.toHtml (formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S UTC" now)
+            H.p $ do
+                H.toHtml (msgGeneratedOn msgs)
+                " "
+                H.toHtml (formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S UTC" now)
         
         H.main $ do
             H.section H.! A.class_ "feed-section" $ do
-                H.h2 "Latest Videos"
+                H.h2 (H.toHtml $ msgLatestVideos msgs)
                 H.div H.! A.class_ "grid" $ do
                     mapM_ renderCard (take 12 $ filter (\i -> itemType i == YouTube) items)
 
             H.section H.! A.class_ "feed-section" $ do
-                H.h2 "Latest Posts"
+                H.h2 (H.toHtml $ msgLatestPosts msgs)
                 H.div H.! A.class_ "list" $ do
                     mapM_ renderListItem (take 20 $ filter (\i -> itemType i == Blog) items)
         
         H.footer $ do
-            H.p "Powered by Haskell Planet Generator"
+            H.p (H.toHtml $ msgPoweredBy msgs)
+
+        -- Script for Cookie Consent & Lazy Loading
+        H.script $ H.preEscapedToHtml js
 
 renderCard :: AppItem -> H.Html
 renderCard item = H.div H.! A.class_ "card" $ do
@@ -174,13 +207,8 @@ renderListItem item = H.div H.! A.class_ "list-item" $ do
             Nothing -> return ()
     H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
     case itemDesc item of
-        Just d -> H.p H.! A.class_ "description" $ H.toHtml (truncateText 200 d)
+        Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (processHtml d)
         Nothing -> return ()
-
-truncateText :: Int -> Text -> Text
-truncateText n t 
-    | T.length t > n = T.take n t <> "..."
-    | otherwise = t
 
 -- Embedded CSS (Elegant & Minimal)
 css :: Text
@@ -204,9 +232,50 @@ css = T.unlines
     , ".list-item h3 { margin: 0 0 10px 0; font-size: 1.2rem; }"
     , ".list-item a { color: #111; text-decoration: none; }"
     , ".list-item a:hover { color: #0070f3; }"
-    , ".description { font-size: 0.95rem; color: #555; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }"
+    , ".description { font-size: 0.95rem; color: #555; margin: 0; overflow: hidden; }"
+    , ".description img { max-width: 100%; height: auto; display: none; }" -- Hide images by default via CSS too
+    , ".description img.loaded { display: block; margin: 10px 0; }"
     , "footer { margin-top: 60px; text-align: center; color: #888; font-size: 0.9rem; border-top: 1px solid #eaeaea; padding-top: 20px; }"
     , "@media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }"
+    -- Cookie Consent CSS
+    , ".cookie-consent { position: fixed; bottom: 0; left: 0; right: 0; background: #222; color: white; padding: 20px; display: flex; justify-content: center; align-items: center; z-index: 1000; }"
+    , ".cookie-consent.hidden { display: none; }"
+    , ".consent-content { display: flex; align-items: center; gap: 20px; max-width: 1200px; }"
+    , ".consent-content h3 { margin: 0; color: white; border: none; padding: 0; font-size: 1.1rem; }"
+    , ".consent-content p { margin: 0; font-size: 0.9rem; }"
+    , "#consent-btn { background: #0070f3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }"
+    , "#consent-btn:hover { background: #0051a2; }"
+    ]
+
+js :: Text
+js = T.unlines
+    [ "document.addEventListener('DOMContentLoaded', function() {"
+    , "  var consentBanner = document.getElementById('cookie-consent');"
+    , "  var consentBtn = document.getElementById('consent-btn');"
+    , "  var images = document.querySelectorAll('img.lazy-consent');"
+    , ""
+    , "  function loadImages() {"
+    , "    images.forEach(function(img) {"
+    , "      if (img.dataset.src) {"
+    , "        img.src = img.dataset.src;"
+    , "        img.classList.add('loaded');"
+    , "        img.classList.remove('lazy-consent');"
+    , "      }"
+    , "    });"
+    , "  }"
+    , ""
+    , "  if (localStorage.getItem('image-consent') === 'true') {"
+    , "    loadImages();"
+    , "  } else {"
+    , "    consentBanner.classList.remove('hidden');"
+    , "  }"
+    , ""
+    , "  consentBtn.addEventListener('click', function() {"
+    , "    localStorage.setItem('image-consent', 'true');"
+    , "    consentBanner.classList.add('hidden');"
+    , "    loadImages();"
+    , "  });"
+    , "});"
     ]
 
 main :: IO ()
@@ -216,6 +285,7 @@ main = do
         Left err -> TIO.putStrLn $ "Error parsing configuration: " <> err
         Right config -> do
             putStrLn $ "Generating planet for: " ++ T.unpack (configTitle config)
+            putStrLn $ "Locale: " ++ show (configLocale config)
             putStrLn $ "Found " ++ show (length $ configFeeds config) ++ " feeds."
             
             -- Fetch feeds concurrently
@@ -225,7 +295,8 @@ main = do
             let sortedItems = sortOn (\i -> Down (itemDate i)) allItems
             
             now <- getCurrentTime
-            let html = generateHtml config sortedItems now
+            let messages = getMessages (configLocale config)
+            let html = generateHtml config messages sortedItems now
             
             createDirectoryIfMissing True "public"
             LBS.writeFile "public/index.html" html
