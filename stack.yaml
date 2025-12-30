@@ -1,0 +1,12 @@
+resolver: lts-22.6
+
+packages:
+- .
+
+extra-deps: []
+
+system-ghc: true
+skip-ghc-check: true
+
+ghc-options:
+  "$locals": -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
