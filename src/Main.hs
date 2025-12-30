@@ -6,7 +6,7 @@ module Main where
 
 import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (try, SomeException)
-import Control.Monad (forM, when)
+import Control.Monad (forM, when, mplus)
 import qualified Data.ByteString.Lazy as LBS
 import Data.List (sortOn)
 import Data.Maybe (fromMaybe, mapMaybe)
@@ -22,6 +22,9 @@ import qualified Data.Vector as V
 import Text.Feed.Import (parseFeedSource)
 import Text.Feed.Query (getFeedItems, getItemTitle, getItemLink, getItemPublishDate, getItemDescription)
 import Text.Feed.Types (Feed, Item(..))
+import qualified Text.Atom.Feed as Atom
+import qualified Text.RSS.Syntax as RSS
+import Data.XML.Types (Element(..), Name(..), Node(..), Content(..))
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
@@ -29,6 +32,8 @@ import Network.HTTP.Simple (httpLBS, getResponseBody, parseRequest, Response)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>))
 import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
+import Text.HTML.TagSoup.Tree (TagTree(..), tagTree, flattenTree)
+import Debug.Trace (traceShow)
 
 import I18n
 
@@ -54,6 +59,7 @@ data AppItem = AppItem
   , itemLink :: Text
   , itemDate :: Maybe UTCTime
   , itemDesc :: Maybe Text
+  , itemThumbnail :: Maybe Text
   , itemSourceTitle :: Text
   , itemType :: FeedType
   } deriving (Show)
@@ -128,26 +134,84 @@ parseItem fc item = do
     link <- getItemLink item
     let date = join $ getItemPublishDate item
     let desc = getItemDescription item
-    return $ AppItem title link date desc (feedTitle fc) (feedType fc)
+    let thumb = getItemThumbnail item `mplus` (desc >>= extractFirstImage)
+    return $ AppItem title link date desc thumb (feedTitle fc) (feedType fc)
+
+extractFirstImage :: Text -> Maybe Text
+extractFirstImage html = 
+    let tags = parseTags html
+        imgTags = filter (\t -> case t of TagOpen "img" _ -> True; _ -> False) tags
+    in case imgTags of
+        (TagOpen "img" attrs : _) -> lookup "src" attrs
+        _ -> Nothing
 
 -- Helper for date join
 join :: Maybe (Maybe a) -> Maybe a
 join (Just (Just x)) = Just x
 join _ = Nothing
 
--- HTML Processing for Consent
-processHtml :: Text -> Text
-processHtml rawHtml = renderTags $ map processTag (parseTags rawHtml)
-  where
-    processTag (TagOpen "img" attrs) = TagOpen "img" (modifyImgAttrs attrs)
-    processTag other = other
+-- Thumbnail extraction
+getItemThumbnail :: Item -> Maybe Text
+getItemThumbnail item = case item of
+    AtomItem entry -> getAtomThumbnail entry
+    RSSItem rssItem -> getRSSThumbnail rssItem
+    XMLItem element -> findMediaThumbnail (elementChildren element) `mplus` findMediaGroupThumbnail (elementChildren element)
+    _ -> Nothing
 
-    modifyImgAttrs :: [(Text, Text)] -> [(Text, Text)]
-    modifyImgAttrs attrs =
-        let src = fromMaybe "" $ lookup "src" attrs
-            otherAttrs = filter (\(k, _) -> k /= "src" && k /= "class") attrs
-            classes = fromMaybe "" $ lookup "class" attrs
-        in ("data-src", src) : ("class", "lazy-consent " <> classes) : otherAttrs
+elementChildren :: Element -> [Element]
+elementChildren e = [c | NodeElement c <- elementNodes e]
+
+showItemType :: Item -> String
+showItemType (AtomItem _) = "Atom"
+showItemType (RSSItem _) = "RSS"
+showItemType (RSS1Item _) = "RSS1"
+showItemType (XMLItem _) = "XML"
+
+getAtomThumbnail :: Atom.Entry -> Maybe Text
+getAtomThumbnail entry = 
+    let others = Atom.entryOther entry
+    in traceShow ("Entry: " <> show (Atom.entryTitle entry)) $
+       traceShow ("Elements: " <> show others) $
+       case findMediaThumbnail others of
+        Just url -> Just url
+        Nothing -> findMediaGroupThumbnail others
+        Just url -> Just url
+        Nothing -> findMediaGroupThumbnail others
+
+getRSSThumbnail :: RSS.RSSItem -> Maybe Text
+getRSSThumbnail item = 
+    case findMediaThumbnail (RSS.rssItemOther item) of
+        Just url -> Just url
+        Nothing -> findMediaGroupThumbnail (RSS.rssItemOther item)
+
+findMediaThumbnail :: [Element] -> Maybe Text
+findMediaThumbnail elems = 
+    case filter isMediaThumbnail elems of
+        (e:_) -> getUrlAttr e
+        [] -> Nothing
+
+findMediaGroupThumbnail :: [Element] -> Maybe Text
+findMediaGroupThumbnail elems = 
+    case filter isMediaGroup elems of
+        (g:_) -> findMediaThumbnail (elementNodes g >>= nodeToElem)
+        [] -> Nothing
+  where
+    nodeToElem (NodeElement e) = [e]
+    nodeToElem _ = []
+
+isMediaThumbnail :: Element -> Bool
+isMediaThumbnail e = nameLocalName (elementName e) == "thumbnail" 
+                  && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/"
+
+isMediaGroup :: Element -> Bool
+isMediaGroup e = nameLocalName (elementName e) == "group" 
+              && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/"
+
+getUrlAttr :: Element -> Maybe Text
+getUrlAttr e = 
+    case filter (\(n, _) -> nameLocalName n == "url") (elementAttributes e) of
+        ((_, [ContentText t]):_) -> Just t
+        _ -> Nothing
 
 -- HTML Generation
 generateHtml :: Config -> Messages -> [AppItem] -> UTCTime -> LBS.ByteString
@@ -164,6 +228,11 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
                 H.h3 $ H.toHtml (msgCookieConsentTitle msgs)
                 H.p $ H.toHtml (msgCookieConsentText msgs)
                 H.button H.! A.id "consent-btn" $ H.toHtml (msgCookieConsentButton msgs)
+                H.button H.! A.id "reject-btn" $ H.toHtml (msgCookieRejectButton msgs)
+
+        -- Revoke Consent Button
+        H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $ do
+            "⚙️"
 
         H.header $ do
             H.h1 (H.toHtml $ configTitle config)
@@ -173,15 +242,8 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
                 H.toHtml (formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S UTC" now)
         
         H.main $ do
-            H.section H.! A.class_ "feed-section" $ do
-                H.h2 (H.toHtml $ msgLatestVideos msgs)
-                H.div H.! A.class_ "grid" $ do
-                    mapM_ renderCard (take 12 $ filter (\i -> itemType i == YouTube) items)
-
-            H.section H.! A.class_ "feed-section" $ do
-                H.h2 (H.toHtml $ msgLatestPosts msgs)
-                H.div H.! A.class_ "list" $ do
-                    mapM_ renderListItem (take 20 $ filter (\i -> itemType i == Blog) items)
+            H.div H.! A.class_ "grid" $ do
+                mapM_ renderCard (take 40 items)
         
         H.footer $ do
             H.p (H.toHtml $ msgPoweredBy msgs)
@@ -189,26 +251,84 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
         -- Script for Cookie Consent & Lazy Loading
         H.script $ H.preEscapedToHtml js
 
+cleanAndTruncate :: Int -> Text -> Text
+cleanAndTruncate maxLength html =
+    let tags = parseTags html
+        normalized = normalizeVoids tags
+        tree = tagTree normalized
+        pruned = pruneTree tree
+        flat = flattenTree pruned
+    in renderTags $ takeWithLimit maxLength [] flat
+
+-- Helper to ensure void tags are properly closed for tree construction
+normalizeVoids :: [Tag Text] -> [Tag Text]
+normalizeVoids [] = []
+normalizeVoids (TagOpen name attrs : rest)
+    | name `elem` voidTags =
+        case rest of
+            (TagClose name2 : rest2) | name == name2 ->
+                TagOpen name attrs : TagClose name : normalizeVoids rest2
+            _ ->
+                TagOpen name attrs : TagClose name : normalizeVoids rest
+normalizeVoids (x:xs) = x : normalizeVoids xs
+
+pruneTree :: [TagTree Text] -> [TagTree Text]
+pruneTree = filter (not . isEmptyTree) . map pruneBranch
+  where
+    pruneBranch (TagBranch name attrs children) = TagBranch name attrs (pruneTree children)
+    pruneBranch leaf = leaf
+
+    isEmptyTree (TagBranch name _ []) = not (name `elem` voidTags)
+    isEmptyTree (TagBranch name _ _) | name `elem` ["script", "style"] = True
+    isEmptyTree (TagBranch _ _ _) = False
+    isEmptyTree (TagLeaf tag) = not (isVisibleTag tag)
+
+    isVisibleTag (TagText t) = not (T.all (\c -> c == ' ' || c == '\t' || c == '\n' || c == '\r') t)
+    isVisibleTag (TagOpen name _) = name `elem` voidTags
+    isVisibleTag _ = False
+
+voidTags :: [Text]
+voidTags = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr", "video", "audio", "iframe", "object", "svg"]
+
+takeWithLimit :: Int -> [Text] -> [Tag Text] -> [Tag Text]
+takeWithLimit _ stack [] = map TagClose stack
+takeWithLimit remainingLen stack (t:ts)
+    | remainingLen <= 0 = map TagClose stack
+    | otherwise = case t of
+        TagText text ->
+            let len = T.length text
+            in if len <= remainingLen
+               then t : takeWithLimit (remainingLen - len) stack ts
+               else [TagText (T.take remainingLen text <> "...")] ++ map TagClose stack
+        TagOpen name _ ->
+            if name `elem` voidTags
+            then t : takeWithLimit remainingLen stack ts
+            else t : takeWithLimit remainingLen (name : stack) ts
+        TagClose name ->
+            if not (null stack) && head stack == name
+            then t : takeWithLimit remainingLen (tail stack) ts
+            else t : takeWithLimit remainingLen stack ts
+        _ -> t : takeWithLimit remainingLen stack ts
+
 renderCard :: AppItem -> H.Html
 renderCard item = H.div H.! A.class_ "card" $ do
+    case itemThumbnail item of
+        Just url -> H.div H.! A.class_ "card-image" $ 
+            H.img H.! A.class_ "lazy-consent" 
+                  H.! H.dataAttribute "src" (H.toValue url) 
+                  H.! A.alt (H.toValue $ itemTitle item)
+        Nothing -> return ()
     H.div H.! A.class_ "card-content" $ do
         H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
         H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
+        case itemDesc item of
+             Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 256 d)
+             Nothing -> return ()
         case itemDate item of
             Just d -> H.div H.! A.class_ "date" $ H.toHtml (formatTime defaultTimeLocale "%Y-%m-%d" d)
             Nothing -> return ()
 
-renderListItem :: AppItem -> H.Html
-renderListItem item = H.div H.! A.class_ "list-item" $ do
-    H.div H.! A.class_ "list-item-header" $ do
-        H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
-        case itemDate item of
-            Just d -> H.span H.! A.class_ "date" $ H.toHtml (formatTime defaultTimeLocale "%Y-%m-%d" d)
-            Nothing -> return ()
-    H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
-    case itemDesc item of
-        Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (processHtml d)
-        Nothing -> return ()
+
 
 -- Embedded CSS (Elegant & Minimal)
 css :: Text
@@ -222,6 +342,9 @@ css = T.unlines
     , ".card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }"
     , ".card-content { display: flex; flex-direction: column; height: 100%; }"
     , ".source { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; display: block; }"
+    , ".card-image { width: 100%; height: 180px; overflow: hidden; background: #eee; }"
+    , ".card-image img { width: 100%; height: 100%; object-fit: cover; display: none; }" -- Hidden by default
+    , ".card-image img.loaded { display: block; }"
     , ".card h3 { margin: 0 0 10px 0; font-size: 1.1rem; flex-grow: 1; }"
     , ".card a { color: #111; text-decoration: none; }"
     , ".card a:hover { color: #0070f3; }"
@@ -245,6 +368,12 @@ css = T.unlines
     , ".consent-content p { margin: 0; font-size: 0.9rem; }"
     , "#consent-btn { background: #0070f3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }"
     , "#consent-btn:hover { background: #0051a2; }"
+    , "#reject-btn { background: transparent; color: white; border: 1px solid white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; margin-left: 10px; }"
+    , "#reject-btn:hover { background: rgba(255,255,255,0.1); }"
+    -- Revoke Button CSS
+    , ".revoke-btn { position: fixed; bottom: 20px; right: 20px; background: rgba(255,255,255,0.8); border: 1px solid #ccc; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 999; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }"
+    , ".revoke-btn:hover { background: white; }"
+    , ".revoke-btn.hidden { display: none; }"
     ]
 
 js :: Text
@@ -252,10 +381,15 @@ js = T.unlines
     [ "document.addEventListener('DOMContentLoaded', function() {"
     , "  var consentBanner = document.getElementById('cookie-consent');"
     , "  var consentBtn = document.getElementById('consent-btn');"
-    , "  var images = document.querySelectorAll('img.lazy-consent');"
+    , "  var rejectBtn = document.getElementById('reject-btn');"
+    , "  var revokeBtn = document.getElementById('revoke-btn');"
+    , ""
+    , "  function getAllImages() {"
+    , "    return document.querySelectorAll('img.lazy-consent, img.loaded');"
+    , "  }"
     , ""
     , "  function loadImages() {"
-    , "    images.forEach(function(img) {"
+    , "    getAllImages().forEach(function(img) {"
     , "      if (img.dataset.src) {"
     , "        img.src = img.dataset.src;"
     , "        img.classList.add('loaded');"
@@ -264,8 +398,20 @@ js = T.unlines
     , "    });"
     , "  }"
     , ""
-    , "  if (localStorage.getItem('image-consent') === 'true') {"
+    , "  function hideImages() {"
+    , "    getAllImages().forEach(function(img) {"
+    , "      img.removeAttribute('src');"
+    , "      img.classList.remove('loaded');"
+    , "      img.classList.add('lazy-consent');"
+    , "    });"
+    , "  }"
+    , ""
+    , "  var consent = localStorage.getItem('image-consent');"
+    , "  if (consent === 'true') {"
     , "    loadImages();"
+    , "    revokeBtn.classList.remove('hidden');"
+    , "  } else if (consent === 'false') {"
+    , "    revokeBtn.classList.remove('hidden');"
     , "  } else {"
     , "    consentBanner.classList.remove('hidden');"
     , "  }"
@@ -273,7 +419,22 @@ js = T.unlines
     , "  consentBtn.addEventListener('click', function() {"
     , "    localStorage.setItem('image-consent', 'true');"
     , "    consentBanner.classList.add('hidden');"
+    , "    revokeBtn.classList.remove('hidden');"
     , "    loadImages();"
+    , "  });"
+    , ""
+    , "  rejectBtn.addEventListener('click', function() {"
+    , "    localStorage.setItem('image-consent', 'false');"
+    , "    consentBanner.classList.add('hidden');"
+    , "    revokeBtn.classList.remove('hidden');"
+    , "    hideImages();"
+    , "  });"
+    , ""
+    , "  revokeBtn.addEventListener('click', function() {"
+    , "    localStorage.removeItem('image-consent');"
+    , "    revokeBtn.classList.add('hidden');"
+    , "    consentBanner.classList.remove('hidden');"
+    , "    hideImages();"
     , "  });"
     , "});"
     ]

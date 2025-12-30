@@ -8,6 +8,26 @@ title = "Cyclopic Bricks"
 url = "https://cyclopicbricks.blogspot.com/feeds/posts/default?alt=rss"
 
 [[feeds]]
+type = "blog"
+title = "Hovinet"
+url = "https://hovinet.com/?feed=rss2"
+
+[[feeds]]
 type = "youtube"
 title = "FinnBrixStudio"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1gpjceZQv8qKxcCJB4BKhw"
+
+[[feeds]]
+type = "youtube"
+title = "Legokauppakeisari"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIobvkZGI5zAd55vooUokqg"
+
+[[feeds]]
+type = "youtube"
+title = "Jvvv"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCWNl-SeihlkLKGsx9L9450Q"
+
+[[feeds]]
+type = "youtube"
+title = "Hovinet"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCRM3pjKaP5BoevfZuE9_kEw"

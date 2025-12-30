@@ -18,6 +18,8 @@ data Messages = Messages
   , msgCookieConsentTitle :: Text
   , msgCookieConsentText :: Text
   , msgCookieConsentButton :: Text
+  , msgCookieRejectButton :: Text
+  , msgRevokeConsentTitle :: Text
   }
 
 -- Translations
@@ -30,6 +32,8 @@ messagesEn = Messages
   , msgCookieConsentTitle = "Cookie Consent"
   , msgCookieConsentText = "This site uses external images that may track you. Do you agree to load them?"
   , msgCookieConsentButton = "I Agree"
+  , msgCookieRejectButton = "Reject"
+  , msgRevokeConsentTitle = "Revoke consent"
   }
 
 messagesFi :: Messages
@@ -41,6 +45,8 @@ messagesFi = Messages
   , msgCookieConsentTitle = "Evästeasetukset"
   , msgCookieConsentText = "Tämä sivu käyttää ulkoisia kuvia, jotka voivat seurata sinua. Sallitko niiden lataamisen?"
   , msgCookieConsentButton = "Hyväksyn"
+  , msgCookieRejectButton = "Kiellä"
+  , msgRevokeConsentTitle = "Peruuta hyväksyntä"
   }
 
 getMessages :: Locale -> Messages
