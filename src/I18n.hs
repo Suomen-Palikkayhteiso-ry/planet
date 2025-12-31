@@ -40,13 +40,13 @@ messagesFi :: Messages
 messagesFi = Messages
   { msgLatestVideos = "Uusimmat videot"
   , msgLatestPosts = "Uusimmat kirjoitukset"
-  , msgGeneratedOn = "Luotu"
-  , msgPoweredBy = "Voimanlähteenä Haskell Planet Generator"
-  , msgCookieConsentTitle = "Evästeasetukset"
+  , msgGeneratedOn = "Koottu"
+  , msgPoweredBy = "Suomen Palikkayhteisö ry:n RSS-kooste"
+  , msgCookieConsentTitle = "Yksityisyys"
   , msgCookieConsentText = "Tämä sivu käyttää ulkoisia kuvia, jotka voivat seurata sinua. Sallitko niiden lataamisen?"
-  , msgCookieConsentButton = "Hyväksyn"
-  , msgCookieRejectButton = "Kiellä"
-  , msgRevokeConsentTitle = "Peruuta hyväksyntä"
+  , msgCookieConsentButton = "Salli"
+  , msgCookieRejectButton = "Estä"
+  , msgRevokeConsentTitle = "Muuta asetuksia"
   }
 
 getMessages :: Locale -> Messages

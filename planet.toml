@@ -1,6 +1,6 @@
 # Planet Configuration
 
-title = "Palikkaverse"
+title = "Palikkaseinä"
 
 [[feeds]]
 type = "blog"
@@ -31,3 +31,8 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCWNl-SeihlkLKGsx9L94
 type = "youtube"
 title = "Hovinet"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCRM3pjKaP5BoevfZuE9_kEw"
+
+[[feeds]]
+type = "youtube"
+title = "Saija's Brickcave"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC3doy6NwIkzNMMBba3xOOJw"

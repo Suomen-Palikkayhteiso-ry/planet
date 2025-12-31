@@ -6,9 +6,10 @@ module Main where
 
 import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (try, SomeException)
-import Control.Monad (forM, when, mplus)
+import Control.Monad (forM, forM_, when, mplus)
 import qualified Data.ByteString.Lazy as LBS
-import Data.List (sortOn)
+import Data.List (sortOn, groupBy)
+import Data.Function (on)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Text (Text)
@@ -225,8 +226,8 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
         -- Cookie Consent Banner
         H.div H.! A.id "cookie-consent" H.! A.class_ "cookie-consent hidden" $ do
             H.div H.! A.class_ "consent-content" $ do
-                H.h3 $ H.toHtml (msgCookieConsentTitle msgs)
                 H.p $ H.toHtml (msgCookieConsentText msgs)
+                -- Swapped Buttons: Consent first (primary), Reject second (secondary)
                 H.button H.! A.id "consent-btn" $ H.toHtml (msgCookieConsentButton msgs)
                 H.button H.! A.id "reject-btn" $ H.toHtml (msgCookieRejectButton msgs)
 
@@ -234,22 +235,50 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
         H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $ do
             "⚙️"
 
-        H.header $ do
-            H.h1 (H.toHtml $ configTitle config)
-            H.p $ do
-                H.toHtml (msgGeneratedOn msgs)
-                " "
-                H.toHtml (formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S UTC" now)
-        
-        H.main $ do
-            H.div H.! A.class_ "grid" $ do
-                mapM_ renderCard (take 40 items)
+        H.div H.! A.class_ "layout" $ do
+            -- Timeline Navigation
+            H.nav H.! A.class_ "timeline" $ do
+                H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime defaultTimeLocale "%Y" now)
+                H.ul $ forM_ groups $ \(monthLabel, monthId, _) -> do
+                    H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
+
+            H.main H.! A.class_ "main-content" $ do
+                -- Intro / Title area within main since header is gone
+                H.div H.! A.class_ "intro" $ do
+                    H.h1 (H.toHtml $ configTitle config)
+                    H.p $ do
+                        H.toHtml (msgGeneratedOn msgs)
+                        " "
+                        H.toHtml (formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S UTC" now)
+
+                forM_ groups $ \(monthLabel, monthId, groupItems) -> do
+                    H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $ do
+                        H.h2 H.! A.class_ "month-title" $ H.toHtml monthLabel
+                        H.div H.! A.class_ "grid" $ do
+                            mapM_ renderCard groupItems
         
         H.footer $ do
             H.p (H.toHtml $ msgPoweredBy msgs)
 
         -- Script for Cookie Consent & Lazy Loading
         H.script $ H.preEscapedToHtml js
+  where
+    -- Group items by Year-Month
+    groups = map mkGroup $ groupBy ((==) `on` itemMonth) items
+    
+    itemMonth item = case itemDate item of
+        Just d -> formatTime defaultTimeLocale "%Y-%m" d
+        Nothing -> "Unknown"
+
+    mkGroup groupItems = 
+        let first = head groupItems
+            monthLabel = case itemDate first of
+                Just d -> T.pack $ formatTime defaultTimeLocale "%B %Y" d
+                Nothing -> "Older / Undated"
+            monthId = case itemDate first of
+                Just d -> T.pack $ formatTime defaultTimeLocale "m-%Y-%m" d
+                Nothing -> "m-unknown"
+        in (monthLabel, monthId, groupItems)
 
 cleanAndTruncate :: Int -> Text -> Text
 cleanAndTruncate maxLength html =
@@ -273,14 +302,23 @@ normalizeVoids (TagOpen name attrs : rest)
 normalizeVoids (x:xs) = x : normalizeVoids xs
 
 pruneTree :: [TagTree Text] -> [TagTree Text]
-pruneTree = filter (not . isEmptyTree) . map pruneBranch
+pruneTree = filter (not . isEmptyTree) . filter (not . isSeparator) . filter (not . isImageTree) . map pruneBranch
   where
     pruneBranch (TagBranch name attrs children) = TagBranch name attrs (pruneTree children)
     pruneBranch leaf = leaf
 
+    isSeparator (TagBranch _ attrs _) = 
+        case lookup "class" attrs of
+            Just cls -> "separator" `elem` T.words cls
+            Nothing -> False
+    isSeparator _ = False
+
+    isImageTree (TagBranch name _ _) = name == "img"
+    isImageTree _ = False
+
     isEmptyTree (TagBranch name _ []) = not (name `elem` voidTags)
     isEmptyTree (TagBranch name _ _) | name `elem` ["script", "style"] = True
-    isEmptyTree (TagBranch _ _ _) = False
+    isEmptyTree (TagBranch _ _ children) = all isEmptyTree children
     isEmptyTree (TagLeaf tag) = not (isVisibleTag tag)
 
     isVisibleTag (TagText t) = not (T.all (\c -> c == ' ' || c == '\t' || c == '\n' || c == '\r') t)
@@ -333,43 +371,67 @@ renderCard item = H.div H.! A.class_ "card" $ do
 -- Embedded CSS (Elegant & Minimal)
 css :: Text
 css = T.unlines
-    [ "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; }"
-    , "header { text-align: center; margin-bottom: 40px; padding: 20px 0; border-bottom: 1px solid #eaeaea; }"
-    , "h1 { font-weight: 700; color: #111; margin: 0; }"
-    , "h2 { font-weight: 600; color: #444; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 40px; }"
+    [ "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }"
+    , ".layout { display: flex; max-width: 1400px; margin: 0 auto; padding: 20px; gap: 40px; }"
+    
+    -- Timeline Navigation
+    , ".timeline { width: 180px; flex-shrink: 0; position: sticky; top: 20px; align-self: start; height: calc(100vh - 40px); overflow-y: auto; padding-right: 10px; }"
+    , ".timeline-header { font-weight: 900; font-size: 2rem; color: #eaeaea; margin-bottom: 20px; text-align: right; line-height: 1; }"
+    , ".timeline ul { list-style: none; padding: 0; margin: 0; text-align: right; }"
+    , ".timeline li { margin-bottom: 12px; }"
+    , ".timeline a { text-decoration: none; color: #888; font-weight: 500; font-size: 0.95rem; transition: color 0.2s; display: block; padding: 4px 10px 4px 0; border-right: 2px solid transparent; }"
+    , ".timeline a:hover { color: #111; border-right-color: #ddd; }"
+    
+    -- Main Content
+    , ".main-content { flex-grow: 1; min-width: 0; }" -- min-width 0 prevents flex overflow
+    , ".intro { margin-bottom: 40px; border-bottom: 1px solid #eaeaea; padding-bottom: 20px; }"
+    , "h1 { font-weight: 700; color: #111; margin: 0 0 10px 0; font-size: 2.5rem; }"
+    , "h2.month-title { font-weight: 600; color: #444; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px 0 20px 0; font-size: 1.5rem; }"
+    
+    -- Grid & Cards
     , ".grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }"
     , ".card { background: white; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; transition: box-shadow 0.2s; display: flex; flex-direction: column; }"
     , ".card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }"
     , ".card-content { display: flex; flex-direction: column; height: 100%; }"
     , ".source { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; display: block; }"
-    , ".card-image { width: 100%; height: 180px; overflow: hidden; background: #eee; }"
-    , ".card-image img { width: 100%; height: 100%; object-fit: cover; display: none; }" -- Hidden by default
+    , ".card-image { width: 100%; height: 180px; overflow: hidden; background: #eee; margin-bottom: 15px; border-radius: 4px; }"
+    , ".card-image img { width: 100%; height: 100%; object-fit: cover; display: none; }"
     , ".card-image img.loaded { display: block; }"
-    , ".card h3 { margin: 0 0 10px 0; font-size: 1.1rem; flex-grow: 1; }"
+    , ".card h3 { margin: 0 0 10px 0; font-size: 1.1rem; line-height: 1.4; }"
     , ".card a { color: #111; text-decoration: none; }"
     , ".card a:hover { color: #0070f3; }"
-    , ".date { font-size: 0.85rem; color: #888; margin-top: auto; }"
-    , ".list { display: flex; flex-direction: column; gap: 15px; }"
-    , ".list-item { background: white; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; }"
-    , ".list-item-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }"
-    , ".list-item h3 { margin: 0 0 10px 0; font-size: 1.2rem; }"
-    , ".list-item a { color: #111; text-decoration: none; }"
-    , ".list-item a:hover { color: #0070f3; }"
+    , ".date { font-size: 0.85rem; color: #888; margin-top: auto; padding-top: 15px; }"
     , ".description { font-size: 0.95rem; color: #555; margin: 0; overflow: hidden; }"
-    , ".description img { max-width: 100%; height: auto; display: none; }" -- Hide images by default via CSS too
+    , ".description img { max-width: 100%; height: auto; display: none; }"
     , ".description img.loaded { display: block; margin: 10px 0; }"
-    , "footer { margin-top: 60px; text-align: center; color: #888; font-size: 0.9rem; border-top: 1px solid #eaeaea; padding-top: 20px; }"
+    
+    , "footer { margin-top: 80px; text-align: center; color: #888; font-size: 0.9rem; border-top: 1px solid #eaeaea; padding-top: 20px; }"
+    
+    -- Responsive
+    , "@media (max-width: 800px) {"
+    , "  .layout { flex-direction: column; gap: 20px; }"
+    , "  .timeline { width: 100%; height: auto; position: static; overflow-x: auto; padding-right: 0; border-bottom: 1px solid #eaeaea; padding-bottom: 10px; }"
+    , "  .timeline-header { text-align: left; display: none; }"
+    , "  .timeline ul { display: flex; text-align: left; gap: 15px; white-space: nowrap; }"
+    , "  .timeline a { padding: 5px; border-right: none; border-bottom: 2px solid transparent; }"
+    , "  .timeline a:hover { border-bottom-color: #333; }"
+    , "}"
     , "@media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }"
+
     -- Cookie Consent CSS
     , ".cookie-consent { position: fixed; bottom: 0; left: 0; right: 0; background: #222; color: white; padding: 20px; display: flex; justify-content: center; align-items: center; z-index: 1000; }"
     , ".cookie-consent.hidden { display: none; }"
-    , ".consent-content { display: flex; align-items: center; gap: 20px; max-width: 1200px; }"
-    , ".consent-content h3 { margin: 0; color: white; border: none; padding: 0; font-size: 1.1rem; }"
+    , ".consent-content { display: flex; align-items: center; gap: 20px; max-width: 1200px; flex-wrap: wrap; justify-content: center; }"
     , ".consent-content p { margin: 0; font-size: 0.9rem; }"
-    , "#consent-btn { background: #0070f3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }"
+    
+    -- Swapped Button Styles
+    -- Consent: Primary (Blue)
+    , "#consent-btn { background: #0070f3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; margin-left: 10px; }"
     , "#consent-btn:hover { background: #0051a2; }"
-    , "#reject-btn { background: transparent; color: white; border: 1px solid white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; margin-left: 10px; }"
+    -- Reject: Secondary (Transparent/White Border)
+    , "#reject-btn { background: transparent; color: white; border: 1px solid white; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600; }"
     , "#reject-btn:hover { background: rgba(255,255,255,0.1); }"
+    
     -- Revoke Button CSS
     , ".revoke-btn { position: fixed; bottom: 20px; right: 20px; background: rgba(255,255,255,0.8); border: 1px solid #ccc; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 999; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }"
     , ".revoke-btn:hover { background: white; }"
