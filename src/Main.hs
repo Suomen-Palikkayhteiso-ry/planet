@@ -387,7 +387,7 @@ css = T.unlines
     
     -- Main Content
     , ".main-content { flex-grow: 1; min-width: 0; }" -- min-width 0 prevents flex overflow
-    , ".intro { margin-bottom: 40px; border-bottom: 1px solid #eaeaea; padding-bottom: 20px; }"
+    , ".intro { }"
     , "h1 { font-weight: 700; color: #111; margin: 0 0 10px 0; font-size: 2.5rem; }"
     , "h2.month-title { font-weight: 600; color: #444; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px 0 20px 0; font-size: 1.5rem; }"
     
