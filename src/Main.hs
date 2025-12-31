@@ -377,10 +377,13 @@ takeWithLimit remainingLen stack (t:ts)
 renderCard :: TimeLocale -> AppItem -> H.Html
 renderCard locale item = H.div H.! A.class_ "card" $ do
     case itemThumbnail item of
-        Just url -> H.div H.! A.class_ "card-image" $ 
+        Just url -> H.div H.! A.class_ "card-image" $ do
             H.img H.! A.class_ "lazy-consent" 
                   H.! H.dataAttribute "src" (H.toValue url) 
                   H.! A.alt (H.toValue $ itemTitle item)
+            H.div H.! A.class_ "type-icon" $ case itemType item of
+                YouTube -> "🎥"
+                Blog -> "📝"
         Nothing -> return ()
     H.div H.! A.class_ "card-content" $ do
         H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
@@ -420,9 +423,10 @@ css = T.unlines
     , ".card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }"
     , ".card-content { display: flex; flex-direction: column; height: 100%; }"
     , ".source { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; display: block; }"
-    , ".card-image { width: 100%; height: 180px; overflow: hidden; background: #eee; margin-bottom: 15px; border-radius: 4px; }"
+    , ".card-image { width: 100%; height: 180px; overflow: hidden; background: #eee; margin-bottom: 15px; border-radius: 4px; position: relative; }"
     , ".card-image img { width: 100%; height: 100%; object-fit: cover; display: none; }"
     , ".card-image img.loaded { display: block; }"
+    , ".type-icon { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; line-height: 1; pointer-events: none; }"
     , ".card h3 { margin: 0 0 10px 0; font-size: 1.1rem; line-height: 1.4; }"
     , ".card a { color: #111; text-decoration: none; }"
     , ".card a:hover { color: #0070f3; }"
