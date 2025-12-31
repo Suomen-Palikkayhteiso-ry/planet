@@ -24,7 +24,7 @@ jobs:
 
       - name: Install Devenv CLI
         run: |
-          nix-env -iA devenv -f https://github.com/cachix/devenv/tarball/latest
+          nix profile install --accept-flake-config github:cachix/devenv/latest
 
       - name: Restore Cabal Store
         uses: actions/cache@v4
