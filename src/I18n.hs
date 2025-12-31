@@ -4,6 +4,7 @@ module I18n where
 
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time.Format (TimeLocale(..), defaultTimeLocale)
 
 -- Supported locales
 data Locale = En | Fi
@@ -53,6 +54,10 @@ getMessages :: Locale -> Messages
 getMessages En = messagesEn
 getMessages Fi = messagesFi
 
+getTimeLocale :: Locale -> TimeLocale
+getTimeLocale En = defaultTimeLocale
+getTimeLocale Fi = fiTimeLocale
+
 defaultLocale :: Locale
 defaultLocale = Fi
 
@@ -60,3 +65,35 @@ parseLocale :: Text -> Locale
 parseLocale "en" = En
 parseLocale "fi" = Fi
 parseLocale _    = defaultLocale
+
+fiTimeLocale :: TimeLocale
+fiTimeLocale = defaultTimeLocale
+    { wDays = 
+        [ ("sunnuntai", "su")
+        , ("maanantai", "ma")
+        , ("tiistai", "ti")
+        , ("keskiviikko", "ke")
+        , ("torstai", "to")
+        , ("perjantai", "pe")
+        , ("lauantai", "la")
+        ]
+    , months = 
+        [ ("tammikuu", "tammi")
+        , ("helmikuu", "helmi")
+        , ("maaliskuu", "maalis")
+        , ("huhtikuu", "huhti")
+        , ("toukokuu", "touko")
+        , ("kesäkuu", "kesä")
+        , ("heinäkuu", "heinä")
+        , ("elokuu", "elo")
+        , ("syyskuu", "syys")
+        , ("lokakuu", "loka")
+        , ("marraskuu", "marras")
+        , ("joulukuu", "joulu")
+        ]
+    , amPm = ("ap.", "ip.")
+    , dateTimeFmt = "%d.%m.%Y %H.%M.%S"
+    , dateFmt = "%d.%m.%Y"
+    , timeFmt = "%H.%M.%S"
+    , time12Fmt = "%H.%M.%S"
+    }

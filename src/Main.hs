@@ -16,7 +16,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Encoding as TE
-import Data.Time (UTCTime, defaultTimeLocale, formatTime, getCurrentTime, diffUTCTime)
+import Data.Time (UTCTime, defaultTimeLocale, formatTime, getCurrentTime, diffUTCTime, TimeLocale)
 import qualified Text.Toml as Toml
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
@@ -238,7 +238,7 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
         H.div H.! A.class_ "layout" $ do
             -- Timeline Navigation
             H.nav H.! A.class_ "timeline" $ do
-                H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime defaultTimeLocale "%Y" now)
+                H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime locale "%Y" now)
                 H.ul $ forM_ groups $ \(monthLabel, monthId, _) -> do
                     H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
 
@@ -249,13 +249,13 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
                     H.p $ do
                         H.toHtml (msgGeneratedOn msgs)
                         " "
-                        H.toHtml (formatTime defaultTimeLocale "%Y-%m-%d %H:%M:%S UTC" now)
+                        H.toHtml (formatTime locale "%Y-%m-%d %H:%M:%S UTC" now)
 
                 forM_ groups $ \(monthLabel, monthId, groupItems) -> do
                     H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $ do
                         H.h2 H.! A.class_ "month-title" $ H.toHtml monthLabel
                         H.div H.! A.class_ "grid" $ do
-                            mapM_ renderCard groupItems
+                            mapM_ (renderCard locale) groupItems
         
         H.footer $ do
             H.p (H.toHtml $ msgPoweredBy msgs)
@@ -263,20 +263,22 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
         -- Script for Cookie Consent & Lazy Loading
         H.script $ H.preEscapedToHtml js
   where
+    locale = getTimeLocale (configLocale config)
+
     -- Group items by Year-Month
     groups = map mkGroup $ groupBy ((==) `on` itemMonth) items
     
     itemMonth item = case itemDate item of
-        Just d -> formatTime defaultTimeLocale "%Y-%m" d
+        Just d -> formatTime locale "%Y-%m" d
         Nothing -> "Unknown"
 
     mkGroup groupItems = 
         let first = head groupItems
             monthLabel = case itemDate first of
-                Just d -> T.pack $ formatTime defaultTimeLocale "%B %Y" d
+                Just d -> T.pack $ formatTime locale "%B %Y" d
                 Nothing -> "Older / Undated"
             monthId = case itemDate first of
-                Just d -> T.pack $ formatTime defaultTimeLocale "m-%Y-%m" d
+                Just d -> T.pack $ formatTime locale "m-%Y-%m" d
                 Nothing -> "m-unknown"
         in (monthLabel, monthId, groupItems)
 
@@ -348,8 +350,8 @@ takeWithLimit remainingLen stack (t:ts)
             else t : takeWithLimit remainingLen stack ts
         _ -> t : takeWithLimit remainingLen stack ts
 
-renderCard :: AppItem -> H.Html
-renderCard item = H.div H.! A.class_ "card" $ do
+renderCard :: TimeLocale -> AppItem -> H.Html
+renderCard locale item = H.div H.! A.class_ "card" $ do
     case itemThumbnail item of
         Just url -> H.div H.! A.class_ "card-image" $ 
             H.img H.! A.class_ "lazy-consent" 
@@ -363,7 +365,7 @@ renderCard item = H.div H.! A.class_ "card" $ do
              Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 256 d)
              Nothing -> return ()
         case itemDate item of
-            Just d -> H.div H.! A.class_ "date" $ H.toHtml (formatTime defaultTimeLocale "%Y-%m-%d" d)
+            Just d -> H.div H.! A.class_ "date" $ H.toHtml (formatTime locale "%Y-%m-%d" d)
             Nothing -> return ()
 
 
