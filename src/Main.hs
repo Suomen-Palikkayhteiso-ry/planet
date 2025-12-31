@@ -6,7 +6,7 @@ module Main where
 
 import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (try, SomeException)
-import Control.Monad (forM, forM_, when, mplus)
+import Control.Monad (forM_, mplus)
 import qualified Data.ByteString.Lazy as LBS
 import Data.Char (isSpace)
 import Data.List (sortOn, groupBy)
@@ -18,15 +18,15 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Encoding as TE
 import Data.Time (UTCTime, formatTime, getCurrentTime, TimeLocale)
-import Data.Time.LocalTime (utcToZonedTime, ZonedTime, TimeZone)
-import Data.Time.Zones (TimeZoneSeries, timeZoneForUTCTime)
-import Data.Time.Zones.DB (tzByLabel)
+import Data.Time.LocalTime (utcToZonedTime, TimeZone)
+import Data.Time.Zones (timeZoneForUTCTime)
+import Data.Time.Zones.All (tzByLabel, fromTZName)
 import qualified Text.Toml as Toml
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
 import Text.Feed.Import (parseFeedSource)
 import Text.Feed.Query (getFeedItems, getItemTitle, getItemLink, getItemPublishDate, getItemDescription)
-import Text.Feed.Types (Feed, Item(..))
+import Text.Feed.Types (Item(..))
 import qualified Text.Atom.Feed as Atom
 import qualified Text.RSS.Syntax as RSS
 import Data.XML.Types (Element(..), Name(..), Node(..), Content(..))
@@ -35,7 +35,6 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import Network.HTTP.Simple (httpLBS, getResponseBody, parseRequest, Response)
 import System.Directory (createDirectoryIfMissing)
-import System.FilePath ((</>))
 import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
 import Text.HTML.TagSoup.Tree (TagTree(..), tagTree, flattenTree)
 import Debug.Trace (traceShow)
@@ -184,8 +183,6 @@ getAtomThumbnail entry =
     in traceShow ("Entry: " <> show (Atom.entryTitle entry)) $
        traceShow ("Elements: " <> show others) $
        case findMediaThumbnail others of
-        Just url -> Just url
-        Nothing -> findMediaGroupThumbnail others
         Just url -> Just url
         Nothing -> findMediaGroupThumbnail others
 
@@ -556,9 +553,9 @@ main = do
             let messages = getMessages (configLocale config)
             
             -- Resolve TimeZone
-            mbTzSeries <- tzByLabel (configTimezone config)
-            let localTZ = case mbTzSeries of
-                            Just tzSeries -> timeZoneForUTCTime tzSeries now
+            let tzName = TE.encodeUtf8 (configTimezone config)
+            let localTZ = case fromTZName tzName of
+                            Just label -> timeZoneForUTCTime (tzByLabel label) now
                             Nothing -> error $ "Unknown or invalid timezone: " ++ T.unpack (configTimezone config)
             
             let html = generateHtml config messages sortedItems now localTZ
