@@ -17,7 +17,10 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Encoding as TE
-import Data.Time (UTCTime, defaultTimeLocale, formatTime, getCurrentTime, diffUTCTime, TimeLocale)
+import Data.Time (UTCTime, formatTime, getCurrentTime, TimeLocale)
+import Data.Time.LocalTime (utcToZonedTime, ZonedTime, TimeZone)
+import Data.Time.Zones (TimeZoneSeries, timeZoneForUTCTime)
+import Data.Time.Zones.DB (tzByLabel)
 import qualified Text.Toml as Toml
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V
@@ -53,6 +56,7 @@ data Config = Config
   { configTitle :: Text
   , configFeeds :: [FeedConfig]
   , configLocale :: Locale
+  , configTimezone :: Text
   } deriving (Show)
 
 -- App Data Types
@@ -76,6 +80,7 @@ parseConfig content = do
     let title = fromMaybe "Planet" $ HM.lookup "title" toml >>= extractText
     let localeStr = fromMaybe "fi" $ HM.lookup "locale" toml >>= extractText
     let locale = parseLocale localeStr
+    let timezone = fromMaybe "Europe/Helsinki" $ HM.lookup "timezone" toml >>= extractText
     
     feeds <- case HM.lookup "feeds" toml of
         Just (Toml.VTArray nodes) -> do
@@ -83,7 +88,7 @@ parseConfig content = do
              return configs
         _ -> Right []
 
-    return $ Config title feeds locale
+    return $ Config title feeds locale timezone
   where
     extractText (Toml.VString t) = Just t
     extractText _ = Nothing
@@ -239,8 +244,8 @@ getMediaDescription entry =
       _ -> Nothing
 
 -- HTML Generation
-generateHtml :: Config -> Messages -> [AppItem] -> UTCTime -> LBS.ByteString
-generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
+generateHtml :: Config -> Messages -> [AppItem] -> UTCTime -> TimeZone -> LBS.ByteString
+generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
     H.head $ do
         H.meta H.! A.charset "UTF-8"
         H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
@@ -262,7 +267,7 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
         H.div H.! A.class_ "layout" $ do
             -- Timeline Navigation
             H.nav H.! A.class_ "timeline" $ do
-                H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime locale "%Y" now)
+                H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime locale "%Y" (utcToZonedTime localTZ now))
                 H.ul $ forM_ groups $ \(monthLabel, monthId, _) -> do
                     H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
 
@@ -273,7 +278,7 @@ generateHtml config msgs items now = renderHtml $ H.docTypeHtml $ do
                     H.p $ do
                         H.toHtml (msgGeneratedOn msgs)
                         " "
-                        H.toHtml (formatTime locale "%Y-%m-%d %H:%M:%S UTC" now)
+                        H.toHtml (formatTime locale "%Y-%m-%d %H:%M:%S" (utcToZonedTime localTZ now))
 
                 forM_ groups $ \(monthLabel, monthId, groupItems) -> do
                     H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $ do
@@ -426,7 +431,7 @@ css = T.unlines
     , ".card-image { width: 100%; height: 180px; overflow: hidden; background: #eee; margin-bottom: 15px; border-radius: 4px; position: relative; }"
     , ".card-image img { width: 100%; height: 100%; object-fit: cover; display: none; }"
     , ".card-image img.loaded { display: block; }"
-    , ".type-icon { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.6); color: white; padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; line-height: 1; pointer-events: none; }"
+    , ".type-icon { position: absolute; bottom: 8px; right: 8px; background: rgba(255,255,255,0.6); color: white; padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; line-height: 1; pointer-events: none; }"
     , ".card h3 { margin: 0 0 10px 0; font-size: 1.1rem; line-height: 1.4; }"
     , ".card a { color: #111; text-decoration: none; }"
     , ".card a:hover { color: #0070f3; }"
@@ -549,7 +554,14 @@ main = do
             
             now <- getCurrentTime
             let messages = getMessages (configLocale config)
-            let html = generateHtml config messages sortedItems now
+            
+            -- Resolve TimeZone
+            mbTzSeries <- tzByLabel (configTimezone config)
+            let localTZ = case mbTzSeries of
+                            Just tzSeries -> timeZoneForUTCTime tzSeries now
+                            Nothing -> error $ "Unknown or invalid timezone: " ++ T.unpack (configTimezone config)
+            
+            let html = generateHtml config messages sortedItems now localTZ
             
             createDirectoryIfMissing True "public"
             LBS.writeFile "public/index.html" html
