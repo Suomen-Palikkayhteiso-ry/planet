@@ -17,22 +17,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Haskell
-        uses: haskell-actions/setup@v2
+      - name: Install Devenv
+        uses: cachix/install-nix-action@v27
         with:
-          ghc-version: '9.6.6'
-          cabal-version: '3.10'
+          nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Restore build cache
+      - name: Install Devenv CLI
+        run: |
+          nix-env -iA devenv -f https://github.com/cachix/devenv/tarball/latest
+
+      - name: Restore Cabal Store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cabal/store
+            ~/.cabal/packages
+          key: ${{ runner.os }}-cabal-${{ hashFiles('planet.cabal', 'devenv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cabal-
+
+      - name: Restore Dist
         uses: actions/cache@v4
         with:
           path: dist-newstyle
-          key: build-dist-restore # We don't save a new cache here, just restore
+          key: build-dist-restore
           restore-keys: |
             build-dist-
 
       - name: Generate Site
-        run: cabal run
+        run: devenv shell -- cabal run
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
