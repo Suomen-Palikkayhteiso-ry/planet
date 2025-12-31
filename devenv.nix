@@ -17,6 +17,7 @@
   languages.haskell.enable = true;
   languages.haskell.package = pkgs.haskell.compiler.ghc96;
   languages.haskell.stack.enable = true;
+  languages.haskell.languageServer = null;
 
   # https://devenv.sh/scripts/
   scripts.build-site.exec = "cabal run";
