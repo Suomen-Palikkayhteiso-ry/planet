@@ -9,6 +9,7 @@ build: ## Build the executable
 	cabal build
 
 run: ## Run the planet generator to update site
+	cabal update
 	cabal run
 
 clean: ## Clean build artifacts and output
