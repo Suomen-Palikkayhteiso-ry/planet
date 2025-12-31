@@ -45,10 +45,10 @@ jobs:
             build-dist-
 
       - name: Build
-        run: devenv shell -- cabal build
+        run: devenv shell -- make build
 
       - name: Generate Site
-        run: devenv shell -- cabal run
+        run: devenv shell -- make run
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

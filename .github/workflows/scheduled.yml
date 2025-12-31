@@ -45,7 +45,7 @@ jobs:
             build-dist-
 
       - name: Generate Site
-        run: devenv shell -- cabal run
+        run: devenv shell -- make run
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
