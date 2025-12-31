@@ -5,6 +5,7 @@ default: help
 all: build ## Build the project
 
 build: ## Build the executable
+	cabal update
 	cabal build
 
 run: ## Run the planet generator to update site
