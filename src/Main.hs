@@ -8,6 +8,7 @@ import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (try, SomeException)
 import Control.Monad (forM, forM_, when, mplus)
 import qualified Data.ByteString.Lazy as LBS
+import Data.Char (isSpace)
 import Data.List (sortOn, groupBy)
 import Data.Function (on)
 import Data.Maybe (fromMaybe, mapMaybe)
@@ -323,7 +324,7 @@ pruneTree = filter (not . isEmptyTree) . filter (not . isSeparator) . filter (no
     isEmptyTree (TagBranch _ _ children) = all isEmptyTree children
     isEmptyTree (TagLeaf tag) = not (isVisibleTag tag)
 
-    isVisibleTag (TagText t) = not (T.all (\c -> c == ' ' || c == '\t' || c == '\n' || c == '\r') t)
+    isVisibleTag (TagText t) = not (T.all isSpace t)
     isVisibleTag (TagOpen name _) = name `elem` voidTags
     isVisibleTag _ = False
 
