@@ -134,6 +134,29 @@ fetchFeed fc = do
                     return []
                 Just feed -> return $ mapMaybe (parseItem fc) (getFeedItems feed)
 
+-- Media Description Extraction
+getMediaDescription :: [Element] -> Maybe Text
+getMediaDescription elements =
+    let mediaGroups = filter isMediaGroup elements
+    in case mediaGroups of
+        (g:_) -> 
+            let descriptionElements = filter isMediaDescription (elementNodes g >>= nodeToElem)
+            in case descriptionElements of
+                (d:_) -> elementText d
+                _ -> Nothing
+        _ -> Nothing
+  where
+    nodeToElem (NodeElement e) = [e]
+    nodeToElem _ = []
+    
+    elementText e = 
+        let texts = [t | NodeContent (ContentText t) <- elementNodes e]
+        in if null texts then Nothing else Just (T.concat texts)
+
+isMediaDescription :: Element -> Bool
+isMediaDescription e = nameLocalName (elementName e) == "description" 
+                    && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/"
+
 parseItem :: FeedConfig -> Item -> Maybe AppItem
 parseItem fc item = do
     title <- getItemTitle item
@@ -141,7 +164,8 @@ parseItem fc item = do
     let date = join $ getItemPublishDate item
     let defaultDesc = getItemDescription item
     let youtubeMediaDesc = case (item, feedType fc) of
-                            (AtomItem entry, YouTube) -> getMediaDescription entry
+                            (AtomItem entry, YouTube) -> getMediaDescription (Atom.entryOther entry)
+                            (XMLItem element, YouTube) -> getMediaDescription (elementChildren element)
                             _ -> Nothing
     let desc = youtubeMediaDesc `mplus` defaultDesc
     let thumb = getItemThumbnail item `mplus` (desc >>= extractFirstImage)
@@ -220,25 +244,6 @@ getUrlAttr e =
     case filter (\(n, _) -> nameLocalName n == "url") (elementAttributes e) of
         ((_, [ContentText t]):_) -> Just t
         _ -> Nothing
-
--- Media Description Extraction
-getMediaDescription :: Atom.Entry -> Maybe Text
-getMediaDescription entry =
-  let otherElements = Atom.entryOther entry
-      mediaGroups = filter (\e -> nameLocalName (elementName e) == "group" && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/") otherElements
-  in case mediaGroups of
-    (g:_) ->
-      let descriptionElements = filter (\e -> nameLocalName (elementName e) == "description") (elementNodes g >>= nodeToElem)
-      in case descriptionElements of
-        (d:_) -> elementText d
-        _ -> Nothing
-    _ -> Nothing
-  where
-    nodeToElem (NodeElement e) = [e]
-    nodeToElem _ = []
-    elementText e = case elementNodes e of
-      [NodeContent (ContentText t)] -> Just t
-      _ -> Nothing
 
 -- HTML Generation
 generateHtml :: Config -> Messages -> [AppItem] -> UTCTime -> TimeZone -> LBS.ByteString
