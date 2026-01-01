@@ -26,26 +26,16 @@ jobs:
         run: |
           nix profile install --accept-flake-config github:cachix/devenv/latest
 
-      - name: Restore Cabal Store
-        uses: actions/cache@v4
+      - name: Restore Binary
+        uses: actions/cache/restore@v4
         with:
-          path: |
-            ~/.cabal/store
-            ~/.cabal/packages
-          key: ${{ runner.os }}-cabal-${{ hashFiles('planet.cabal', 'devenv.lock') }}
+          path: planet
+          key: planet-bin-
           restore-keys: |
-            ${{ runner.os }}-cabal-
-
-      - name: Restore Dist
-        uses: actions/cache@v4
-        with:
-          path: dist-newstyle
-          key: build-dist-restore
-          restore-keys: |
-            build-dist-
+            planet-bin-
 
       - name: Generate Site
-        run: devenv shell -- make run
+        run: devenv shell -- make run-bin
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -7,14 +7,17 @@ all: build ## Build the project
 build: ## Build the executable
 	cabal update
 	cabal build
+	cp $$(cabal list-bin planet) ./planet
 
 run: ## Run the planet generator to update site
-	cabal update
 	cabal run
+
+run-bin: ## Run the compiled executable directly
+	./planet
 
 clean: ## Clean build artifacts and output
 	cabal clean
-	rm -rf public
+	rm -rf public planet
 
 test: ## Run tests
 	cabal test

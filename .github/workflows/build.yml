@@ -47,8 +47,14 @@ jobs:
       - name: Build
         run: devenv shell -- make build
 
+      - name: Cache Binary
+        uses: actions/cache@v4
+        with:
+          path: planet
+          key: planet-bin-${{ github.sha }}
+
       - name: Generate Site
-        run: devenv shell -- make run
+        run: devenv shell -- make run-bin
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
