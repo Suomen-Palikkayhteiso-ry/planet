@@ -17,35 +17,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Devenv
-        uses: cachix/install-nix-action@v27
+      - name: Setup Haskell
+        uses: haskell-actions/setup@v2
         with:
-          nix_path: nixpkgs=channel:nixos-unstable
-
-      - name: Install Devenv CLI
-        run: |
-          nix profile install --accept-flake-config github:cachix/devenv/latest
+          ghc-version: '9.6'
+          cabal-version: 'latest'
 
       - name: Cache Cabal Store
         uses: actions/cache@v4
         with:
           path: |
             ~/.cabal/store
-            ~/.cabal/packages
-          key: ${{ runner.os }}-cabal-${{ hashFiles('planet.cabal', 'devenv.lock') }}
+            dist-newstyle
+          key: ${{ runner.os }}-ghc9.6-cabal-${{ hashFiles('planet.cabal') }}
           restore-keys: |
-            ${{ runner.os }}-cabal-
-
-      - name: Cache Dist
-        uses: actions/cache@v4
-        with:
-          path: dist-newstyle
-          key: build-dist-${{ github.sha }}
-          restore-keys: |
-            build-dist-
+            ${{ runner.os }}-ghc9.6-cabal-
 
       - name: Build
-        run: devenv shell -- make build
+        run: make build
 
       - name: Cache Binary
         uses: actions/cache@v4
@@ -54,7 +43,7 @@ jobs:
           key: planet-bin-${{ github.sha }}
 
       - name: Generate Site
-        run: devenv shell -- make run-bin
+        run: make run-bin
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

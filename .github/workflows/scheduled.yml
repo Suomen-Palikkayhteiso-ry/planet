@@ -17,15 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Devenv
-        uses: cachix/install-nix-action@v27
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-
-      - name: Install Devenv CLI
-        run: |
-          nix profile install --accept-flake-config github:cachix/devenv/latest
-
       - name: Restore Binary
         uses: actions/cache/restore@v4
         with:
@@ -35,7 +26,7 @@ jobs:
             planet-bin-
 
       - name: Generate Site
-        run: devenv shell -- make run-bin
+        run: make run-bin
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
