@@ -245,7 +245,7 @@ getFeedAlternateLink feed = case feed of
     _ -> Nothing
   where
     getAtomFeedAlternateLink af = 
-        case Atom.feedLinks af of
+        case drop 1 (Atom.feedLinks af) of
             (l:_) -> Just (Atom.linkHref l)
             _ -> Nothing
     getRSSFeedAlternateLink rf = Nothing -- RSS channel link not easily accessible
