@@ -26,12 +26,12 @@ css = T.unlines
     , "h2.month-title { font-weight: 600; color: #444; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px 0 20px 0; font-size: 1.5rem; }"
     
     -- Grid & Cards
-    , ".grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }"
-    , ".card { background: white; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; transition: box-shadow 0.2s; display: flex; flex-direction: column; position: relative; }"
+    , ".grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }"
+    , ".card { background: white; border: 1px solid #eaeaea; padding: 20px; transition: box-shadow 0.2s; display: flex; flex-direction: column; position: relative; }"
     , ".card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }"
     , ".card-content { display: flex; flex-direction: column; height: 100%; }"
     , ".source { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; display: block; }"
-    , ".card-image { width: 100%; height: 180px; overflow: hidden; background: #eee; margin-bottom: 15px; border-radius: 4px; position: relative; }"
+    , ".card-image { width: 100%; height: 180px; overflow: hidden; margin-bottom: 15px; border-radius: 4px; position: relative; }"
     , ".card-image img { width: 100%; height: 100%; object-fit: contain; display: none; }"
     , ".card-image img.loaded { display: block; }"
     , ".type-icon { background: rgba(0,0,0,0.1); color: #888; padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; line-height: 1; }"
@@ -40,7 +40,7 @@ css = T.unlines
     , ".card a:hover { color: #0070f3; }"
     , ".date { font-size: 0.85rem; color: #888; }"
     , ".card-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }"
-    , ".description { font-size: 0.95rem; color: #555; margin: 0; overflow: hidden; }"
+    , ".description { font-size: 0.95rem; color: #555; margin: 0; overflow: hidden; flex-grow: 1; }"
     , ".description img { max-width: 100%; height: auto; display: none; }"
     , ".description img.loaded { display: block; margin: 10px 0; }"
     
