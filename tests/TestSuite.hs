@@ -28,6 +28,7 @@ import qualified Planet as PlanetMain
 import qualified FeedParser as FeedParser
 import qualified HtmlGen as HtmlGen
 import I18n
+import Config
 
 -- Helper function for tests
 join :: Maybe (Maybe a) -> Maybe a

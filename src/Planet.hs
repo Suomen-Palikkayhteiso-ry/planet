@@ -17,6 +17,7 @@ import qualified Data.ByteString.Lazy as LBS
 import System.Directory (createDirectoryIfMissing)
 
 import I18n
+import Config
 import FeedParser
 import HtmlGen
 

@@ -18,6 +18,7 @@ import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
 import Text.HTML.TagSoup.Tree (TagTree(..), tagTree, flattenTree)
 
 import I18n
+import Config
 import Styles
 import Scripts
 

@@ -21,6 +21,7 @@ import qualified Data.ByteString.Lazy as LBS
 import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
 
 import I18n
+import Config
 
 data FeedHandler = FeedHandler
     { fhGetMediaDescription :: Item -> Maybe Text

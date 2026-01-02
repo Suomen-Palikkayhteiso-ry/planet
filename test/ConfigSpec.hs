@@ -6,7 +6,7 @@ import Test.Tasty.HUnit
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import I18n
+import Config
 
 configTests :: TestTree
 configTests = testGroup "Config Tests"
