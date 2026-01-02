@@ -5,8 +5,8 @@ module HtmlSanitizer (cleanAndTruncate, normalizeVoids, pruneTree, takeWithLimit
 import Data.Char (isSpace)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
-import Text.HTML.TagSoup.Tree (TagTree(..), tagTree, flattenTree)
+import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
+import Text.HTML.TagSoup.Tree (TagTree (..), flattenTree, tagTree)
 
 -- HTML sanitization and cleaning utilities
 cleanAndTruncate :: Int -> Text -> Text
@@ -16,7 +16,7 @@ cleanAndTruncate maxLength html =
         tree = tagTree normalized
         pruned = pruneTree tree
         flat = flattenTree pruned
-    in renderTags $ takeWithLimit maxLength [] flat
+     in renderTags $ takeWithLimit maxLength [] flat
 
 -- Helper to ensure void tags are properly closed for tree construction
 normalizeVoids :: [Tag Text] -> [Tag Text]
@@ -24,11 +24,12 @@ normalizeVoids [] = []
 normalizeVoids (TagOpen name attrs : rest)
     | name `elem` voidTags =
         case rest of
-            (TagClose name2 : rest2) | name == name2 ->
-                TagOpen name attrs : TagClose name : normalizeVoids rest2
+            (TagClose name2 : rest2)
+                | name == name2 ->
+                    TagOpen name attrs : TagClose name : normalizeVoids rest2
             _ ->
                 TagOpen name attrs : TagClose name : normalizeVoids rest
-normalizeVoids (x:xs) = x : normalizeVoids xs
+normalizeVoids (x : xs) = x : normalizeVoids xs
 
 pruneTree :: [TagTree Text] -> [TagTree Text]
 pruneTree = filter (not . isEmptyTree) . filter (not . isSeparator) . filter (not . isImageTree) . map pruneBranch
@@ -36,7 +37,7 @@ pruneTree = filter (not . isEmptyTree) . filter (not . isSeparator) . filter (no
     pruneBranch (TagBranch name attrs children) = TagBranch name attrs (pruneTree children)
     pruneBranch leaf = leaf
 
-    isSeparator (TagBranch _ attrs _) = 
+    isSeparator (TagBranch _ attrs _) =
         case lookup "class" attrs of
             Just cls -> "separator" `elem` T.words cls
             Nothing -> False
@@ -59,20 +60,20 @@ voidTags = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", 
 
 takeWithLimit :: Int -> [Text] -> [Tag Text] -> [Tag Text]
 takeWithLimit _ stack [] = map TagClose stack
-takeWithLimit remainingLen stack (t:ts)
+takeWithLimit remainingLen stack (t : ts)
     | remainingLen <= 0 = map TagClose stack
     | otherwise = case t of
         TagText text ->
             let len = T.length text
-            in if len <= remainingLen
-               then t : takeWithLimit (remainingLen - len) stack ts
-               else TagText (T.take remainingLen text <> "...") : map TagClose stack
+             in if len <= remainingLen
+                    then t : takeWithLimit (remainingLen - len) stack ts
+                    else TagText (T.take remainingLen text <> "...") : map TagClose stack
         TagOpen name _ ->
             if name `elem` voidTags
-            then t : takeWithLimit remainingLen stack ts
-            else t : takeWithLimit remainingLen (name : stack) ts
+                then t : takeWithLimit remainingLen stack ts
+                else t : takeWithLimit remainingLen (name : stack) ts
         TagClose name ->
             if not (null stack) && head stack == name
-            then t : takeWithLimit remainingLen (tail stack) ts
-            else t : takeWithLimit remainingLen stack ts
+                then t : takeWithLimit remainingLen (tail stack) ts
+                else t : takeWithLimit remainingLen stack ts
         _ -> t : takeWithLimit remainingLen stack ts

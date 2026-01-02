@@ -15,12 +15,14 @@
   # https://devenv.sh/packages/
   packages = [
     pkgs.cabal-install
+    pkgs.fourmolu
     pkgs.gemini-cli
     pkgs.git
     pkgs.hlint
     pkgs.nodejs
     pkgs.openssl
     pkgs.pkg-config
+    pkgs.treefmt
     pkgs.zlib
   ];
 

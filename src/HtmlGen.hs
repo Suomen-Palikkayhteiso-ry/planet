@@ -10,26 +10,26 @@ module HtmlGen (
     renderFooter,
     renderScript,
     generateHtml,
-    renderCard
+    renderCard,
 ) where
 
 import Control.Monad (forM_)
+import qualified Data.ByteString.Lazy as LBS
 import Data.Function (on)
 import Data.List (groupBy)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time (UTCTime, formatTime, TimeLocale)
-import Data.Time.LocalTime (utcToZonedTime, TimeZone)
+import Data.Time (TimeLocale, UTCTime, formatTime)
+import Data.Time.LocalTime (TimeZone, utcToZonedTime)
+import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
-import qualified Data.ByteString.Lazy as LBS
 
-import I18n
 import Config
-import Styles
-import Scripts
 import HtmlSanitizer
+import I18n
+import Scripts
+import Styles
 
 -- HTML Generation Components
 renderHead :: Config -> H.Html
@@ -43,12 +43,13 @@ renderCookieConsent :: Messages -> H.Html
 renderCookieConsent msgs = H.div H.! A.id "cookie-consent" H.! A.class_ "cookie-consent hidden" $
     H.div H.! A.class_ "consent-content" $ do
         H.p (H.toHtml (msgCookieConsentText msgs))
-        H.button H.! A.id "consent-btn" $ H.toHtml (msgCookieConsentButton msgs)
         H.button H.! A.id "reject-btn" $ H.toHtml (msgCookieRejectButton msgs)
+        H.button H.! A.id "consent-btn" $ H.toHtml (msgCookieConsentButton msgs)
 
 renderRevokeButton :: Messages -> H.Html
-renderRevokeButton msgs = H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $
-    "⚙️"
+renderRevokeButton msgs =
+    H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $
+        "⚙️"
 
 renderTimelineNav :: TimeLocale -> UTCTime -> TimeZone -> [(Text, Text, [AppItem])] -> H.Html
 renderTimelineNav locale now localTZ groups = H.nav H.! A.class_ "timeline" $ do
@@ -95,12 +96,12 @@ generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
 
     -- Group items by Year-Month
     groups = map mkGroup $ groupBy ((==) `on` itemMonth) items
-    
+
     itemMonth item = case itemDate item of
         Just d -> formatTime locale "%Y-%m" d
         Nothing -> "Unknown"
 
-    mkGroup groupItems = 
+    mkGroup groupItems =
         let first = head groupItems
             monthLabel = case itemDate first of
                 Just d -> T.pack $ formatTime locale "%B %Y" d
@@ -108,22 +109,24 @@ generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
             monthId = case itemDate first of
                 Just d -> T.pack $ formatTime locale "m-%Y-%m" d
                 Nothing -> "m-unknown"
-        in (monthLabel, monthId, groupItems)
+         in (monthLabel, monthId, groupItems)
 
 renderCard :: TimeLocale -> AppItem -> H.Html
 renderCard locale item = H.div H.! A.class_ "card" $ do
     case itemThumbnail item of
-        Just url -> H.div H.! A.class_ "card-image" $
-            H.img H.! A.class_ "lazy-consent" 
-                  H.! H.dataAttribute "src" (H.toValue url) 
-                  H.! A.alt (H.toValue $ itemTitle item)
+        Just url ->
+            H.div H.! A.class_ "card-image" $
+                H.img
+                    H.! A.class_ "lazy-consent"
+                    H.! H.dataAttribute "src" (H.toValue url)
+                    H.! A.alt (H.toValue $ itemTitle item)
         Nothing -> return ()
     H.div H.! A.class_ "card-content" $ do
         H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
         H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
         case itemDesc item of
-             Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 160 d)
-             Nothing -> return ()
+            Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 160 d)
+            Nothing -> return ()
     H.div H.! A.class_ "card-meta" $ do
         case itemDate item of
             Just d -> H.div H.! A.class_ "date" $ H.toHtml (formatTime locale "%Y-%m-%d" d)

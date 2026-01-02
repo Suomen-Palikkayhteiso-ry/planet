@@ -1,8 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module FeedParser (
-    FeedHandler(..),
+    FeedHandler (..),
     getFeedHandler,
     fetchFeed,
     parseItem,
@@ -24,36 +24,36 @@ module FeedParser (
     findMediaGroupThumbnail,
     isMediaThumbnail,
     getUrlAttr,
-    join
+    join,
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Exception (try, SomeException)
+import Control.Exception (SomeException, try)
+import qualified Data.ByteString.Lazy as LBS
 import Data.Char (isDigit)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.Feed.Import (parseFeedSource)
-import Text.Feed.Query (getFeedItems, getItemTitle, getItemLink, getItemPublishDate, getItemDescription)
-import Text.Feed.Types (Item(..))
+import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
+import Network.HTTP.Simple (Response, getResponseBody, httpLBS, parseRequest)
 import qualified Text.Atom.Feed as Atom
+import Text.Feed.Import (parseFeedSource)
+import Text.Feed.Query (getFeedItems, getItemDescription, getItemLink, getItemPublishDate, getItemTitle)
+import Text.Feed.Types (Item (..))
+import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
 import qualified Text.RSS.Syntax as RSS
-import Data.XML.Types (Element(..), Name(..), Node(..), Content(..))
-import Network.HTTP.Simple (httpLBS, getResponseBody, parseRequest, Response)
-import qualified Data.ByteString.Lazy as LBS
-import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
 
-import I18n
 import Config
+import I18n
 
 newtype FeedHandler = FeedHandler
     { fhGetMediaDescription :: Item -> Maybe Text
     }
 
 getFeedHandler :: FeedType -> FeedHandler
-getFeedHandler YouTube = FeedHandler { fhGetMediaDescription = getYouTubeMediaDescription }
-getFeedHandler Flickr = FeedHandler { fhGetMediaDescription = getFlickrMediaDescription }
-getFeedHandler Blog = FeedHandler { fhGetMediaDescription = const Nothing }
+getFeedHandler YouTube = FeedHandler{fhGetMediaDescription = getYouTubeMediaDescription}
+getFeedHandler Flickr = FeedHandler{fhGetMediaDescription = getFlickrMediaDescription}
+getFeedHandler Blog = FeedHandler{fhGetMediaDescription = const Nothing}
 
 -- Fetching
 fetchFeed :: FeedConfig -> IO [AppItem]
@@ -111,32 +111,32 @@ getFlickrMediaDescription item = case item of
     _ -> Nothing
 
 stripFirstPTag :: Text -> Text
-stripFirstPTag html = 
+stripFirstPTag html =
     let decodedHtml = decodeEntities html
         tags = parseTags decodedHtml
         remainingTags = skipToFirstPTag tags
-    in renderTags remainingTags
+     in renderTags remainingTags
   where
     decodeEntities :: Text -> Text
     decodeEntities = T.replace "&lt;" "<" . T.replace "&gt;" ">" . T.replace "&quot;" "\"" . T.replace "&amp;" "&"
     skipToFirstPTag :: [Tag Text] -> [Tag Text]
     skipToFirstPTag [] = []
-    skipToFirstPTag (TagOpen "p" _ : rest) = 
+    skipToFirstPTag (TagOpen "p" _ : rest) =
         let (_, remaining) = skipUntilClosingPTag rest
-        in remaining
+         in remaining
     skipToFirstPTag (_ : rest) = skipToFirstPTag rest
     skipUntilClosingPTag :: [Tag Text] -> ([Tag Text], [Tag Text])
     skipUntilClosingPTag [] = ([], [])
     skipUntilClosingPTag (TagClose "p" : rest) = ([], rest)
-    skipUntilClosingPTag (tag : rest) = 
+    skipUntilClosingPTag (tag : rest) =
         let (skipped, remaining) = skipUntilClosingPTag rest
-        in (tag : skipped, remaining)
+         in (tag : skipped, remaining)
 
 cleanTitle :: Text -> Text
-cleanTitle title = 
+cleanTitle title =
     let wordList = T.words title
         cleaned = reverse $ dropWhile isHashtagToRemove $ reverse wordList
-    in T.unwords cleaned
+     in T.unwords cleaned
   where
     isHashtagToRemove w = T.isPrefixOf "#" w && not (T.all isDigit (T.drop 1 w))
 
@@ -144,40 +144,42 @@ getMediaDescriptionFromElements :: [Element] -> Maybe Text
 getMediaDescriptionFromElements elements =
     -- First check for descriptions directly in the elements
     case filter isMediaDescription elements of
-        (d:_) -> elementText d
-        [] -> 
+        (d : _) -> elementText d
+        [] ->
             -- Then check inside media groups
             let mediaGroups = filter isMediaGroup elements
-            in case mediaGroups of
-                (g:_) -> 
-                    let descriptionElements = filter isMediaDescription (elementNodes g >>= nodeToElem)
-                    in case descriptionElements of
-                        (d:_) -> elementText d
-                        _ -> Nothing
-                _ -> Nothing
+             in case mediaGroups of
+                    (g : _) ->
+                        let descriptionElements = filter isMediaDescription (elementNodes g >>= nodeToElem)
+                         in case descriptionElements of
+                                (d : _) -> elementText d
+                                _ -> Nothing
+                    _ -> Nothing
   where
     nodeToElem (NodeElement e) = [e]
     nodeToElem _ = []
-    
-    elementText e = 
+
+    elementText e =
         let texts = [t | NodeContent (ContentText t) <- elementNodes e]
-        in if null texts then Nothing else Just (T.concat texts)
+         in if null texts then Nothing else Just (T.concat texts)
 
 isMediaDescription :: Element -> Bool
-isMediaDescription e = nameLocalName (elementName e) == "description" 
-                    && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/"
+isMediaDescription e =
+    nameLocalName (elementName e) == "description"
+        && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/"
 
 isMediaGroup :: Element -> Bool
-isMediaGroup e = nameLocalName (elementName e) == "group" 
-              && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/"
+isMediaGroup e =
+    nameLocalName (elementName e) == "group"
+        && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/"
 
 extractFirstImage :: Text -> Maybe Text
-extractFirstImage html = 
+extractFirstImage html =
     let tags = parseTags html
         imgTags = filter (\case TagOpen "img" _ -> True; _ -> False) tags
-    in case imgTags of
-        (TagOpen "img" attrs : _) -> lookup "src" attrs
-        _ -> Nothing
+     in case imgTags of
+            (TagOpen "img" attrs : _) -> lookup "src" attrs
+            _ -> Nothing
 
 -- Thumbnail extraction
 getItemThumbnail :: Item -> Maybe Text
@@ -191,46 +193,47 @@ elementChildren :: Element -> [Element]
 elementChildren e = [c | NodeElement c <- elementNodes e]
 
 getAtomThumbnail :: Atom.Entry -> Maybe Text
-getAtomThumbnail entry = 
+getAtomThumbnail entry =
     let others = Atom.entryOther entry
         enclosureImg = findEnclosureImage (Atom.entryLinks entry)
-    in case findMediaThumbnail others of
-        Just url -> Just url
-        Nothing -> findMediaGroupThumbnail others <|> enclosureImg
+     in case findMediaThumbnail others of
+            Just url -> Just url
+            Nothing -> findMediaGroupThumbnail others <|> enclosureImg
 
 findEnclosureImage :: [Atom.Link] -> Maybe Text
-findEnclosureImage links = 
+findEnclosureImage links =
     case filter (\l -> Atom.linkRel l == Just (Right (T.pack "enclosure")) && maybe False (T.isPrefixOf "image/") (Atom.linkType l)) links of
-        (l:_) -> Just (Atom.linkHref l)
+        (l : _) -> Just (Atom.linkHref l)
         [] -> Nothing
 
 getRSSThumbnail :: RSS.RSSItem -> Maybe Text
-getRSSThumbnail item = 
+getRSSThumbnail item =
     case findMediaThumbnail (RSS.rssItemOther item) of
         Just url -> Just url
         Nothing -> findMediaGroupThumbnail (RSS.rssItemOther item)
 
 findMediaThumbnail :: [Element] -> Maybe Text
-findMediaThumbnail elems = 
+findMediaThumbnail elems =
     case filter isMediaThumbnail elems of
-        (e:_) -> getUrlAttr e
+        (e : _) -> getUrlAttr e
         [] -> Nothing
 
 findMediaGroupThumbnail :: [Element] -> Maybe Text
-findMediaGroupThumbnail elems = 
+findMediaGroupThumbnail elems =
     case filter isMediaGroup elems of
-        (g:_) -> findMediaThumbnail (elementNodes g >>= nodeToElem)
+        (g : _) -> findMediaThumbnail (elementNodes g >>= nodeToElem)
         [] -> Nothing
   where
     nodeToElem (NodeElement e) = [e]
     nodeToElem _ = []
 
 isMediaThumbnail :: Element -> Bool
-isMediaThumbnail e = nameLocalName (elementName e) == "thumbnail" 
-                  && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/"
+isMediaThumbnail e =
+    nameLocalName (elementName e) == "thumbnail"
+        && nameNamespace (elementName e) == Just "http://search.yahoo.com/mrss/"
 
 getUrlAttr :: Element -> Maybe Text
-getUrlAttr e = 
+getUrlAttr e =
     case filter (\(n, _) -> nameLocalName n == "url") (elementAttributes e) of
-        ((_, [ContentText t]):_) -> Just t
+        ((_, [ContentText t]) : _) -> Just t
         _ -> Nothing

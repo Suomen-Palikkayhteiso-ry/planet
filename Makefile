@@ -29,7 +29,7 @@ repl: ## Start the REPL
 	cabal repl
 
 check: ## Run hlint static analysis
-	devenv shell -- hlint src tests
+	hlint src tests
 
 cabal-check: ## Check the package for common errors
 	cabal check
