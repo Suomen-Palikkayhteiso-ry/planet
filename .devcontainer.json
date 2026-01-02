@@ -3,15 +3,17 @@
   "customizations": {
     "vscode": {
       "extensions": [
+        "bbenoist.Nix",
         "be5invis.toml",
-        "ms-vscode.makefile-tools",
-        "haskell.haskell",
-        "justusadam.language-haskell",
+        "eamodio.gitlens",
+        "eamodio.gitlens",
         "GitHub.copilot",
         "GitHub.copilot-chat",
+        "google.gemini-cli-vscode-ide-companion",
+        "haskell.haskell",
+        "justusadam.language-haskell",
         "mkhl.direnv",
-        "eamodio.gitlens",
-        "google.gemini-cli-vscode-ide-companion"
+        "ms-vscode.makefile-tools"
       ]
     }
   },
