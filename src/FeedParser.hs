@@ -244,5 +244,8 @@ getFeedAlternateLink feed = case feed of
     Text.Feed.Types.RSSFeed rf -> getRSSFeedAlternateLink rf
     _ -> Nothing
   where
-    getAtomFeedAlternateLink af = Nothing -- TODO: extract alternate link from Atom feed
-    getRSSFeedAlternateLink rf = Nothing -- TODO: extract from RSS channel link
+    getAtomFeedAlternateLink af = 
+        case Atom.feedLinks af of
+            (l:_) -> Just (Atom.linkHref l)
+            _ -> Nothing
+    getRSSFeedAlternateLink rf = Nothing -- RSS channel link not easily accessible
