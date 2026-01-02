@@ -22,6 +22,15 @@ import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
 
 import I18n
 
+data FeedHandler = FeedHandler
+    { fhGetMediaDescription :: Item -> Maybe Text
+    }
+
+getFeedHandler :: FeedType -> FeedHandler
+getFeedHandler YouTube = FeedHandler { fhGetMediaDescription = getYouTubeMediaDescription }
+getFeedHandler Flickr = FeedHandler { fhGetMediaDescription = getFlickrMediaDescription }
+getFeedHandler Blog = FeedHandler { fhGetMediaDescription = const Nothing }
+
 -- Fetching
 fetchFeed :: FeedConfig -> IO [AppItem]
 fetchFeed fc = do
@@ -60,10 +69,7 @@ parseItem fc item = do
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
-getMediaDescription fc item = case feedType fc of
-    YouTube -> getYouTubeMediaDescription item
-    Flickr -> getFlickrMediaDescription item
-    Blog -> Nothing  -- Blogs don't typically use media RSS
+getMediaDescription fc item = fhGetMediaDescription (getFeedHandler (feedType fc)) item
 
 getYouTubeMediaDescription :: Item -> Maybe Text
 getYouTubeMediaDescription item = case item of
