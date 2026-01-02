@@ -12,7 +12,7 @@ import qualified Text.Toml as Toml
 import Data.Maybe (fromMaybe)
 
 -- Configuration Types
-data FeedType = Blog | YouTube
+data FeedType = Blog | YouTube | Flickr
   deriving (Show, Eq)
 
 data FeedConfig = FeedConfig
@@ -73,6 +73,7 @@ parseConfig content = do
         ft <- case typeStr of
             "blog" -> Right Blog
             "youtube" -> Right YouTube
+            "flickr" -> Right Flickr
             _ -> Left $ "Unknown feed type: " <> typeStr
             
         title <- case lookupKey "title" of

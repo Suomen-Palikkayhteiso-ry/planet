@@ -1,0 +1,180 @@
+{-# LANGUAGE OverloadedStrings #-}
+
+module HtmlGen where
+
+import Control.Monad (forM_)
+import Data.Char (isSpace)
+import Data.Function (on)
+import Data.List (groupBy)
+import Data.Text (Text)
+import qualified Data.Text as T
+import Data.Time (UTCTime, formatTime, TimeLocale)
+import Data.Time.LocalTime (utcToZonedTime, TimeZone)
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
+import qualified Data.ByteString.Lazy as LBS
+import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
+import Text.HTML.TagSoup.Tree (TagTree(..), tagTree, flattenTree)
+
+import I18n
+import Styles
+import Scripts
+
+-- HTML Generation
+generateHtml :: Config -> Messages -> [AppItem] -> UTCTime -> TimeZone -> LBS.ByteString
+generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
+    H.head $ do
+        H.meta H.! A.charset "UTF-8"
+        H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
+        H.title (H.toHtml $ configTitle config)
+        H.style $ H.toHtml css
+    H.body $ do
+        -- Cookie Consent Banner
+        H.div H.! A.id "cookie-consent" H.! A.class_ "cookie-consent hidden" $ do
+            H.div H.! A.class_ "consent-content" $ do
+                H.p $ H.toHtml (msgCookieConsentText msgs)
+                -- Swapped Buttons: Consent first (primary), Reject second (secondary)
+                H.button H.! A.id "consent-btn" $ H.toHtml (msgCookieConsentButton msgs)
+                H.button H.! A.id "reject-btn" $ H.toHtml (msgCookieRejectButton msgs)
+
+        -- Revoke Consent Button
+        H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $ do
+            "⚙️"
+
+        H.div H.! A.class_ "layout" $ do
+            -- Timeline Navigation
+            H.nav H.! A.class_ "timeline" $ do
+                H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime locale "%Y" (utcToZonedTime localTZ now))
+                H.ul $ forM_ groups $ \(monthLabel, monthId, _) -> do
+                    H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
+
+            H.main H.! A.class_ "main-content" $ do
+                -- Intro / Title area within main since header is gone
+                H.div H.! A.class_ "intro" $ do
+                    H.h1 (H.toHtml $ configTitle config)
+                    H.p $ do
+                        H.toHtml (msgGeneratedOn msgs)
+                        " "
+                        H.toHtml (formatTime locale "%Y-%m-%d %H:%M:%S" (utcToZonedTime localTZ now))
+
+                forM_ groups $ \(monthLabel, monthId, groupItems) -> do
+                    H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $ do
+                        H.h2 H.! A.class_ "month-title" $ H.toHtml monthLabel
+                        H.div H.! A.class_ "grid" $ do
+                            mapM_ (renderCard locale) groupItems
+        
+        H.footer $ do
+            H.p (H.toHtml $ msgPoweredBy msgs)
+
+        -- Script for Cookie Consent & Lazy Loading
+        H.script $ H.preEscapedToHtml js
+  where
+    locale = getTimeLocale (configLocale config)
+
+    -- Group items by Year-Month
+    groups = map mkGroup $ groupBy ((==) `on` itemMonth) items
+    
+    itemMonth item = case itemDate item of
+        Just d -> formatTime locale "%Y-%m" d
+        Nothing -> "Unknown"
+
+    mkGroup groupItems = 
+        let first = head groupItems
+            monthLabel = case itemDate first of
+                Just d -> T.pack $ formatTime locale "%B %Y" d
+                Nothing -> "Older / Undated"
+            monthId = case itemDate first of
+                Just d -> T.pack $ formatTime locale "m-%Y-%m" d
+                Nothing -> "m-unknown"
+        in (monthLabel, monthId, groupItems)
+
+renderCard :: TimeLocale -> AppItem -> H.Html
+renderCard locale item = H.div H.! A.class_ "card" $ do
+    case itemThumbnail item of
+        Just url -> H.div H.! A.class_ "card-image" $ do
+            H.img H.! A.class_ "lazy-consent" 
+                  H.! H.dataAttribute "src" (H.toValue url) 
+                  H.! A.alt (H.toValue $ itemTitle item)
+            H.div H.! A.class_ "type-icon" $ case itemType item of
+                YouTube -> "🎥"
+                Blog -> "📝"
+                Flickr -> "📷"
+        Nothing -> return ()
+    H.div H.! A.class_ "card-content" $ do
+        H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
+        H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
+        case itemDesc item of
+             Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 256 d)
+             Nothing -> return ()
+        case itemDate item of
+            Just d -> H.div H.! A.class_ "date" $ H.toHtml (formatTime locale "%Y-%m-%d" d)
+            Nothing -> return ()
+
+cleanAndTruncate :: Int -> Text -> Text
+cleanAndTruncate maxLength html =
+    let tags = parseTags html
+        normalized = normalizeVoids tags
+        tree = tagTree normalized
+        pruned = pruneTree tree
+        flat = flattenTree pruned
+    in renderTags $ takeWithLimit maxLength [] flat
+
+-- Helper to ensure void tags are properly closed for tree construction
+normalizeVoids :: [Tag Text] -> [Tag Text]
+normalizeVoids [] = []
+normalizeVoids (TagOpen name attrs : rest)
+    | name `elem` voidTags =
+        case rest of
+            (TagClose name2 : rest2) | name == name2 ->
+                TagOpen name attrs : TagClose name : normalizeVoids rest2
+            _ ->
+                TagOpen name attrs : TagClose name : normalizeVoids rest
+normalizeVoids (x:xs) = x : normalizeVoids xs
+
+pruneTree :: [TagTree Text] -> [TagTree Text]
+pruneTree = filter (not . isEmptyTree) . filter (not . isSeparator) . filter (not . isImageTree) . map pruneBranch
+  where
+    pruneBranch (TagBranch name attrs children) = TagBranch name attrs (pruneTree children)
+    pruneBranch leaf = leaf
+
+    isSeparator (TagBranch _ attrs _) = 
+        case lookup "class" attrs of
+            Just cls -> "separator" `elem` T.words cls
+            Nothing -> False
+    isSeparator _ = False
+
+    isImageTree (TagBranch name _ _) = name == "img"
+    isImageTree _ = False
+
+    isEmptyTree (TagBranch name _ []) = not (name `elem` voidTags)
+    isEmptyTree (TagBranch name _ _) | name `elem` ["script", "style"] = True
+    isEmptyTree (TagBranch _ _ children) = all isEmptyTree children
+    isEmptyTree (TagLeaf tag) = not (isVisibleTag tag)
+
+    isVisibleTag (TagText t) = not (T.all isSpace t)
+    isVisibleTag (TagOpen name _) = name `elem` voidTags
+    isVisibleTag _ = False
+
+voidTags :: [Text]
+voidTags = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr", "video", "audio", "iframe", "object", "svg"]
+
+takeWithLimit :: Int -> [Text] -> [Tag Text] -> [Tag Text]
+takeWithLimit _ stack [] = map TagClose stack
+takeWithLimit remainingLen stack (t:ts)
+    | remainingLen <= 0 = map TagClose stack
+    | otherwise = case t of
+        TagText text ->
+            let len = T.length text
+            in if len <= remainingLen
+               then t : takeWithLimit (remainingLen - len) stack ts
+               else [TagText (T.take remainingLen text <> "...")] ++ map TagClose stack
+        TagOpen name _ ->
+            if name `elem` voidTags
+            then t : takeWithLimit remainingLen stack ts
+            else t : takeWithLimit remainingLen (name : stack) ts
+        TagClose name ->
+            if not (null stack) && head stack == name
+            then t : takeWithLimit remainingLen (tail stack) ts
+            else t : takeWithLimit remainingLen stack ts
+        _ -> t : takeWithLimit remainingLen stack ts

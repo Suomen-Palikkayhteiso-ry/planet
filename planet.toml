@@ -37,7 +37,7 @@ type = "youtube"
 title = "Saija's Brickcave"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC3doy6NwIkzNMMBba3xOOJw"
 
-#[[feeds]]
-#type = "flickr"
-#title = "Tuomas Kukkamaa"
-#url = "https://www.flickr.com/services/feeds/photos_public.gne?id=63411232@N00&lang=en-us&format=atom"
+[[feeds]]
+type = "flickr"
+title = "Tuomas Kukkamaa"
+url = "https://www.flickr.com/services/feeds/photos_public.gne?id=63411232@N00&lang=en-us&format=atom"

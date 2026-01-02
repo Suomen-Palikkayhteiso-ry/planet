@@ -14,12 +14,13 @@
 
   # https://devenv.sh/packages/
   packages = [
+    pkgs.cabal-install
+    pkgs.gemini-cli
     pkgs.git
     pkgs.nodejs
-    pkgs.zlib
     pkgs.openssl
     pkgs.pkg-config
-    pkgs.cabal-install
+    pkgs.zlib
   ];
 
   # https://devenv.sh/languages/

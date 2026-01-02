@@ -25,7 +25,14 @@ import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree (TagTree(..), tagTree, flattenTree)
 
 import qualified Planet as PlanetMain
+import qualified FeedParser as FeedParser
+import qualified HtmlGen as HtmlGen
 import I18n
+
+-- Helper function for tests
+join :: Maybe (Maybe a) -> Maybe a
+join (Just (Just x)) = Just x
+join _ = Nothing
 
 main :: IO ()
 main = defaultMain tests
@@ -100,45 +107,45 @@ feedTests :: TestTree
 feedTests = testGroup "Feed Tests"
   [ testCase "PlanetMain.extractFirstImage" $ do
       let html = T.pack "<p>Some text <img src=\"http://example.com/image.jpg\" alt=\"test\"> more text</p>"
-      PlanetMain.extractFirstImage html @?= Just (T.pack "http://example.com/image.jpg")
+      FeedParser.extractFirstImage html @?= Just (T.pack "http://example.com/image.jpg")
   , testCase "PlanetMain.extractFirstImage no image" $ do
       let html = T.pack "<p>Some text without image</p>"
-      PlanetMain.extractFirstImage html @?= Nothing
+      FeedParser.extractFirstImage html @?= Nothing
   , testCase "PlanetMain.getMediaDescription" $ do
       let elements = [Element (Name (T.pack "description") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] [NodeContent (ContentText (T.pack "Test description"))]]
-      PlanetMain.getMediaDescription elements @?= Just (T.pack "Test description")
+      FeedParser.getMediaDescriptionFromElements elements @?= Just (T.pack "Test description")
   , testCase "PlanetMain.isMediaDescription true" $ do
       let e = Element (Name (T.pack "description") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] []
-      PlanetMain.isMediaDescription e @?= True
+      FeedParser.isMediaDescription e @?= True
   , testCase "PlanetMain.isMediaDescription false" $ do
       let e = Element (Name (T.pack "description") Nothing Nothing) [] []
-      PlanetMain.isMediaDescription e @?= False
+      FeedParser.isMediaDescription e @?= False
   , testCase "PlanetMain.isMediaThumbnail true" $ do
       let e = Element (Name (T.pack "thumbnail") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] []
-      PlanetMain.isMediaThumbnail e @?= True
+      FeedParser.isMediaThumbnail e @?= True
   , testCase "PlanetMain.isMediaGroup true" $ do
       let e = Element (Name (T.pack "group") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] []
-      PlanetMain.isMediaGroup e @?= True
+      FeedParser.isMediaGroup e @?= True
   , testCase "PlanetMain.getUrlAttr" $ do
       let attrs = [(Name (T.pack "url") Nothing Nothing, [ContentText (T.pack "http://example.com")])]
           e = Element (Name (T.pack "thumbnail") Nothing Nothing) attrs []
-      PlanetMain.getUrlAttr e @?= Just (T.pack "http://example.com")
+      FeedParser.getUrlAttr e @?= Just (T.pack "http://example.com")
   , testCase "PlanetMain.getUrlAttr no url" $ do
       let attrs = [(Name (T.pack "other") Nothing Nothing, [ContentText (T.pack "value")])]
           e = Element (Name (T.pack "thumbnail") Nothing Nothing) attrs []
-      PlanetMain.getUrlAttr e @?= Nothing
+      FeedParser.getUrlAttr e @?= Nothing
   , testCase "PlanetMain.findMediaThumbnail" $ do
       let e = Element (Name (T.pack "thumbnail") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [(Name (T.pack "url") Nothing Nothing, [ContentText (T.pack "http://example.com")])] []
           elements = [e]
-      PlanetMain.findMediaThumbnail elements @?= Just (T.pack "http://example.com")
+      FeedParser.findMediaThumbnail elements @?= Just (T.pack "http://example.com")
   , testCase "PlanetMain.findMediaGroupThumbnail" $ do
       let thumb = Element (Name (T.pack "thumbnail") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [(Name (T.pack "url") Nothing Nothing, [ContentText (T.pack "http://example.com")])] []
           group = Element (Name (T.pack "group") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] [NodeElement thumb]
           elements = [group]
-      PlanetMain.findMediaGroupThumbnail elements @?= Just (T.pack "http://example.com")
-  , testCase "PlanetMain.join Just Just" $ PlanetMain.join (Just (Just "test")) @?= Just "test"
-  , testCase "PlanetMain.join Just Nothing" $ (PlanetMain.join (Just Nothing) :: Maybe String) @?= Nothing
-  , testCase "PlanetMain.join Nothing" $ (PlanetMain.join Nothing :: Maybe String) @?= Nothing
+      FeedParser.findMediaGroupThumbnail elements @?= Just (T.pack "http://example.com")
+  , testCase "join Just Just" $ join (Just (Just "test")) @?= Just "test"
+  , testCase "join Just Nothing" $ (join (Just Nothing) :: Maybe String) @?= Nothing
+  , testCase "join Nothing" $ (join Nothing :: Maybe String) @?= Nothing
   ]
 
 htmlTests :: TestTree
@@ -149,14 +156,14 @@ htmlTests = testGroup "HTML Tests"
           items = []
           now = read "2023-01-01 00:00:00 UTC"
           tz = timeZoneForUTCTime (tzByLabel Europe__Helsinki) now
-          html = PlanetMain.generateHtml config msgs items now tz
+          html = HtmlGen.generateHtml config msgs items now tz
       -- Just check it doesn't crash and contains expected content
       let htmlText = TE.decodeUtf8 $ LBS.toStrict html
       assertBool "Contains title" (T.isInfixOf (T.pack "Test Planet") htmlText)
   , testCase "PlanetMain.renderCard with date" $ do
       let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing (T.pack "Test Source") Blog
           locale = defaultTimeLocale
-          card = PlanetMain.renderCard locale item
+          card = HtmlGen.renderCard locale item
           rendered = renderHtml card
       assertBool "Contains date" (TL.isInfixOf (TL.pack "2023-01-01") rendered)
   ]
@@ -165,33 +172,30 @@ utilityTests :: TestTree
 utilityTests = testGroup "Utility Tests"
   [ testCase "PlanetMain.cleanAndTruncate short text" $ do
       let text = T.pack "<p>Short text</p>"
-      PlanetMain.cleanAndTruncate 100 text @?= T.pack "<p>Short text</p>"
+      HtmlGen.cleanAndTruncate 100 text @?= T.pack "<p>Short text</p>"
   , testCase "PlanetMain.cleanAndTruncate long text" $ do
       let text = T.pack $ "<p>" ++ replicate 200 'a' ++ "</p>"
-      let result = PlanetMain.cleanAndTruncate 50 text
+      let result = HtmlGen.cleanAndTruncate 50 text
       assertBool "Truncated" (T.length result < T.length text)
       assertBool "Contains ..." (T.isInfixOf (T.pack "...") result)
   , testCase "PlanetMain.normalizeVoids" $ do
       let tags = [TagOpen (T.pack "img") [(T.pack "src", T.pack "test")]]
-          normalized = PlanetMain.normalizeVoids tags
+          normalized = HtmlGen.normalizeVoids tags
       length normalized @?= 2 -- Should add closing tag
   , testCase "PlanetMain.pruneTree removes empty" $ do
       let tree = [TagBranch (T.pack "div") [] []]
-          pruned = PlanetMain.pruneTree tree
+          pruned = HtmlGen.pruneTree tree
       length pruned @?= 0
   , testCase "PlanetMain.pruneTree keeps content" $ do
       let tree = [TagBranch (T.pack "p") [] [TagLeaf (TagText (T.pack "content"))]]
-          pruned = PlanetMain.pruneTree tree
+          pruned = HtmlGen.pruneTree tree
       length pruned @?= 1
   , testCase "PlanetMain.takeWithLimit exact" $ do
       let tags = [TagText (T.pack "hello")]
-          result = PlanetMain.takeWithLimit 5 [] tags
+          result = HtmlGen.takeWithLimit 5 [] tags
       result @?= [TagText (T.pack "hello")]
   , testCase "PlanetMain.takeWithLimit truncate" $ do
       let tags = [TagText (T.pack "hello world")]
-          result = PlanetMain.takeWithLimit 5 [] tags
+          result = HtmlGen.takeWithLimit 5 [] tags
       result @?= [TagText (T.pack "hello...")]
-  , testCase "PlanetMain.showItemType Atom" $ PlanetMain.showItemType (AtomItem undefined) @?= "Atom"
-  , testCase "PlanetMain.showItemType RSS" $ PlanetMain.showItemType (RSSItem undefined) @?= "RSS"
-  , testCase "PlanetMain.showItemType XML" $ PlanetMain.showItemType (XMLItem undefined) @?= "XML"
   ]

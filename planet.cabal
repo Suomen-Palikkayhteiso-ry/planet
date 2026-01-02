@@ -13,6 +13,10 @@ library
   exposed-modules:
       Planet
       I18n
+      FeedParser
+      HtmlGen
+      Styles
+      Scripts
       Main
   other-modules:
       Paths_planet
