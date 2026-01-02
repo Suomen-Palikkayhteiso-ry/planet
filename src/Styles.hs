@@ -48,7 +48,7 @@ css = T.unlines
     
     -- Responsive
     , "@media (max-width: 800px) {"
-    , "  .layout { flex-direction: column; gap: 20px; }"
+    , "  .layout { flex-direction: column; gap: 20px; padding: 20px; }"
     , "  .timeline { width: 100%; height: auto; position: static; overflow-x: auto; padding-right: 0; border-bottom: 1px solid #eaeaea; padding-bottom: 10px; }"
     , "  .timeline-header { text-align: left; display: none; }"
     , "  .timeline ul { display: flex; text-align: left; gap: 15px; white-space: nowrap; }"
