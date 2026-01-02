@@ -29,6 +29,7 @@ import qualified FeedParser as FeedParser
 import qualified HtmlGen as HtmlGen
 import I18n
 import Config
+import HtmlSanitizer
 
 -- Helper function for tests
 join :: Maybe (Maybe a) -> Maybe a
@@ -188,30 +189,30 @@ utilityTests :: TestTree
 utilityTests = testGroup "Utility Tests"  -- Covers US-005, constrained by ADR-0000
   [ testCase "PlanetMain.cleanAndTruncate short text" $ do
       let text = T.pack "<p>Short text</p>"
-      HtmlGen.cleanAndTruncate 100 text @?= T.pack "<p>Short text</p>"
+      cleanAndTruncate 100 text @?= T.pack "<p>Short text</p>"
   , testCase "PlanetMain.cleanAndTruncate long text" $ do
       let text = T.pack $ "<p>" ++ replicate 200 'a' ++ "</p>"
-      let result = HtmlGen.cleanAndTruncate 50 text
+      let result = cleanAndTruncate 50 text
       assertBool "Truncated" (T.length result < T.length text)
       assertBool "Contains ..." (T.isInfixOf (T.pack "...") result)
   , testCase "PlanetMain.normalizeVoids" $ do
       let tags = [TagOpen (T.pack "img") [(T.pack "src", T.pack "test")]]
-          normalized = HtmlGen.normalizeVoids tags
+          normalized = normalizeVoids tags
       length normalized @?= 2 -- Should add closing tag
   , testCase "PlanetMain.pruneTree removes empty" $ do
       let tree = [TagBranch (T.pack "div") [] []]
-          pruned = HtmlGen.pruneTree tree
+          pruned = pruneTree tree
       length pruned @?= 0
   , testCase "PlanetMain.pruneTree keeps content" $ do
       let tree = [TagBranch (T.pack "p") [] [TagLeaf (TagText (T.pack "content"))]]
-          pruned = HtmlGen.pruneTree tree
+          pruned = pruneTree tree
       length pruned @?= 1
   , testCase "PlanetMain.takeWithLimit exact" $ do
       let tags = [TagText (T.pack "hello")]
-          result = HtmlGen.takeWithLimit 5 [] tags
+          result = takeWithLimit 5 [] tags
       result @?= [TagText (T.pack "hello")]
   , testCase "PlanetMain.takeWithLimit truncate" $ do
       let tags = [TagText (T.pack "hello world")]
-          result = HtmlGen.takeWithLimit 5 [] tags
+          result = takeWithLimit 5 [] tags
       result @?= [TagText (T.pack "hello...")]
   ]

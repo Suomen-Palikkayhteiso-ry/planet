@@ -3,7 +3,6 @@
 module HtmlGen where
 
 import Control.Monad (forM_)
-import Data.Char (isSpace)
 import Data.Function (on)
 import Data.List (groupBy)
 import Data.Text (Text)
@@ -14,13 +13,12 @@ import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.Utf8 (renderHtml)
 import qualified Data.ByteString.Lazy as LBS
-import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
-import Text.HTML.TagSoup.Tree (TagTree(..), tagTree, flattenTree)
 
 import I18n
 import Config
 import Styles
 import Scripts
+import HtmlSanitizer
 
 -- HTML Generation Components
 renderHead :: Config -> H.Html
@@ -125,71 +123,3 @@ renderCard locale item = H.div H.! A.class_ "card" $ do
                 YouTube -> "🎥"
                 Blog -> "📝"
                 Flickr -> "📷"
-
-cleanAndTruncate :: Int -> Text -> Text
-cleanAndTruncate maxLength html =
-    let tags = parseTags html
-        normalized = normalizeVoids tags
-        tree = tagTree normalized
-        pruned = pruneTree tree
-        flat = flattenTree pruned
-    in renderTags $ takeWithLimit maxLength [] flat
-
--- Helper to ensure void tags are properly closed for tree construction
-normalizeVoids :: [Tag Text] -> [Tag Text]
-normalizeVoids [] = []
-normalizeVoids (TagOpen name attrs : rest)
-    | name `elem` voidTags =
-        case rest of
-            (TagClose name2 : rest2) | name == name2 ->
-                TagOpen name attrs : TagClose name : normalizeVoids rest2
-            _ ->
-                TagOpen name attrs : TagClose name : normalizeVoids rest
-normalizeVoids (x:xs) = x : normalizeVoids xs
-
-pruneTree :: [TagTree Text] -> [TagTree Text]
-pruneTree = filter (not . isEmptyTree) . filter (not . isSeparator) . filter (not . isImageTree) . map pruneBranch
-  where
-    pruneBranch (TagBranch name attrs children) = TagBranch name attrs (pruneTree children)
-    pruneBranch leaf = leaf
-
-    isSeparator (TagBranch _ attrs _) = 
-        case lookup "class" attrs of
-            Just cls -> "separator" `elem` T.words cls
-            Nothing -> False
-    isSeparator _ = False
-
-    isImageTree (TagBranch name _ _) = name == "img"
-    isImageTree _ = False
-
-    isEmptyTree (TagBranch name _ []) = not (name `elem` voidTags)
-    isEmptyTree (TagBranch name _ _) | name `elem` ["script", "style"] = True
-    isEmptyTree (TagBranch _ _ children) = all isEmptyTree children
-    isEmptyTree (TagLeaf tag) = not (isVisibleTag tag)
-
-    isVisibleTag (TagText t) = not (T.all isSpace t)
-    isVisibleTag (TagOpen name _) = name `elem` voidTags
-    isVisibleTag _ = False
-
-voidTags :: [Text]
-voidTags = ["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr", "video", "audio", "iframe", "object", "svg"]
-
-takeWithLimit :: Int -> [Text] -> [Tag Text] -> [Tag Text]
-takeWithLimit _ stack [] = map TagClose stack
-takeWithLimit remainingLen stack (t:ts)
-    | remainingLen <= 0 = map TagClose stack
-    | otherwise = case t of
-        TagText text ->
-            let len = T.length text
-            in if len <= remainingLen
-               then t : takeWithLimit (remainingLen - len) stack ts
-               else [TagText (T.take remainingLen text <> "...")] ++ map TagClose stack
-        TagOpen name _ ->
-            if name `elem` voidTags
-            then t : takeWithLimit remainingLen stack ts
-            else t : takeWithLimit remainingLen (name : stack) ts
-        TagClose name ->
-            if not (null stack) && head stack == name
-            then t : takeWithLimit remainingLen (tail stack) ts
-            else t : takeWithLimit remainingLen stack ts
-        _ -> t : takeWithLimit remainingLen stack ts

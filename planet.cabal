@@ -19,6 +19,7 @@ library
       Scripts
       Main
       Config
+      HtmlSanitizer
   other-modules:
       Paths_planet
   hs-source-dirs:
@@ -60,6 +61,7 @@ executable planet
       Planet
       Scripts
       Styles
+      HtmlSanitizer
   hs-source-dirs:
       src
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
