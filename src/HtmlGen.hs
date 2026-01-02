@@ -96,11 +96,11 @@ renderCard locale item = H.div H.! A.class_ "card" $ do
             H.img H.! A.class_ "lazy-consent" 
                   H.! H.dataAttribute "src" (H.toValue url) 
                   H.! A.alt (H.toValue $ itemTitle item)
-            H.div H.! A.class_ "type-icon" $ case itemType item of
-                YouTube -> "🎥"
-                Blog -> "📝"
-                Flickr -> "📷"
         Nothing -> return ()
+    H.div H.! A.class_ "type-icon" $ case itemType item of
+        YouTube -> "🎥"
+        Blog -> "📝"
+        Flickr -> "📷"
     H.div H.! A.class_ "card-content" $ do
         H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
         H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)

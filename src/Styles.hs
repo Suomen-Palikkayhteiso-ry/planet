@@ -27,7 +27,7 @@ css = T.unlines
     
     -- Grid & Cards
     , ".grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }"
-    , ".card { background: white; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; transition: box-shadow 0.2s; display: flex; flex-direction: column; }"
+    , ".card { background: white; border: 1px solid #eaeaea; border-radius: 8px; padding: 20px; transition: box-shadow 0.2s; display: flex; flex-direction: column; position: relative; }"
     , ".card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }"
     , ".card-content { display: flex; flex-direction: column; height: 100%; }"
     , ".source { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; display: block; }"
