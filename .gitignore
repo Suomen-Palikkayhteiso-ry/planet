@@ -4,4 +4,5 @@ dist-newstyle/
 .devenv*
 public/
 /planet
+/src/Main
 TODO*
