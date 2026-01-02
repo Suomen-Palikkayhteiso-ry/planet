@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Scripts where
+module Scripts (js) where
 
 import Data.Text (Text)
 import qualified Data.Text as T

@@ -1,6 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module I18n where
+module I18n (
+    FeedType(..),
+    AppItem(..),
+    Locale(..),
+    Messages(..),
+    messagesEn,
+    messagesFi,
+    getMessages,
+    getTimeLocale,
+    defaultLocale,
+    parseLocale,
+    fiTimeLocale
+) where
 
 import Data.Text (Text)
 import Data.Time (UTCTime)

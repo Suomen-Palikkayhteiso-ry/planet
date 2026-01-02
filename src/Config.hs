@@ -1,4 +1,4 @@
-module Config where
+module Config (FeedConfig(..), Config(..), parseConfig) where
 
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Vector as V

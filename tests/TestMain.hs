@@ -1,4 +1,4 @@
-module TestSuite where
+module TestSuite (main, tests) where
 
 import Test.Tasty
 import Test.Tasty.HUnit

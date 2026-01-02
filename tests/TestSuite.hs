@@ -1,3 +1,5 @@
+module Main (main, tests) where
+
 import Test.Tasty
 import Test.Tasty.HUnit
 

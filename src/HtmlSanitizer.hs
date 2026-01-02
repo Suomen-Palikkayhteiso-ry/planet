@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HtmlSanitizer where
+module HtmlSanitizer (cleanAndTruncate, normalizeVoids, pruneTree, takeWithLimit) where
 
 import Data.Char (isSpace)
 import Data.Text (Text)

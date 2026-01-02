@@ -1,7 +1,31 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
-module FeedParser where
+module FeedParser (
+    FeedHandler(..),
+    getFeedHandler,
+    fetchFeed,
+    parseItem,
+    getMediaDescription,
+    getYouTubeMediaDescription,
+    getFlickrMediaDescription,
+    stripFirstPTag,
+    cleanTitle,
+    getMediaDescriptionFromElements,
+    isMediaDescription,
+    isMediaGroup,
+    extractFirstImage,
+    getItemThumbnail,
+    elementChildren,
+    getAtomThumbnail,
+    findEnclosureImage,
+    getRSSThumbnail,
+    findMediaThumbnail,
+    findMediaGroupThumbnail,
+    isMediaThumbnail,
+    getUrlAttr,
+    join
+) where
 
 import Control.Applicative ((<|>))
 import Control.Exception (try, SomeException)

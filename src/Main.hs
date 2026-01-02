@@ -1,6 +1,6 @@
-module Main where
+module Main (main) where
 
-import Planet
+import qualified Planet
 
 main :: IO ()
 main = Planet.main

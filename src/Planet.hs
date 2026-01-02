@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Planet where
+module Planet (main) where
 
 import Control.Concurrent.Async (mapConcurrently)
 import Data.List (sortOn)

@@ -1,4 +1,4 @@
-module Spec where
+module Spec (main, tests) where
 
 import Test.Tasty
 import Test.Tasty.HUnit
