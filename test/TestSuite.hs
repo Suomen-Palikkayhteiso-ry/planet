@@ -152,6 +152,15 @@ feedTests = testGroup "Feed Tests"
   , testCase "FeedParser.stripFirstPTag without p tag" $ do
       let html = T.pack "<div>Content</div>"
       FeedParser.stripFirstPTag html @?= T.pack "<div>Content</div>"
+  , testCase "FeedParser.cleanTitle remove hashtags" $ do
+      let title = T.pack "My post #tag1 #tag2"
+      FeedParser.cleanTitle title @?= T.pack "My post"
+  , testCase "FeedParser.cleanTitle keep number hashtags" $ do
+      let title = T.pack "My post #123 #tag"
+      FeedParser.cleanTitle title @?= T.pack "My post #123"
+  , testCase "FeedParser.cleanTitle no hashtags" $ do
+      let title = T.pack "My post without hashtags"
+      FeedParser.cleanTitle title @?= T.pack "My post without hashtags"
   ]
 
 htmlTests :: TestTree

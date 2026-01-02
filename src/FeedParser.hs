@@ -4,6 +4,7 @@ module FeedParser where
 
 import Control.Applicative ((<|>))
 import Control.Exception (try, SomeException)
+import Data.Char (isDigit)
 import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -47,7 +48,8 @@ join _ = Nothing
 -- Base parseItem function
 parseItem :: FeedConfig -> Item -> Maybe AppItem
 parseItem fc item = do
-    title <- getItemTitle item
+    rawTitle <- getItemTitle item
+    let title = cleanTitle rawTitle
     link <- getItemLink item
     let date = join $ getItemPublishDate item
     let defaultDesc = getItemDescription item
@@ -93,6 +95,14 @@ stripFirstPTag html =
     extractUntilClosingP (tag : rest) = 
         let (content, after) = extractUntilClosingP rest
         in (tag : content, after)
+
+cleanTitle :: Text -> Text
+cleanTitle title = 
+    let words = T.words title
+        cleaned = reverse $ dropWhile isHashtagToRemove $ reverse words
+    in T.unwords cleaned
+  where
+    isHashtagToRemove w = T.isPrefixOf "#" w && not (T.all isDigit (T.drop 1 w))
 
 getMediaDescriptionFromElements :: [Element] -> Maybe Text
 getMediaDescriptionFromElements elements =
