@@ -248,4 +248,19 @@ getFeedAlternateLink feed = case feed of
         case drop 1 (Atom.feedLinks af) of
             (l:_) -> Just (Atom.linkHref l)
             _ -> Nothing
-    getRSSFeedAlternateLink rf = Nothing -- RSS channel link not easily accessible
+    getRSSFeedAlternateLink rf = 
+        let channel = RSS.rssChannel rf
+            others = RSS.rssChannelOther channel
+        in findAlternateLink others
+      where
+        findAlternateLink [] = Nothing
+        findAlternateLink (e:es) = 
+            if elementName e == Name "link" Nothing Nothing
+            then case getAttr "rel" e of
+                Just "alternate" -> getAttr "href" e
+                _ -> findAlternateLink es
+            else findAlternateLink es
+        getAttr attr e = 
+            case filter (\(n, _) -> nameLocalName n == attr) (elementAttributes e) of
+                ((_, [ContentText t]):_) -> Just t
+                _ -> Nothing
