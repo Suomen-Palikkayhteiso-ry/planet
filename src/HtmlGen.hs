@@ -97,19 +97,20 @@ renderCard locale item = H.div H.! A.class_ "card" $ do
                   H.! H.dataAttribute "src" (H.toValue url) 
                   H.! A.alt (H.toValue $ itemTitle item)
         Nothing -> return ()
-    H.div H.! A.class_ "type-icon" $ case itemType item of
-        YouTube -> "🎥"
-        Blog -> "📝"
-        Flickr -> "📷"
     H.div H.! A.class_ "card-content" $ do
         H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
         H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
         case itemDesc item of
              Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 256 d)
              Nothing -> return ()
-        case itemDate item of
-            Just d -> H.div H.! A.class_ "date" $ H.toHtml (formatTime locale "%Y-%m-%d" d)
-            Nothing -> return ()
+        H.div H.! A.class_ "card-meta" $ do
+            case itemDate item of
+                Just d -> H.div H.! A.class_ "date" $ H.toHtml (formatTime locale "%Y-%m-%d" d)
+                Nothing -> return ()
+            H.div H.! A.class_ "type-icon" $ case itemType item of
+                YouTube -> "🎥"
+                Blog -> "📝"
+                Flickr -> "📷"
 
 cleanAndTruncate :: Int -> Text -> Text
 cleanAndTruncate maxLength html =

@@ -41,9 +41,13 @@ main = do
             
             -- Resolve TimeZone
             let tzName = TE.encodeUtf8 (configTimezone config)
-            let localTZ = case fromTZName tzName of
-                            Just label -> timeZoneForUTCTime (tzByLabel label) now
-                            Nothing -> error $ "Unknown or invalid timezone: " ++ T.unpack (configTimezone config)
+            localTZ <- case fromTZName tzName of
+                            Just label -> return $ timeZoneForUTCTime (tzByLabel label) now
+                            Nothing -> do
+                                putStrLn $ "Warning: Unknown timezone '" ++ T.unpack (configTimezone config) ++ "', falling back to UTC."
+                                case fromTZName "UTC" of
+                                    Just utcLabel -> return $ timeZoneForUTCTime (tzByLabel utcLabel) now
+                                    Nothing -> error "UTC timezone not found"
             
             let html = generateHtml config messages sortedItems now localTZ
             

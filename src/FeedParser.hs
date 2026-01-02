@@ -73,11 +73,7 @@ getYouTubeMediaDescription item = case item of
 
 getFlickrMediaDescription :: Item -> Maybe Text
 getFlickrMediaDescription item = case item of
-    AtomItem entry -> case Atom.entryContent entry of
-        Just (Atom.TextContent t) -> Just t
-        Just (Atom.HTMLContent t) -> Just (stripFirstPTag t)
-        Just (Atom.XHTMLContent _) -> Nothing  -- TODO: handle XHTML if needed
-        Nothing -> Nothing
+    AtomItem _ -> fmap stripFirstPTag (getItemDescription item)
     XMLItem element -> getMediaDescriptionFromElements (elementChildren element)
     _ -> Nothing
 
