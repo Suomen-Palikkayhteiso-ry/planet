@@ -1,50 +1,67 @@
-# Planet Generator - Agent Context
+# AGENTS.md
 
-## Project Mission
-`planet` is a Haskell CLI tool that aggregates RSS/Atom feeds (blogs and YouTube channels) into a static, single-page HTML overview. It is designed to be lightweight, self-contained, and easily deployable via GitHub Pages.
+## Purpose
 
-## Architecture
-- **Type**: CLI Application
-- **Language**: Haskell (GHC 9.6)
-- **Entry Point**: `src/Main.hs` (Contains all business logic)
-- **Configuration**: `planet.toml` (TOML format)
-- **Output**: `public/index.html` (Static HTML with embedded CSS)
+This document defines how LLM coding agents must read, navigate, and safely modify the `planet` repository. It is the primary entry point for any agent-based task.
 
-## Key Libraries & Decisions
-- **`htoml-megaparsec`**: Used for TOML parsing. Note: We use `unordered-containers` (HashMap) and `vector` for intermediate TOML structures (`VTArray`, `VTable`).
-- **`feed`**: For parsing abstract RSS/Atom feeds.
-- **`http-conduit`**: For robust HTTP fetching.
-- **`async`**: Used to fetch multiple feeds concurrently (`mapConcurrently`) to speed up generation.
-- **`blaze-html`**: HTML DSL for type-safe view generation.
-- **Embedded CSS**: CSS is defined as a multiline string in `Main.hs` to keep the output strictly single-file.
+## 1. Source of Truth & Precedence
 
-## Development Environment
-The project uses `devenv` (Nix-based) to ensure a reproducible environment.
+Your understanding and actions must be guided by the following artifacts, in this strict order of precedence:
 
-### Setup & Run
-1.  **Enter Shell**: `devenv shell`
-2.  **Run**: `cabal run`
-    *   This compiles the project and executes the binary.
-    *   Reads `planet.toml`.
-    *   Writes to `public/index.html`.
+1.  **Tests (`test/`)**: Define the verifiable, correct behavior of the application. **Tests are the ultimate source of truth.**
+2.  **ADRs (`agents/adrs/`)**: Define the architectural constraints and non-negotiable rules.
+3.  **User Stories (`agents/stories/`)**: Explain the "why" behind the features and define product intent.
+4.  **Glossary (`agents/GLOSSARY.md`)**: Provides the canonical vocabulary for this project.
+5.  **Inline Source Code Comments**: Provide context but are subordinate to the artifacts above.
 
-### Configuration (`planet.toml`)
-Structure:
-```toml
-title = "My Planet"
+## 2. Agent Self-Guidance Work Loop
 
-[[feeds]]
-type = "blog" # or "youtube"
-title = "Feed Title"
-url = "https://example.com/rss.xml"
-```
+Before making any changes, you **MUST** follow this work loop:
 
-## Maintenance Notes
-- **GHC Version**: Pinned to 9.6 in `devenv.nix`.
-- **CI/CD**: `.github/workflows/deploy.yml` handles building and deployment to GitHub Pages. It uses `cabal` inside `devenv`.
-- **Dependencies**: Managed via `planet.cabal`. If adding new deps, ensure they are added there and `cabal build` resolves them.
+1.  **State Goal**: Clearly state the perceived goal of the task.
+2.  **Locate Artifacts**: Identify and read all relevant tests, user stories, and ADRs related to the goal.
+3.  **Identify Constraints**: List the specific architectural and behavioral constraints imposed by the artifacts.
+4.  **Propose Strategy**: Formulate a minimal change strategy that respects all constraints.
+5.  **Update/Add Tests**: Before writing implementation code, add or update tests that codify the goal. Ensure they fail as expected.
+6.  **Implement**: Write the code to make the new tests pass.
+7.  **Verify**: Run all tests and re-evaluate your changes against the user stories and ADRs to ensure compliance.
 
-## Common Tasks
-- **Adding a new feed**: Edit `planet.toml`.
-- **Changing styling**: Edit the `css` function in `src/Main.hs`.
-- **Modifying logic**: All logic resides in `src/Main.hs`.
+## 3. Repository Map (Agent-Oriented)
+
+- **`./AGENTS.md`**: **Your entry point.** Defines rules of engagement.
+- **`./agents/README.md`**: Quick repository orientation (what it is, what it isn't).
+- **`./agents/GLOSSARY.md`**: Canonical terminology. Use it to speak the project's language.
+- **`./agents/adrs/`**: Architectural Decision Records (ADRs). These are your constraints.
+- **`./agents/stories/`**: User Stories. This is the "why."
+- **`./test/`**: Behavioral truth.
+    - `test/Spec.hs`: Key unit and integration tests.
+    - `test/TestSuite.hs`: Test suite entry point.
+- **`./src/`**: Implementation.
+    - `src/Planet.hs`: Main business logic orchestration.
+    - `src/FeedParser.hs`: Configuration and feed data parsing.
+    - `src/HtmlGen.hs`: HTML generation logic.
+    - `src/Styles.hs` & `src/Scripts.hs`: Embedded CSS and JS.
+    - `src/I18n.hs`: Internationalization logic.
+- **`./planet.cabal`**: Project definition and dependencies.
+- **`./planet.toml`**: Main configuration file.
+
+## 4. Change Rules
+
+- **Do not** modify application behavior without first adding or modifying a test in `test/`.
+- **Do not** violate a constraint defined in an ADR. If a change requires this, you must first propose a new ADR.
+- All code changes must be accompanied by corresponding updates to tests and, if necessary, documentation.
+- All commit messages **MUST** follow the Conventional Commits specification outlined in `agents/adrs/ADR-0000-agent-guidance.md`.
+
+## 5. Decision Escalation Rules
+
+You **MUST STOP** and escalate to the user for guidance if you encounter any of the following situations:
+
+- A requirement in a User Story conflicts with an existing test.
+- A proposed change would violate a constraint in an ADR.
+- The desired behavior is ambiguous, or there are multiple plausible interpretations.
+- You are uncertain how to proceed.
+
+**Escalation Procedure:**
+1.  Clearly document the conflict or ambiguity.
+2.  If possible, create a new failing test case that demonstrates the ambiguity.
+3.  Present the situation to the user and ask for clarification. **Do not guess.**

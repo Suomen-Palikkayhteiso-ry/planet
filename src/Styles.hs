@@ -32,7 +32,7 @@ css = T.unlines
     , ".card-content { display: flex; flex-direction: column; height: 100%; }"
     , ".source { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 8px; display: block; }"
     , ".card-image { width: 100%; height: 180px; overflow: hidden; background: #eee; margin-bottom: 15px; border-radius: 4px; position: relative; }"
-    , ".card-image img { width: 100%; height: 100%; object-fit: cover; display: none; }"
+    , ".card-image img { width: 100%; height: 100%; object-fit: contain; display: none; }"
     , ".card-image img.loaded { display: block; }"
     , ".type-icon { position: absolute; bottom: 8px; right: 8px; background: rgba(255,255,255,0.6); color: white; padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; line-height: 1; pointer-events: none; }"
     , ".card h3 { margin: 0 0 10px 0; font-size: 1.1rem; line-height: 1.4; }"
