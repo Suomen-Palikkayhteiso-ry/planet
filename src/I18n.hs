@@ -3,8 +3,87 @@
 module I18n where
 
 import Data.Text (Text)
+import qualified Data.Text as T
+import Data.Time (UTCTime)
 import Data.Time.Format (TimeLocale(..), defaultTimeLocale)
+import qualified Data.HashMap.Strict as HM
+import qualified Data.Vector as V
+import qualified Text.Toml as Toml
+import Data.Maybe (fromMaybe)
 
+-- Configuration Types
+data FeedType = Blog | YouTube
+  deriving (Show, Eq)
+
+data FeedConfig = FeedConfig
+  { feedType :: FeedType
+  , feedTitle :: Text
+  , feedUrl :: Text
+  } deriving (Show)
+
+data Config = Config
+  { configTitle :: Text
+  , configFeeds :: [FeedConfig]
+  , configLocale :: Locale
+  , configTimezone :: Text
+  } deriving (Show)
+
+-- App Data Types
+data AppItem = AppItem
+  { itemTitle :: Text
+  , itemLink :: Text
+  , itemDate :: Maybe UTCTime
+  , itemDesc :: Maybe Text
+  , itemThumbnail :: Maybe Text
+  , itemSourceTitle :: Text
+  , itemType :: FeedType
+  } deriving (Show)
+-- TOML Parsing helpers
+parseConfig :: Text -> Either Text Config
+parseConfig content = do
+    toml <- case Toml.parseTomlDoc "config.toml" content of
+        Left err -> Left $ T.pack $ show err
+        Right t -> Right t
+    
+    let title = fromMaybe "Planet" $ HM.lookup "title" toml >>= extractText
+    let localeStr = fromMaybe "fi" $ HM.lookup "locale" toml >>= extractText
+    let locale = parseLocale localeStr
+    let timezone = fromMaybe "Europe/Helsinki" $ HM.lookup "timezone" toml >>= extractText
+    
+    feeds <- case HM.lookup "feeds" toml of
+        Just (Toml.VTArray nodes) -> do
+             configs <- mapM (parseFeedConfig . Toml.VTable) (V.toList nodes)
+             return configs
+        _ -> Right []
+
+    return $ Config title feeds locale timezone
+  where
+    extractText (Toml.VString t) = Just t
+    extractText _ = Nothing
+
+    parseFeedConfig node = do
+        let lookupKey k = case node of
+                Toml.VTable t -> HM.lookup k t
+                _ -> Nothing
+        
+        typeStr <- case lookupKey "type" of
+            Just (Toml.VString t) -> Right t
+            _ -> Left "Missing or invalid feed type"
+            
+        ft <- case typeStr of
+            "blog" -> Right Blog
+            "youtube" -> Right YouTube
+            _ -> Left $ "Unknown feed type: " <> typeStr
+            
+        title <- case lookupKey "title" of
+            Just (Toml.VString t) -> Right t
+            _ -> Left "Missing or invalid feed title"
+            
+        url <- case lookupKey "url" of
+            Just (Toml.VString t) -> Right t
+            _ -> Left "Missing or invalid feed url"
+            
+        return $ FeedConfig ft title url
 -- Supported locales
 data Locale = En | Fi
   deriving (Show, Eq, Read)

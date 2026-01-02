@@ -1,0 +1,26 @@
+{
+  "containerUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "be5invis.toml",
+        "ms-vscode.makefile-tools",
+        "haskell.haskell",
+        "justusadam.language-haskell",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "mkhl.direnv",
+        "eamodio.gitlens"
+      ]
+    }
+  },
+  "image": "ghcr.io/cachix/devenv/devcontainer:latest",
+  "containerEnv": {
+    "HOME": "/home/vscode"
+  },
+  "overrideCommand": false,
+  "runArgs": [
+    "--userns=keep-id"
+  ],
+  "updateContentCommand": "devenv shell -- echo Ready."
+}

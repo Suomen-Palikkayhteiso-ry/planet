@@ -9,15 +9,18 @@ build: ## Build the executable
 	cabal build
 	cp $$(cabal list-bin planet) ./planet
 
+develop: ## Launch opinionated IDE
+	devenv --profile full-vim shell -- code .
+
 run: ## Run the planet generator to update site
 	cabal run
 
 run-bin: ## Run the compiled executable directly
 	./planet
 
-clean: ## Clean build artifacts and output
+clean: ## Clean build artifacts, output, and test artifacts
 	cabal clean
-	rm -rf public planet
+	rm -rf public planet .hpc *.html src/Main
 
 test: ## Run tests
 	cabal test
