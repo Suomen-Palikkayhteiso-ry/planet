@@ -71,7 +71,11 @@ getYouTubeMediaDescription item = case item of
 
 getFlickrMediaDescription :: Item -> Maybe Text
 getFlickrMediaDescription item = case item of
-    AtomItem entry -> getMediaDescriptionFromElements (Atom.entryOther entry)
+    AtomItem entry -> case Atom.entryContent entry of
+        Just (Atom.TextContent t) -> Just t
+        Just (Atom.HTMLContent t) -> Just t
+        Just (Atom.XHTMLContent _) -> Nothing  -- TODO: handle XHTML if needed
+        Nothing -> Nothing
     XMLItem element -> getMediaDescriptionFromElements (elementChildren element)
     _ -> Nothing
 
@@ -128,9 +132,18 @@ elementChildren e = [c | NodeElement c <- elementNodes e]
 getAtomThumbnail :: Atom.Entry -> Maybe Text
 getAtomThumbnail entry = 
     let others = Atom.entryOther entry
+        enclosureImg = findEnclosureImage (Atom.entryLinks entry)
     in case findMediaThumbnail others of
         Just url -> Just url
-        Nothing -> findMediaGroupThumbnail others
+        Nothing -> case findMediaGroupThumbnail others of
+            Just url -> Just url
+            Nothing -> enclosureImg
+
+findEnclosureImage :: [Atom.Link] -> Maybe Text
+findEnclosureImage links = 
+    case filter (\l -> Atom.linkRel l == Just (Right (T.pack "enclosure")) && maybe False (T.isPrefixOf "image/") (Atom.linkType l)) links of
+        (l:_) -> Just (Atom.linkHref l)
+        [] -> Nothing
 
 getRSSThumbnail :: RSS.RSSItem -> Maybe Text
 getRSSThumbnail item = 
