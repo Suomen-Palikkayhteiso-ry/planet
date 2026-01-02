@@ -1,6 +1,6 @@
 # Planet Configuration
 
-title = "Palikkaseinä"
+title = "Palikkalinkit"
 
 [[feeds]]
 type = "blog"
