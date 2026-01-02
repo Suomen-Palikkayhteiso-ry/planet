@@ -146,6 +146,12 @@ feedTests = testGroup "Feed Tests"
   , testCase "join Just Just" $ join (Just (Just "test")) @?= Just "test"
   , testCase "join Just Nothing" $ (join (Just Nothing) :: Maybe String) @?= Nothing
   , testCase "join Nothing" $ (join Nothing :: Maybe String) @?= Nothing
+  , testCase "FeedParser.stripFirstPTag with p tag" $ do
+      let html = T.pack "<p>This is content</p><p>More</p>"
+      FeedParser.stripFirstPTag html @?= T.pack "This is content<p>More</p>"
+  , testCase "FeedParser.stripFirstPTag without p tag" $ do
+      let html = T.pack "<div>Content</div>"
+      FeedParser.stripFirstPTag html @?= T.pack "<div>Content</div>"
   ]
 
 htmlTests :: TestTree

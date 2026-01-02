@@ -17,7 +17,7 @@ import qualified Text.RSS.Syntax as RSS
 import Data.XML.Types (Element(..), Name(..), Node(..), Content(..))
 import Network.HTTP.Simple (httpLBS, getResponseBody, parseRequest, Response)
 import qualified Data.ByteString.Lazy as LBS
-import Text.HTML.TagSoup (parseTags, Tag(..))
+import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
 
 import I18n
 
@@ -73,11 +73,26 @@ getFlickrMediaDescription :: Item -> Maybe Text
 getFlickrMediaDescription item = case item of
     AtomItem entry -> case Atom.entryContent entry of
         Just (Atom.TextContent t) -> Just t
-        Just (Atom.HTMLContent t) -> Just t
+        Just (Atom.HTMLContent t) -> Just (stripFirstPTag t)
         Just (Atom.XHTMLContent _) -> Nothing  -- TODO: handle XHTML if needed
         Nothing -> Nothing
     XMLItem element -> getMediaDescriptionFromElements (elementChildren element)
     _ -> Nothing
+
+stripFirstPTag :: Text -> Text
+stripFirstPTag html = 
+    let tags = parseTags html
+    in case tags of
+        (TagOpen "p" _ : rest) -> 
+            let (content, after) = extractUntilClosingP rest
+            in renderTags (content ++ after)
+        _ -> html
+  where
+    extractUntilClosingP [] = ([], [])
+    extractUntilClosingP (TagClose "p" : rest) = ([], rest)
+    extractUntilClosingP (tag : rest) = 
+        let (content, after) = extractUntilClosingP rest
+        in (tag : content, after)
 
 getMediaDescriptionFromElements :: [Element] -> Maybe Text
 getMediaDescriptionFromElements elements =
