@@ -41,11 +41,44 @@ main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Planet Tests"
-  [ i18nTests
+  [ invariantsTests
+  , i18nTests
   , configTests
   , feedTests
   , htmlTests
   , utilityTests
+  ]
+
+invariantsTests :: TestTree
+invariantsTests = testGroup "Invariants"  -- Core system invariants that must never fail
+  [ testCase "HTML sanitization: cleanAndTruncate short text" $ do
+      let text = T.pack "<p>Short text</p>"
+      cleanAndTruncate 100 text @?= T.pack "<p>Short text</p>"
+  , testCase "HTML sanitization: cleanAndTruncate long text" $ do
+      let text = T.pack $ "<p>" ++ replicate 200 'a' ++ "</p>"
+      let result = cleanAndTruncate 50 text
+      assertBool "Truncated" (T.length result < T.length text)
+      assertBool "Contains ..." (T.isInfixOf (T.pack "...") result)
+  , testCase "HTML sanitization: normalizeVoids" $ do
+      let tags = [TagOpen (T.pack "img") [(T.pack "src", T.pack "test")]]
+          normalized = normalizeVoids tags
+      length normalized @?= 2 -- Should add closing tag
+  , testCase "HTML sanitization: pruneTree removes empty" $ do
+      let tree = [TagBranch (T.pack "div") [] []]
+          pruned = pruneTree tree
+      length pruned @?= 0
+  , testCase "HTML sanitization: pruneTree keeps content" $ do
+      let tree = [TagBranch (T.pack "p") [] [TagLeaf (TagText (T.pack "content"))]]
+          pruned = pruneTree tree
+      length pruned @?= 1
+  , testCase "HTML sanitization: takeWithLimit exact" $ do
+      let tags = [TagText (T.pack "hello")]
+          result = takeWithLimit 5 [] tags
+      result @?= [TagText (T.pack "hello")]
+  , testCase "HTML sanitization: takeWithLimit truncate" $ do
+      let tags = [TagText (T.pack "hello world")]
+          result = takeWithLimit 5 [] tags
+      result @?= [TagText (T.pack "hello...")]
   ]
 
 i18nTests :: TestTree
@@ -187,32 +220,7 @@ htmlTests = testGroup "HTML Tests"  -- Covers US-005, constrained by ADR-0000
 
 utilityTests :: TestTree
 utilityTests = testGroup "Utility Tests"  -- Covers US-005, constrained by ADR-0000
-  [ testCase "PlanetMain.cleanAndTruncate short text" $ do
-      let text = T.pack "<p>Short text</p>"
-      cleanAndTruncate 100 text @?= T.pack "<p>Short text</p>"
-  , testCase "PlanetMain.cleanAndTruncate long text" $ do
-      let text = T.pack $ "<p>" ++ replicate 200 'a' ++ "</p>"
-      let result = cleanAndTruncate 50 text
-      assertBool "Truncated" (T.length result < T.length text)
-      assertBool "Contains ..." (T.isInfixOf (T.pack "...") result)
-  , testCase "PlanetMain.normalizeVoids" $ do
-      let tags = [TagOpen (T.pack "img") [(T.pack "src", T.pack "test")]]
-          normalized = normalizeVoids tags
-      length normalized @?= 2 -- Should add closing tag
-  , testCase "PlanetMain.pruneTree removes empty" $ do
-      let tree = [TagBranch (T.pack "div") [] []]
-          pruned = pruneTree tree
-      length pruned @?= 0
-  , testCase "PlanetMain.pruneTree keeps content" $ do
-      let tree = [TagBranch (T.pack "p") [] [TagLeaf (TagText (T.pack "content"))]]
-          pruned = pruneTree tree
-      length pruned @?= 1
-  , testCase "PlanetMain.takeWithLimit exact" $ do
-      let tags = [TagText (T.pack "hello")]
-          result = takeWithLimit 5 [] tags
-      result @?= [TagText (T.pack "hello")]
-  , testCase "PlanetMain.takeWithLimit truncate" $ do
-      let tags = [TagText (T.pack "hello world")]
-          result = takeWithLimit 5 [] tags
-      result @?= [TagText (T.pack "hello...")]
+  [ testCase "join Just Just" $ join (Just (Just "x")) @?= Just "x"
+  , testCase "join Just Nothing" $ join (Just Nothing :: Maybe (Maybe String)) @?= Nothing
+  , testCase "join Nothing" $ join (Nothing :: Maybe (Maybe String)) @?= Nothing
   ]
