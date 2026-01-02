@@ -255,7 +255,8 @@ getFeedAlternateLink feed = case feed of
       where
         findAlternateLink [] = Nothing
         findAlternateLink (e:es) = 
-            if elementName e == Name "link" Nothing Nothing
+            if elementName e == Name "link" Nothing Nothing ||
+               elementName e == Name "link" (Just "http://www.w3.org/2005/Atom") Nothing
             then case getAttr "rel" e of
                 Just "alternate" -> getAttr "href" e
                 _ -> findAlternateLink es
