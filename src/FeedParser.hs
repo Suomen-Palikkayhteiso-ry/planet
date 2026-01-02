@@ -31,6 +31,7 @@ import Control.Applicative ((<|>))
 import Control.Exception (SomeException, try)
 import qualified Data.ByteString.Lazy as LBS
 import Data.Char (isDigit)
+import Data.List (find)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -245,32 +246,22 @@ getUrlAttr e =
 
 getFeedAlternateLink :: Text.Feed.Types.Feed -> Maybe Text
 getFeedAlternateLink feed = case feed of
-    Text.Feed.Types.AtomFeed af -> getAtomFeedAlternateLink af
-    Text.Feed.Types.RSSFeed rf -> getRSSFeedAlternateLink rf
+    Text.Feed.Types.AtomFeed af -> case find (\l -> case Atom.linkRel l of Just (Left r) -> r == "alternate" || r == "http://www.iana.org/assignments/relation/alternate"; Just (Right uri) -> uri == "alternate" || uri == "http://www.iana.org/assignments/relation/alternate"; _ -> False) (Atom.feedLinks af) of
+        Just l -> Just (Atom.linkHref l)
+        Nothing -> findAlternateLink (map NodeElement (Atom.feedOther af))
+    Text.Feed.Types.RSSFeed rf -> findAlternateLink (map NodeElement (RSS.rssChannelOther (RSS.rssChannel rf)))
+    Text.Feed.Types.XMLFeed e -> findAlternateLink (map NodeElement (elementChildren e))
     _ -> Nothing
   where
-    getAtomFeedAlternateLink af = findAlternateLink (Atom.feedLinks af)
-      where
-        findAlternateLink [] = Nothing
-        findAlternateLink (l:ls) = 
-            if Atom.linkRel l == Just (Left "alternate")
-            then Just (Atom.linkHref l)
-            else findAlternateLink ls
-    getRSSFeedAlternateLink rf = 
-        let channel = RSS.rssChannel rf
-            others = RSS.rssChannelOther channel
-        in findAlternateLink others
-      where
-        findAlternateLink [] = Nothing
-        findAlternateLink (e:es) = 
-            if nameLocalName (elementName e) == "link" &&
-               (nameNamespace (elementName e) == Nothing || 
-                nameNamespace (elementName e) == Just "http://www.w3.org/2005/Atom")
-            then case getAttr "rel" e of
-                Just "alternate" -> getAttr "href" e
-                _ -> findAlternateLink es
-            else findAlternateLink es
-        getAttr attr e = 
-            case filter (\(n, _) -> nameLocalName n == attr) (elementAttributes e) of
-                ((_, [ContentText t]):_) -> Just t
-                _ -> Nothing
+    findAlternateLink [] = Nothing
+    findAlternateLink (n:ns) = case n of
+        NodeElement e -> if nameLocalName (elementName e) == "link"
+                         then case getAttr "rel" e of
+                             Just "alternate" -> getAttr "href" e
+                             _ -> findAlternateLink ns
+                         else findAlternateLink ns
+        _ -> findAlternateLink ns
+    getAttr attr e = 
+        case filter (\(n, _) -> nameLocalName n == attr) (elementAttributes e) of
+            ((_, [ContentText t]):_) -> Just t
+            _ -> Nothing
