@@ -22,54 +22,67 @@ import Config
 import Styles
 import Scripts
 
+-- HTML Generation Components
+renderHead :: Config -> H.Html
+renderHead config = H.head $ do
+    H.meta H.! A.charset "UTF-8"
+    H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
+    H.title (H.toHtml $ configTitle config)
+    H.style $ H.toHtml css
+
+renderCookieConsent :: Messages -> H.Html
+renderCookieConsent msgs = H.div H.! A.id "cookie-consent" H.! A.class_ "cookie-consent hidden" $ do
+    H.div H.! A.class_ "consent-content" $ do
+        H.p $ H.toHtml (msgCookieConsentText msgs)
+        -- Swapped Buttons: Consent first (primary), Reject second (secondary)
+        H.button H.! A.id "consent-btn" $ H.toHtml (msgCookieConsentButton msgs)
+        H.button H.! A.id "reject-btn" $ H.toHtml (msgCookieRejectButton msgs)
+
+renderRevokeButton :: Messages -> H.Html
+renderRevokeButton msgs = H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $ do
+    "⚙️"
+
+renderTimelineNav :: TimeLocale -> UTCTime -> TimeZone -> [(Text, Text, [AppItem])] -> H.Html
+renderTimelineNav locale now localTZ groups = H.nav H.! A.class_ "timeline" $ do
+    H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime locale "%Y" (utcToZonedTime localTZ now))
+    H.ul $ forM_ groups $ \(monthLabel, monthId, _) -> do
+        H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
+
+renderIntro :: Config -> Messages -> TimeLocale -> UTCTime -> TimeZone -> H.Html
+renderIntro config msgs locale now localTZ = H.div H.! A.class_ "intro" $ do
+    H.h1 (H.toHtml $ configTitle config)
+    H.p $ do
+        H.toHtml (msgGeneratedOn msgs)
+        " "
+        H.toHtml (formatTime locale "%Y-%m-%d %H:%M:%S" (utcToZonedTime localTZ now))
+
+renderMonthSection :: TimeLocale -> (Text, Text, [AppItem]) -> H.Html
+renderMonthSection locale (monthLabel, monthId, groupItems) = H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $ do
+    H.h2 H.! A.class_ "month-title" $ H.toHtml monthLabel
+    H.div H.! A.class_ "grid" $ do
+        mapM_ (renderCard locale) groupItems
+
+renderFooter :: Messages -> H.Html
+renderFooter msgs = H.footer $ do
+    H.p (H.toHtml $ msgPoweredBy msgs)
+
+renderScript :: H.Html
+renderScript = H.script $ H.preEscapedToHtml js
+
 -- HTML Generation
 generateHtml :: Config -> Messages -> [AppItem] -> UTCTime -> TimeZone -> LBS.ByteString
 generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
-    H.head $ do
-        H.meta H.! A.charset "UTF-8"
-        H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
-        H.title (H.toHtml $ configTitle config)
-        H.style $ H.toHtml css
+    renderHead config
     H.body $ do
-        -- Cookie Consent Banner
-        H.div H.! A.id "cookie-consent" H.! A.class_ "cookie-consent hidden" $ do
-            H.div H.! A.class_ "consent-content" $ do
-                H.p $ H.toHtml (msgCookieConsentText msgs)
-                -- Swapped Buttons: Consent first (primary), Reject second (secondary)
-                H.button H.! A.id "consent-btn" $ H.toHtml (msgCookieConsentButton msgs)
-                H.button H.! A.id "reject-btn" $ H.toHtml (msgCookieRejectButton msgs)
-
-        -- Revoke Consent Button
-        H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $ do
-            "⚙️"
-
+        renderCookieConsent msgs
+        renderRevokeButton msgs
         H.div H.! A.class_ "layout" $ do
-            -- Timeline Navigation
-            H.nav H.! A.class_ "timeline" $ do
-                H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime locale "%Y" (utcToZonedTime localTZ now))
-                H.ul $ forM_ groups $ \(monthLabel, monthId, _) -> do
-                    H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
-
+            renderTimelineNav locale now localTZ groups
             H.main H.! A.class_ "main-content" $ do
-                -- Intro / Title area within main since header is gone
-                H.div H.! A.class_ "intro" $ do
-                    H.h1 (H.toHtml $ configTitle config)
-                    H.p $ do
-                        H.toHtml (msgGeneratedOn msgs)
-                        " "
-                        H.toHtml (formatTime locale "%Y-%m-%d %H:%M:%S" (utcToZonedTime localTZ now))
-
-                forM_ groups $ \(monthLabel, monthId, groupItems) -> do
-                    H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $ do
-                        H.h2 H.! A.class_ "month-title" $ H.toHtml monthLabel
-                        H.div H.! A.class_ "grid" $ do
-                            mapM_ (renderCard locale) groupItems
-        
-        H.footer $ do
-            H.p (H.toHtml $ msgPoweredBy msgs)
-
-        -- Script for Cookie Consent & Lazy Loading
-        H.script $ H.preEscapedToHtml js
+                renderIntro config msgs locale now localTZ
+                forM_ groups (renderMonthSection locale)
+        renderFooter msgs
+        renderScript
   where
     locale = getTimeLocale (configLocale config)
 
