@@ -88,8 +88,13 @@ parseItem fc altLink item = do
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc
-    let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage)
-    return $ AppItem title link date desc thumb (feedTitle fc) altLink (feedType fc)
+    let desc' = if feedType fc == Blog
+                then case item of
+                    AtomItem _ -> fmap stripFirstPTag desc
+                    _ -> desc
+                else desc
+    let thumb = getItemThumbnail item <|> (desc' >>= extractFirstImage)
+    return $ AppItem title link date desc' thumb (feedTitle fc) altLink (feedType fc)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
