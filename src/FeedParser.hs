@@ -249,10 +249,13 @@ getFeedAlternateLink feed = case feed of
     Text.Feed.Types.RSSFeed rf -> getRSSFeedAlternateLink rf
     _ -> Nothing
   where
-    getAtomFeedAlternateLink af = 
-        case drop 1 (Atom.feedLinks af) of
-            (l:_) -> Just (Atom.linkHref l)
-            _ -> Nothing
+    getAtomFeedAlternateLink af = findAlternateLink (Atom.feedLinks af)
+      where
+        findAlternateLink [] = Nothing
+        findAlternateLink (l:ls) = 
+            if Atom.linkRel l == Just (Left "alternate")
+            then Just (Atom.linkHref l)
+            else findAlternateLink ls
     getRSSFeedAlternateLink rf = 
         let channel = RSS.rssChannel rf
             others = RSS.rssChannelOther channel
