@@ -47,7 +47,7 @@ tests = testGroup "Planet Tests"
   ]
 
 i18nTests :: TestTree
-i18nTests = testGroup "I18n Tests"
+i18nTests = testGroup "I18n Tests"  -- Covers US-002, constrained by ADR-0000
   [ testCase "parseLocale en" $ parseLocale (T.pack "en") @?= En
   , testCase "parseLocale fi" $ parseLocale (T.pack "fi") @?= Fi
   , testCase "parseLocale unknown" $ parseLocale (T.pack "unknown") @?= defaultLocale
@@ -58,7 +58,7 @@ i18nTests = testGroup "I18n Tests"
   ]
 
 configTests :: TestTree
-configTests = testGroup "Config Tests"
+configTests = testGroup "Config Tests"  -- Covers US-002, constrained by ADR-0000
   [ testCase "PlanetMain.parseConfig valid" $ do
       let toml = T.unlines
             [ T.pack "title = \"Test Planet\""
@@ -104,7 +104,7 @@ configTests = testGroup "Config Tests"
   ]
 
 feedTests :: TestTree
-feedTests = testGroup "Feed Tests"
+feedTests = testGroup "Feed Tests"  -- Covers US-001, US-006, constrained by ADR-0000
   [ testCase "PlanetMain.extractFirstImage" $ do
       let html = T.pack "<p>Some text <img src=\"http://example.com/image.jpg\" alt=\"test\"> more text</p>"
       FeedParser.extractFirstImage html @?= Just (T.pack "http://example.com/image.jpg")
@@ -146,25 +146,25 @@ feedTests = testGroup "Feed Tests"
   , testCase "join Just Just" $ join (Just (Just "test")) @?= Just "test"
   , testCase "join Just Nothing" $ (join (Just Nothing) :: Maybe String) @?= Nothing
   , testCase "join Nothing" $ (join Nothing :: Maybe String) @?= Nothing
-  , testCase "FeedParser.stripFirstPTag with p tag" $ do
+  , testCase "FeedParser.stripFirstPTag with p tag" $ do  -- Covers US-006
       let html = T.pack "<p>This is content</p><p>More</p>"
       FeedParser.stripFirstPTag html @?= T.pack "This is content<p>More</p>"
-  , testCase "FeedParser.stripFirstPTag without p tag" $ do
+  , testCase "FeedParser.stripFirstPTag without p tag" $ do  -- Covers US-006
       let html = T.pack "<div>Content</div>"
       FeedParser.stripFirstPTag html @?= T.pack "<div>Content</div>"
-  , testCase "FeedParser.cleanTitle remove hashtags" $ do
+  , testCase "FeedParser.cleanTitle remove hashtags" $ do  -- Covers US-001
       let title = T.pack "My post #tag1 #tag2"
       FeedParser.cleanTitle title @?= T.pack "My post"
-  , testCase "FeedParser.cleanTitle keep number hashtags" $ do
+  , testCase "FeedParser.cleanTitle keep number hashtags" $ do  -- Covers US-001
       let title = T.pack "My post #123 #tag"
       FeedParser.cleanTitle title @?= T.pack "My post #123"
-  , testCase "FeedParser.cleanTitle no hashtags" $ do
+  , testCase "FeedParser.cleanTitle no hashtags" $ do  -- Covers US-001
       let title = T.pack "My post without hashtags"
       FeedParser.cleanTitle title @?= T.pack "My post without hashtags"
   ]
 
 htmlTests :: TestTree
-htmlTests = testGroup "HTML Tests"
+htmlTests = testGroup "HTML Tests"  -- Covers US-005, constrained by ADR-0000
   [ testCase "PlanetMain.generateHtml basic" $ do
       let config = Config (T.pack "Test Planet") [] En (T.pack "Europe/Helsinki")
           msgs = getMessages En
@@ -184,7 +184,7 @@ htmlTests = testGroup "HTML Tests"
   ]
 
 utilityTests :: TestTree
-utilityTests = testGroup "Utility Tests"
+utilityTests = testGroup "Utility Tests"  -- Covers US-005, constrained by ADR-0000
   [ testCase "PlanetMain.cleanAndTruncate short text" $ do
       let text = T.pack "<p>Short text</p>"
       HtmlGen.cleanAndTruncate 100 text @?= T.pack "<p>Short text</p>"
