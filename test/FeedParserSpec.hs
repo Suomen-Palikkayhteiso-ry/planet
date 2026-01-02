@@ -55,7 +55,10 @@ feedTests = testGroup "Feed Tests"
   , testCase "join Nothing" $ (join Nothing :: Maybe String) @?= Nothing
   , testCase "stripFirstPTag with p tag" $ do
       let html = T.pack "<p>This is content</p><p>More</p>"
-      stripFirstPTag html @?= T.pack "This is content<p>More</p>"
+      stripFirstPTag html @?= T.pack "<p>More</p>"
+  , testCase "stripFirstPTag flickr-like description" $ do
+      let html = T.pack "<p><a href=\"https://www.flickr.com/photos/12345/67890/\">Photo on Flickr</a></p>This is the actual description. It has <b>some</b> formatting."
+      stripFirstPTag html @?= T.pack "This is the actual description. It has <b>some</b> formatting."
   , testCase "stripFirstPTag without p tag" $ do
       let html = T.pack "<div>Content</div>"
       stripFirstPTag html @?= T.pack "<div>Content</div>"

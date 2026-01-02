@@ -55,8 +55,8 @@ invariantsTests = testGroup "Invariants"  -- Core system invariants that must ne
       let text = T.pack "<p>Short text</p>"
       cleanAndTruncate 100 text @?= T.pack "<p>Short text</p>"
   , testCase "HTML sanitization: cleanAndTruncate long text" $ do
-      let text = T.pack $ "<p>" ++ replicate 200 'a' ++ "</p>"
-      let result = cleanAndTruncate 50 text
+      let text = T.pack $ "<p>" ++ replicate 300 'a' ++ "</p>"
+      let result = cleanAndTruncate 160 text
       assertBool "Truncated" (T.length result < T.length text)
       assertBool "Contains ..." (T.isInfixOf (T.pack "...") result)
   , testCase "HTML sanitization: normalizeVoids" $ do
@@ -183,7 +183,10 @@ feedTests = testGroup "Feed Tests"  -- Covers US-001, US-006, constrained by ADR
   , testCase "join Nothing" $ (join Nothing :: Maybe String) @?= Nothing
   , testCase "FeedParser.stripFirstPTag with p tag" $ do  -- Covers US-006
       let html = T.pack "<p>This is content</p><p>More</p>"
-      FeedParser.stripFirstPTag html @?= T.pack "This is content<p>More</p>"
+      FeedParser.stripFirstPTag html @?= T.pack "<p>More</p>"
+  , testCase "FeedParser.stripFirstPTag flickr-like description" $ do
+      let html = T.pack "<p><a href=\"https://www.flickr.com/photos/12345/67890/\">Photo on Flickr</a></p>This is the actual description. It has <b>some</b> formatting."
+      FeedParser.stripFirstPTag html @?= T.pack "This is the actual description. It has <b>some</b> formatting."
   , testCase "FeedParser.stripFirstPTag without p tag" $ do  -- Covers US-006
       let html = T.pack "<div>Content</div>"
       FeedParser.stripFirstPTag html @?= T.pack "<div>Content</div>"
@@ -196,6 +199,12 @@ feedTests = testGroup "Feed Tests"  -- Covers US-001, US-006, constrained by ADR
   , testCase "FeedParser.cleanTitle no hashtags" $ do  -- Covers US-001
       let title = T.pack "My post without hashtags"
       FeedParser.cleanTitle title @?= T.pack "My post without hashtags"
+  , testCase "getFlickrMediaDescription with HTMLContent" $ do
+      let now = read "2023-01-01 00:00:00 UTC"
+          entry = (Atom.nullEntry (T.pack "tag:example.com,2023:test") (undefined :: Atom.TextContent) now)
+                      { Atom.entryContent = Just (Atom.HTMLContent (T.pack "<p>first</p><p>second</p>")) }
+          item = AtomItem entry
+      FeedParser.getFlickrMediaDescription item @?= Just (T.pack "<p>second</p>")
   ]
 
 htmlTests :: TestTree

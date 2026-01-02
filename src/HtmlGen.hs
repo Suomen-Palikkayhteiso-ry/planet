@@ -46,13 +46,9 @@ renderTimelineNav locale now localTZ groups = H.nav H.! A.class_ "timeline" $ do
     H.ul $ forM_ groups $ \(monthLabel, monthId, _) -> do
         H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
 
-renderIntro :: Config -> Messages -> TimeLocale -> UTCTime -> TimeZone -> H.Html
-renderIntro config msgs locale now localTZ = H.div H.! A.class_ "intro" $ do
+renderIntro :: Config -> H.Html
+renderIntro config = H.div H.! A.class_ "intro" $ do
     H.h1 (H.toHtml $ configTitle config)
-    H.p $ do
-        H.toHtml (msgGeneratedOn msgs)
-        " "
-        H.toHtml (formatTime locale "%Y-%m-%d %H:%M:%S" (utcToZonedTime localTZ now))
 
 renderMonthSection :: TimeLocale -> (Text, Text, [AppItem]) -> H.Html
 renderMonthSection locale (monthLabel, monthId, groupItems) = H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $ do
@@ -60,9 +56,13 @@ renderMonthSection locale (monthLabel, monthId, groupItems) = H.div H.! A.id (H.
     H.div H.! A.class_ "grid" $ do
         mapM_ (renderCard locale) groupItems
 
-renderFooter :: Messages -> H.Html
-renderFooter msgs = H.footer $ do
+renderFooter :: Messages -> TimeLocale -> UTCTime -> TimeZone -> H.Html
+renderFooter msgs locale now localTZ = H.footer $ do
     H.p (H.toHtml $ msgPoweredBy msgs)
+    H.p $ do
+        H.toHtml (msgGeneratedOn msgs)
+        " "
+        H.toHtml (formatTime locale "%Y-%m-%d %H:%M:%S" (utcToZonedTime localTZ now))
 
 renderScript :: H.Html
 renderScript = H.script $ H.preEscapedToHtml js
@@ -77,9 +77,9 @@ generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
         H.div H.! A.class_ "layout" $ do
             renderTimelineNav locale now localTZ groups
             H.main H.! A.class_ "main-content" $ do
-                renderIntro config msgs locale now localTZ
+                renderIntro config
                 forM_ groups (renderMonthSection locale)
-        renderFooter msgs
+        renderFooter msgs locale now localTZ
         renderScript
   where
     locale = getTimeLocale (configLocale config)
@@ -113,7 +113,7 @@ renderCard locale item = H.div H.! A.class_ "card" $ do
         H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
         H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
         case itemDesc item of
-             Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 256 d)
+             Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 160 d)
              Nothing -> return ()
         H.div H.! A.class_ "card-meta" $ do
             case itemDate item of

@@ -9,10 +9,10 @@ import qualified Data.Text as T
 css :: Text
 css = T.unlines
     [ "body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9; }"
-    , ".layout { display: flex; max-width: 1400px; margin: 0 auto; padding: 20px; gap: 40px; }"
+    , ".layout { display: flex; max-width: 1400px; margin: 0 auto; gap: 20px; }"
     
     -- Timeline Navigation
-    , ".timeline { width: 180px; flex-shrink: 0; position: sticky; top: 20px; align-self: start; height: calc(100vh - 40px); overflow-y: auto; padding-right: 10px; }"
+    , ".timeline { width: 180px; flex-shrink: 0; position: sticky; top: 14px; align-self: start; height: calc(100vh - 40px); overflow-y: auto; padding-right: 10px; }"
     , ".timeline-header { font-weight: 900; font-size: 2rem; color: #eaeaea; margin-bottom: 20px; text-align: right; line-height: 1; }"
     , ".timeline ul { list-style: none; padding: 0; margin: 0; text-align: right; }"
     , ".timeline li { margin-bottom: 12px; }"
@@ -22,7 +22,7 @@ css = T.unlines
     -- Main Content
     , ".main-content { flex-grow: 1; min-width: 0; }" -- min-width 0 prevents flex overflow
     , ".intro { }"
-    , "h1 { font-weight: 700; color: #111; margin: 0 0 10px 0; font-size: 2.5rem; }"
+    , "h1 { font-weight: 700; color: #111; margin: 0; font-size: 2.5rem; }"
     , "h2.month-title { font-weight: 600; color: #444; border-bottom: 2px solid #333; padding-bottom: 10px; margin: 40px 0 20px 0; font-size: 1.5rem; }"
     
     -- Grid & Cards

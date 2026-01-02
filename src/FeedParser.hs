@@ -80,7 +80,10 @@ getYouTubeMediaDescription item = case item of
 
 getFlickrMediaDescription :: Item -> Maybe Text
 getFlickrMediaDescription item = case item of
-    AtomItem _ -> fmap stripFirstPTag (getItemDescription item)
+    AtomItem entry ->
+        case Atom.entryContent entry of
+            Just (Atom.HTMLContent content) -> Just $ stripFirstPTag content
+            _ -> fmap stripFirstPTag (getItemDescription item) -- fallback
     XMLItem element -> getMediaDescriptionFromElements (elementChildren element)
     _ -> Nothing
 
@@ -88,16 +91,17 @@ stripFirstPTag :: Text -> Text
 stripFirstPTag html = 
     let tags = parseTags html
     in case tags of
-        (TagOpen "p" _ : rest) -> 
-            let (content, after) = extractUntilClosingP rest
-            in renderTags (content ++ after)
+        (TagOpen "p" _ : restOfTags) ->
+            let (_, remainingTags) = skipUntilClosingPTag restOfTags
+            in renderTags remainingTags
         _ -> html
   where
-    extractUntilClosingP [] = ([], [])
-    extractUntilClosingP (TagClose "p" : rest) = ([], rest)
-    extractUntilClosingP (tag : rest) = 
-        let (content, after) = extractUntilClosingP rest
-        in (tag : content, after)
+    skipUntilClosingPTag :: [Tag Text] -> ([Tag Text], [Tag Text])
+    skipUntilClosingPTag [] = ([], [])
+    skipUntilClosingPTag (TagClose "p" : rest) = ([], rest)
+    skipUntilClosingPTag (tag : rest) = 
+        let (skipped, remaining) = skipUntilClosingPTag rest
+        in (tag : skipped, remaining)
 
 cleanTitle :: Text -> Text
 cleanTitle title = 
