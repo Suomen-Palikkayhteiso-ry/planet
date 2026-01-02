@@ -1,15 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 module FeedParser where
 
 import Control.Applicative ((<|>))
 import Control.Exception (try, SomeException)
 import Data.Char (isDigit)
-import Data.Maybe (fromMaybe, mapMaybe)
+import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
-import Data.Time (UTCTime)
 import Text.Feed.Import (parseFeedSource)
 import Text.Feed.Query (getFeedItems, getItemTitle, getItemLink, getItemPublishDate, getItemDescription)
 import Text.Feed.Types (Item(..))
@@ -23,7 +22,7 @@ import Text.HTML.TagSoup (parseTags, renderTags, Tag(..))
 import I18n
 import Config
 
-data FeedHandler = FeedHandler
+newtype FeedHandler = FeedHandler
     { fhGetMediaDescription :: Item -> Maybe Text
     }
 
@@ -70,7 +69,7 @@ parseItem fc item = do
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
-getMediaDescription fc item = fhGetMediaDescription (getFeedHandler (feedType fc)) item
+getMediaDescription fc = fhGetMediaDescription (getFeedHandler (feedType fc))
 
 getYouTubeMediaDescription :: Item -> Maybe Text
 getYouTubeMediaDescription item = case item of
@@ -105,8 +104,8 @@ stripFirstPTag html =
 
 cleanTitle :: Text -> Text
 cleanTitle title = 
-    let words = T.words title
-        cleaned = reverse $ dropWhile isHashtagToRemove $ reverse words
+    let wordList = T.words title
+        cleaned = reverse $ dropWhile isHashtagToRemove $ reverse wordList
     in T.unwords cleaned
   where
     isHashtagToRemove w = T.isPrefixOf "#" w && not (T.all isDigit (T.drop 1 w))
@@ -145,7 +144,7 @@ isMediaGroup e = nameLocalName (elementName e) == "group"
 extractFirstImage :: Text -> Maybe Text
 extractFirstImage html = 
     let tags = parseTags html
-        imgTags = filter (\t -> case t of TagOpen "img" _ -> True; _ -> False) tags
+        imgTags = filter (\case TagOpen "img" _ -> True; _ -> False) tags
     in case imgTags of
         (TagOpen "img" attrs : _) -> lookup "src" attrs
         _ -> Nothing
@@ -167,9 +166,7 @@ getAtomThumbnail entry =
         enclosureImg = findEnclosureImage (Atom.entryLinks entry)
     in case findMediaThumbnail others of
         Just url -> Just url
-        Nothing -> case findMediaGroupThumbnail others of
-            Just url -> Just url
-            Nothing -> enclosureImg
+        Nothing -> findMediaGroupThumbnail others <|> enclosureImg
 
 findEnclosureImage :: [Atom.Link] -> Maybe Text
 findEnclosureImage links = 

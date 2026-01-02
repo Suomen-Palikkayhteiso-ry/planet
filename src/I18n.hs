@@ -3,7 +3,6 @@
 module I18n where
 
 import Data.Text (Text)
-import qualified Data.Text as T
 import Data.Time (UTCTime)
 import Data.Time.Format (TimeLocale(..), defaultTimeLocale)
 

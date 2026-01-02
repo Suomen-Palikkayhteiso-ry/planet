@@ -1,4 +1,4 @@
-.PHONY: help all build run clean test repl check
+.PHONY: help all build run clean test repl check cabal-check
 
 default: help
 
@@ -7,7 +7,7 @@ all: build ## Build the project
 build: ## Build the executable
 	cabal update
 	cabal build
-	cp $$(cabal list-bin planet) ./planet
+	cp $(cabal list-bin planet) ./planet
 
 develop: ## Launch opinionated IDE
 	devenv --profile full-vim shell -- code .
@@ -22,13 +22,16 @@ clean: ## Clean build artifacts, output, and test artifacts
 	cabal clean
 	rm -rf public planet .hpc *.html src/Main
 
-test: ## Run tests
+test: check ## Run tests
 	cabal test
 
 repl: ## Start the REPL
 	cabal repl
 
-check: ## Check the package for common errors
+check: ## Run hlint static analysis
+	devenv shell -- hlint src tests
+
+cabal-check: ## Check the package for common errors
 	cabal check
 
 help:

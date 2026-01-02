@@ -45,7 +45,7 @@ pruneTree = filter (not . isEmptyTree) . filter (not . isSeparator) . filter (no
     isImageTree (TagBranch name _ _) = name == "img"
     isImageTree _ = False
 
-    isEmptyTree (TagBranch name _ []) = not (name `elem` voidTags)
+    isEmptyTree (TagBranch name _ []) = name `notElem` voidTags
     isEmptyTree (TagBranch name _ _) | name `elem` ["script", "style"] = True
     isEmptyTree (TagBranch _ _ children) = all isEmptyTree children
     isEmptyTree (TagLeaf tag) = not (isVisibleTag tag)
@@ -66,7 +66,7 @@ takeWithLimit remainingLen stack (t:ts)
             let len = T.length text
             in if len <= remainingLen
                then t : takeWithLimit (remainingLen - len) stack ts
-               else [TagText (T.take remainingLen text <> "...")] ++ map TagClose stack
+               else TagText (T.take remainingLen text <> "...") : map TagClose stack
         TagOpen name _ ->
             if name `elem` voidTags
             then t : takeWithLimit remainingLen stack ts

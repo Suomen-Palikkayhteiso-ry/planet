@@ -39,7 +39,7 @@ i18nTests = testGroup "I18n Tests"
   , testCase "getMessages En" $ msgGeneratedOn (getMessages En) @?= "Generated on"
   , testCase "getMessages Fi" $ msgGeneratedOn (getMessages Fi) @?= "Koottu"
   , testCase "getTimeLocale En" $ wDays (getTimeLocale En) @?= wDays defaultTimeLocale
-  , testCase "getTimeLocale Fi" $ months (getTimeLocale Fi) !! 0 @?= ("tammikuu", "tammi")
+  , testCase "getTimeLocale Fi" $ head (months (getTimeLocale Fi)) @?= ("tammikuu", "tammi")
   ]
 
 configTests :: TestTree

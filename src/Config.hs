@@ -35,9 +35,8 @@ parseConfig content = do
     let timezone = fromMaybe (T.pack "Europe/Helsinki") $ HM.lookup (T.pack "timezone") toml >>= extractText
     
     feeds <- case HM.lookup (T.pack "feeds") toml of
-        Just (Toml.VTArray nodes) -> do
-             configs <- mapM (parseFeedConfig . Toml.VTable) (V.toList nodes)
-             return configs
+        Just (Toml.VTArray nodes) ->
+             mapM (parseFeedConfig . Toml.VTable) (V.toList nodes)
         _ -> Right []
 
     return $ Config title feeds locale timezone

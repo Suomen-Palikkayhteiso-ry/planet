@@ -48,6 +48,7 @@ library
     , tagsoup
     , tz
     , tzdata
+    , hlint
   default-language: Haskell2010
 
 executable planet
@@ -124,4 +125,5 @@ test-suite planet-tests
     , tasty-quickcheck
     , Cabal
     , planet
+    , hlint
   default-language: Haskell2010

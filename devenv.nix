@@ -17,6 +17,7 @@
     pkgs.cabal-install
     pkgs.gemini-cli
     pkgs.git
+    pkgs.hlint
     pkgs.nodejs
     pkgs.openssl
     pkgs.pkg-config

@@ -22,44 +22,44 @@ import HtmlSanitizer
 
 -- HTML Generation Components
 renderHead :: Config -> H.Html
-renderHead config = H.head $ do
+renderHead config = H.head $
     H.meta H.! A.charset "UTF-8"
     H.meta H.! A.name "viewport" H.! A.content "width=device-width, initial-scale=1.0"
     H.title (H.toHtml $ configTitle config)
     H.style $ H.toHtml css
 
 renderCookieConsent :: Messages -> H.Html
-renderCookieConsent msgs = H.div H.! A.id "cookie-consent" H.! A.class_ "cookie-consent hidden" $ do
-    H.div H.! A.class_ "consent-content" $ do
-        H.p $ H.toHtml (msgCookieConsentText msgs)
+renderCookieConsent msgs = H.div H.! A.id "cookie-consent" H.! A.class_ "cookie-consent hidden" $
+    H.div H.! A.class_ "consent-content" $
+        H.p (H.toHtml (msgCookieConsentText msgs))
         -- Swapped Buttons: Consent first (primary), Reject second (secondary)
         H.button H.! A.id "consent-btn" $ H.toHtml (msgCookieConsentButton msgs)
         H.button H.! A.id "reject-btn" $ H.toHtml (msgCookieRejectButton msgs)
 
 renderRevokeButton :: Messages -> H.Html
-renderRevokeButton msgs = H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $ do
+renderRevokeButton msgs = H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $
     "⚙️"
 
 renderTimelineNav :: TimeLocale -> UTCTime -> TimeZone -> [(Text, Text, [AppItem])] -> H.Html
-renderTimelineNav locale now localTZ groups = H.nav H.! A.class_ "timeline" $ do
+renderTimelineNav locale now localTZ groups = H.nav H.! A.class_ "timeline" $
     H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime locale "%Y" (utcToZonedTime localTZ now))
-    H.ul $ forM_ groups $ \(monthLabel, monthId, _) -> do
+    H.ul $ forM_ groups $ \(monthLabel, monthId, _) ->
         H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
 
 renderIntro :: Config -> H.Html
-renderIntro config = H.div H.! A.class_ "intro" $ do
+renderIntro config = H.div H.! A.class_ "intro" $
     H.h1 (H.toHtml $ configTitle config)
 
 renderMonthSection :: TimeLocale -> (Text, Text, [AppItem]) -> H.Html
-renderMonthSection locale (monthLabel, monthId, groupItems) = H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $ do
+renderMonthSection locale (monthLabel, monthId, groupItems) = H.div H.! A.id (H.toValue monthId) H.! A.class_ "month-section" $
     H.h2 H.! A.class_ "month-title" $ H.toHtml monthLabel
-    H.div H.! A.class_ "grid" $ do
+    H.div H.! A.class_ "grid" $
         mapM_ (renderCard locale) groupItems
 
 renderFooter :: Messages -> TimeLocale -> UTCTime -> TimeZone -> H.Html
-renderFooter msgs locale now localTZ = H.footer $ do
+renderFooter msgs locale now localTZ = H.footer $
     H.p (H.toHtml $ msgPoweredBy msgs)
-    H.p $ do
+    H.p $
         H.toHtml (msgGeneratedOn msgs)
         " "
         H.toHtml (formatTime locale "%Y-%m-%d %H:%M:%S" (utcToZonedTime localTZ now))
@@ -69,14 +69,14 @@ renderScript = H.script $ H.preEscapedToHtml js
 
 -- HTML Generation
 generateHtml :: Config -> Messages -> [AppItem] -> UTCTime -> TimeZone -> LBS.ByteString
-generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
+generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $
     renderHead config
-    H.body $ do
+    H.body $
         renderCookieConsent msgs
         renderRevokeButton msgs
-        H.div H.! A.class_ "layout" $ do
+        H.div H.! A.class_ "layout" $
             renderTimelineNav locale now localTZ groups
-            H.main H.! A.class_ "main-content" $ do
+            H.main H.! A.class_ "main-content" $
                 renderIntro config
                 forM_ groups (renderMonthSection locale)
         renderFooter msgs locale now localTZ
@@ -102,24 +102,24 @@ generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
         in (monthLabel, monthId, groupItems)
 
 renderCard :: TimeLocale -> AppItem -> H.Html
-renderCard locale item = H.div H.! A.class_ "card" $ do
+renderCard locale item = H.div H.! A.class_ "card" $
     case itemThumbnail item of
-        Just url -> H.div H.! A.class_ "card-image" $ do
+        Just url -> H.div H.! A.class_ "card-image" $
             H.img H.! A.class_ "lazy-consent" 
                   H.! H.dataAttribute "src" (H.toValue url) 
                   H.! A.alt (H.toValue $ itemTitle item)
         Nothing -> return ()
-    H.div H.! A.class_ "card-content" $ do
+    H.div H.! A.class_ "card-content" $
         H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
         H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
         case itemDesc item of
              Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 160 d)
              Nothing -> return ()
-        H.div H.! A.class_ "card-meta" $ do
-            case itemDate item of
-                Just d -> H.div H.! A.class_ "date" $ H.toHtml (formatTime locale "%Y-%m-%d" d)
-                Nothing -> return ()
-            H.div H.! A.class_ "type-icon" $ case itemType item of
-                YouTube -> "🎥"
-                Blog -> "📝"
-                Flickr -> "📷"
+    H.div H.! A.class_ "card-meta" $
+        case itemDate item of
+            Just d -> H.div H.! A.class_ "date" $ H.toHtml (formatTime locale "%Y-%m-%d" d)
+            Nothing -> return ()
+        H.div H.! A.class_ "type-icon" $ case itemType item of
+            YouTube -> "🎥"
+            Blog -> "📝"
+            Flickr -> "📷"

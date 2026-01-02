@@ -21,8 +21,9 @@ Before making any changes, you **MUST** follow this work loop:
 1.  **State Goal**: Clearly state the perceived goal of the task.
 2.  **Locate Artifacts**: Identify and read all relevant tests, user stories, and ADRs related to the goal.
 3.  **Identify Constraints**: List the specific architectural and behavioral constraints imposed by the artifacts.
-4.  **Propose Strategy**: Formulate a minimal change strategy that respects all constraints.
-5.  **Update/Add Tests**: Before writing implementation code, add or update tests that codify the goal. Ensure they fail as expected.
+5.  **Propose Strategy**: Formulate a minimal change strategy that respects all constraints.
+5.  **Formalize Behavior (BDD)**: When adding or updating tests, consider expressing the desired behavior in a Given/When/Then format within the test's comments or the user story itself. Tests are the executable specification of behavior.
+6.  **Update/Add Tests**: Before writing implementation code, add or update tests that codify the goal. Ensure they fail as expected.
 6.  **Implement**: Write the code to make the new tests pass.
 7.  **Verify**: Run all tests and re-evaluate your changes against the user stories and ADRs to ensure compliance.
 

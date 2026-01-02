@@ -1,16 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module Planet where
 
 import Control.Concurrent.Async (mapConcurrently)
 import Data.List (sortOn)
 import Data.Ord (Down(..))
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified Data.Text.Encoding as TE
-import Data.Time (UTCTime, getCurrentTime)
+import Data.Time (getCurrentTime)
 import Data.Time.Zones (timeZoneForUTCTime)
 import Data.Time.Zones.All (tzByLabel, fromTZName)
 import qualified Data.ByteString.Lazy as LBS
@@ -35,7 +33,7 @@ main = do
             allItems <- concat <$> mapConcurrently fetchFeed (configFeeds config)
             
             -- Sort by date descending
-            let sortedItems = sortOn (\i -> Down (itemDate i)) allItems
+            let sortedItems = sortOn (Down . itemDate) allItems
             
             now <- getCurrentTime
             let messages = getMessages (configLocale config)

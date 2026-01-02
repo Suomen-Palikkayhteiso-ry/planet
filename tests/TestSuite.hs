@@ -1,32 +1,22 @@
-module Main where
-
 import Test.Tasty
 import Test.Tasty.HUnit
-import Test.Tasty.QuickCheck as QC
 
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text.Encoding as TE
 import Data.Time
-import Data.Time.Format (TimeLocale(..), defaultTimeLocale)
 import Data.Time.Zones
 import Data.Time.Zones.All
-import qualified Data.HashMap.Strict as HM
-import qualified Data.Vector as V
 import Text.Feed.Types
 import qualified Text.Atom.Feed as Atom
-import qualified Text.RSS.Syntax as RSS
 import Data.XML.Types
-import qualified Text.Blaze.Html5 as H
 import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.HTML.TagSoup
-import Text.HTML.TagSoup.Tree (TagTree(..), tagTree, flattenTree)
+import Text.HTML.TagSoup.Tree (TagTree(..))
 
-import qualified Planet as PlanetMain
-import qualified FeedParser as FeedParser
-import qualified HtmlGen as HtmlGen
+import qualified FeedParser
+import qualified HtmlGen
 import I18n
 import Config
 import HtmlSanitizer
@@ -89,7 +79,7 @@ i18nTests = testGroup "I18n Tests"  -- Covers US-002, constrained by ADR-0000
   , testCase "getMessages En" $ msgGeneratedOn (getMessages En) @?= T.pack "Generated on"
   , testCase "getMessages Fi" $ msgGeneratedOn (getMessages Fi) @?= T.pack "Koottu"
   , testCase "getTimeLocale En" $ wDays (getTimeLocale En) @?= wDays defaultTimeLocale
-  , testCase "getTimeLocale Fi" $ months (getTimeLocale Fi) !! 0 @?= ("tammikuu", "tammi")
+  , testCase "getTimeLocale Fi" $ head (months (getTimeLocale Fi)) @?= ("tammikuu", "tammi")
   ]
 
 configTests :: TestTree
@@ -147,8 +137,8 @@ feedTests = testGroup "Feed Tests"  -- Covers US-001, US-006, constrained by ADR
       let html = T.pack "<p>Some text without image</p>"
       FeedParser.extractFirstImage html @?= Nothing
   , testCase "PlanetMain.getMediaDescription" $ do
-      let elements = [Element (Name (T.pack "description") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] [NodeContent (ContentText (T.pack "Test description"))]]
-      FeedParser.getMediaDescriptionFromElements elements @?= Just (T.pack "Test description")
+      let mediaElements = [Element (Name (T.pack "description") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] [NodeContent (ContentText (T.pack "Test description"))]]
+      FeedParser.getMediaDescriptionFromElements mediaElements @?= Just (T.pack "Test description")
   , testCase "PlanetMain.isMediaDescription true" $ do
       let e = Element (Name (T.pack "description") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] []
       FeedParser.isMediaDescription e @?= True
@@ -171,13 +161,13 @@ feedTests = testGroup "Feed Tests"  -- Covers US-001, US-006, constrained by ADR
       FeedParser.getUrlAttr e @?= Nothing
   , testCase "PlanetMain.findMediaThumbnail" $ do
       let e = Element (Name (T.pack "thumbnail") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [(Name (T.pack "url") Nothing Nothing, [ContentText (T.pack "http://example.com")])] []
-          elements = [e]
-      FeedParser.findMediaThumbnail elements @?= Just (T.pack "http://example.com")
+          mediaElements = [e]
+      FeedParser.findMediaThumbnail mediaElements @?= Just (T.pack "http://example.com")
   , testCase "PlanetMain.findMediaGroupThumbnail" $ do
       let thumb = Element (Name (T.pack "thumbnail") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [(Name (T.pack "url") Nothing Nothing, [ContentText (T.pack "http://example.com")])] []
           group = Element (Name (T.pack "group") (Just (T.pack "http://search.yahoo.com/mrss/")) Nothing) [] [NodeElement thumb]
-          elements = [group]
-      FeedParser.findMediaGroupThumbnail elements @?= Just (T.pack "http://example.com")
+          mediaElements = [group]
+      FeedParser.findMediaGroupThumbnail mediaElements @?= Just (T.pack "http://example.com")
   , testCase "join Just Just" $ join (Just (Just "test")) @?= Just "test"
   , testCase "join Just Nothing" $ (join (Just Nothing) :: Maybe String) @?= Nothing
   , testCase "join Nothing" $ (join Nothing :: Maybe String) @?= Nothing
