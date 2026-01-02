@@ -122,7 +122,9 @@ renderCard locale item = H.div H.! A.class_ "card" $ do
                     H.! A.alt (H.toValue $ itemTitle item)
         Nothing -> return ()
     H.div H.! A.class_ "card-content" $ do
-        H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
+        case itemSourceLink item of
+            Just url -> H.a H.! A.class_ "source" H.! A.href (H.textValue url) H.! A.target "_blank" $ H.toHtml (itemSourceTitle item)
+            Nothing -> H.span H.! A.class_ "source" $ H.toHtml (itemSourceTitle item)
         H.h3 $ H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $ H.toHtml (itemTitle item)
         case itemDesc item of
             Just d -> H.div H.! A.class_ "description" $ H.preEscapedToHtml (cleanAndTruncate 160 d)

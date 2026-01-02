@@ -30,6 +30,7 @@ data AppItem = AppItem
     , itemDesc :: Maybe Text
     , itemThumbnail :: Maybe Text
     , itemSourceTitle :: Text
+    , itemSourceLink :: Maybe Text
     , itemType :: FeedType
     }
     deriving (Show)

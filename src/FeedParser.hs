@@ -39,7 +39,7 @@ import Network.HTTP.Simple (Response, getResponseBody, httpLBS, parseRequest)
 import qualified Text.Atom.Feed as Atom
 import Text.Feed.Import (parseFeedSource)
 import Text.Feed.Query (getFeedItems, getItemDescription, getItemLink, getItemPublishDate, getItemTitle)
-import Text.Feed.Types (Item (..))
+import Text.Feed.Types (Feed (..), Item (..))
 import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
 import qualified Text.RSS.Syntax as RSS
 
@@ -71,7 +71,7 @@ fetchFeed fc = do
                 Nothing -> do
                     putStrLn $ "Failed to parse feed: " ++ T.unpack (feedTitle fc)
                     return []
-                Just feed -> return $ mapMaybe (parseItem fc) (getFeedItems feed)
+                Just feed -> let altLink = getFeedAlternateLink feed in return $ mapMaybe (parseItem fc altLink) (getFeedItems feed)
 
 -- Helper for date join
 join :: Maybe (Maybe a) -> Maybe a
@@ -79,8 +79,8 @@ join (Just (Just x)) = Just x
 join _ = Nothing
 
 -- Base parseItem function
-parseItem :: FeedConfig -> Item -> Maybe AppItem
-parseItem fc item = do
+parseItem :: FeedConfig -> Maybe Text -> Item -> Maybe AppItem
+parseItem fc altLink item = do
     rawTitle <- getItemTitle item
     let title = cleanTitle rawTitle
     link <- getItemLink item
@@ -89,7 +89,7 @@ parseItem fc item = do
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc
     let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage)
-    return $ AppItem title link date desc thumb (feedTitle fc) (feedType fc)
+    return $ AppItem title link date desc thumb (feedTitle fc) altLink (feedType fc)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
@@ -237,3 +237,12 @@ getUrlAttr e =
     case filter (\(n, _) -> nameLocalName n == "url") (elementAttributes e) of
         ((_, [ContentText t]) : _) -> Just t
         _ -> Nothing
+
+getFeedAlternateLink :: Text.Feed.Types.Feed -> Maybe Text
+getFeedAlternateLink feed = case feed of
+    Text.Feed.Types.AtomFeed af -> getAtomFeedAlternateLink af
+    Text.Feed.Types.RSSFeed rf -> getRSSFeedAlternateLink rf
+    _ -> Nothing
+  where
+    getAtomFeedAlternateLink af = Nothing -- TODO: extract alternate link from Atom feed
+    getRSSFeedAlternateLink rf = Nothing -- TODO: extract from RSS channel link

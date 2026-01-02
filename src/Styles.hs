@@ -32,7 +32,6 @@ css =
         , ".card-image { width: 100%; height: 180px; overflow: hidden; margin-bottom: 15px; border-radius: 4px; position: relative; }"
         , ".card-image img { width: 100%; height: 100%; object-fit: contain; display: none; }"
         , ".card-image img.loaded { display: block; }"
-        , ".type-icon { background: rgba(0,0,0,0.1); color: #888; padding: 4px 6px; border-radius: 4px; font-size: 0.8rem; line-height: 1; }"
         , ".card h3 { margin: 0 0 10px 0; font-size: 1.1rem; line-height: 1.4; }"
         , ".card a { color: #111; text-decoration: none; }"
         , ".card a:hover { color: #0070f3; }"

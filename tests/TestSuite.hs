@@ -233,7 +233,7 @@ htmlTests =
             let htmlText = TE.decodeUtf8 $ LBS.toStrict html
             assertBool "Contains title" (T.isInfixOf (T.pack "Test Planet") htmlText)
         , testCase "PlanetMain.renderCard with date" $ do
-            let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing (T.pack "Test Source") Blog
+            let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing (T.pack "Test Source") Nothing Blog
                 locale = defaultTimeLocale
                 card = HtmlGen.renderCard locale item
                 rendered = renderHtml card
