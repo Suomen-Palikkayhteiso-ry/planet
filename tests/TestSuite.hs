@@ -179,9 +179,9 @@ feedTests = testGroup "Feed Tests"  -- Covers US-001, US-006, constrained by ADR
   , testCase "FeedParser.stripFirstPTag flickr-like description" $ do
       let html = T.pack "<p><a href=\"https://www.flickr.com/photos/12345/67890/\">Photo on Flickr</a></p>This is the actual description. It has <b>some</b> formatting."
       FeedParser.stripFirstPTag html @?= T.pack "This is the actual description. It has <b>some</b> formatting."
-  , testCase "FeedParser.stripFirstPTag without p tag" $ do  -- Covers US-006
-      let html = T.pack "<div>Content</div>"
-      FeedParser.stripFirstPTag html @?= T.pack "<div>Content</div>"
+  , testCase "FeedParser.stripFirstPTag flickr encoded content" $ do
+      let html = T.pack "&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/people/infamousq/&quot;&gt;InfamousQ&lt;/a&gt; posted a photo:&lt;/p&gt;\n\t\n&lt;p&gt;&lt;a href=&quot;https://www.flickr.com/photos/infamousq/54774659725/&quot; title=&quot;Plan for Tervahovi LEGO display version 2&quot;&gt;&lt;img src=&quot;https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg&quot; width=&quot;240&quot; height=&quot;135&quot; alt=&quot;Plan for Tervahovi LEGO display version 2&quot; /&gt;&lt;/a&gt;&lt;/p&gt;\n\n&lt;p&gt;Further development of the Tervahovi harbor area&lt;/p&gt;"
+      FeedParser.stripFirstPTag html @?= T.pack "\n\t\n<p><a href=\"https://www.flickr.com/photos/infamousq/54774659725/\" title=\"Plan for Tervahovi LEGO display version 2\"><img src=\"https://live.staticflickr.com/65535/54774659725_f267ce07b2_m.jpg\" width=\"240\" height=\"135\" alt=\"Plan for Tervahovi LEGO display version 2\"></img></a></p>\n\n<p>Further development of the Tervahovi harbor area</p>"
   , testCase "FeedParser.cleanTitle remove hashtags" $ do  -- Covers US-001
       let title = T.pack "My post #tag1 #tag2"
       FeedParser.cleanTitle title @?= T.pack "My post"

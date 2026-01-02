@@ -112,13 +112,19 @@ getFlickrMediaDescription item = case item of
 
 stripFirstPTag :: Text -> Text
 stripFirstPTag html = 
-    let tags = parseTags html
-    in case tags of
-        (TagOpen "p" _ : restOfTags) ->
-            let (_, remainingTags) = skipUntilClosingPTag restOfTags
-            in renderTags remainingTags
-        _ -> html
+    let decodedHtml = decodeEntities html
+        tags = parseTags decodedHtml
+        remainingTags = skipToFirstPTag tags
+    in renderTags remainingTags
   where
+    decodeEntities :: Text -> Text
+    decodeEntities = T.replace "&lt;" "<" . T.replace "&gt;" ">" . T.replace "&quot;" "\"" . T.replace "&amp;" "&"
+    skipToFirstPTag :: [Tag Text] -> [Tag Text]
+    skipToFirstPTag [] = []
+    skipToFirstPTag (TagOpen "p" _ : rest) = 
+        let (_, remaining) = skipUntilClosingPTag rest
+        in remaining
+    skipToFirstPTag (_ : rest) = skipToFirstPTag rest
     skipUntilClosingPTag :: [Tag Text] -> ([Tag Text], [Tag Text])
     skipUntilClosingPTag [] = ([], [])
     skipUntilClosingPTag (TagClose "p" : rest) = ([], rest)

@@ -7,7 +7,7 @@ all: build ## Build the project
 build: ## Build the executable
 	cabal update
 	cabal build
-	cp $(cabal list-bin planet) ./planet
+	cp $(shell cabal list-bin planet) ./planet
 
 develop: ## Launch opinionated IDE
 	devenv --profile full-vim shell -- code .
