@@ -65,6 +65,7 @@ js =
         , "    localStorage.removeItem('image-consent');"
         , "    revokeBtn.classList.add('hidden');"
         , "    consentBanner.classList.remove('hidden');"
+        , "    rejectBtn.focus();"
         , "    hideImages();"
         , "  });"
         , "});"
