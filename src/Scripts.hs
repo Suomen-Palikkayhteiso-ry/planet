@@ -44,6 +44,7 @@ js =
         , "    revokeBtn.classList.remove('hidden');"
         , "  } else {"
         , "    consentBanner.classList.remove('hidden');"
+        , "    rejectBtn.focus();"
         , "  }"
         , ""
         , "  consentBtn.addEventListener('click', function() {"
