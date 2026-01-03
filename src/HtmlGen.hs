@@ -135,5 +135,5 @@ renderCard locale item = H.div H.! A.class_ "card" $ do
             Nothing -> return ()
         H.div H.! A.class_ "type-icon" $ case itemType item of
             YouTube -> "🎥"
-            Blog -> "📝"
+            Rss -> "📝"
             Flickr -> "📷"

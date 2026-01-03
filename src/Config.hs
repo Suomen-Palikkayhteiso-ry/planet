@@ -53,12 +53,14 @@ parseConfig content = do
 
         typeStr <- case lookupKey "type" of
             Just (Toml.VString t) -> Right t
-            _ -> Left $ T.pack "Missing or invalid feed type"
+            _ -> Right $ T.pack "rss" -- Default to "rss" if not specified
 
         ft <- case () of
-            () | typeStr == T.pack "blog" -> Right Blog
+            () | typeStr == T.pack "rss" -> Right Rss
+            () | typeStr == T.pack "default" -> Right Rss
             () | typeStr == T.pack "youtube" -> Right YouTube
             () | typeStr == T.pack "flickr" -> Right Flickr
+            () | typeStr == T.pack "atom" -> Right Atom
             _ -> Left $ T.pack "Unknown feed type: " <> typeStr
 
         title <- case lookupKey "title" of

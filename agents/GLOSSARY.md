@@ -16,9 +16,10 @@ This document defines the canonical terminology for the Planet project to ensure
 - **`timezone`**: The IANA timezone name (e.g., "Europe/Helsinki") used to correctly display all dates and times relative to a specific region.
 - **`feeds`**: The list of all content sources to be aggregated.
 - **`feed.type`**: The category of the feed, which controls its presentation. Canonical types:
-  - `blog`: A standard RSS/Atom feed for a blog.
+  - `rss`: A standard RSS/Atom feed. `default` is an alias for this type.
   - `youtube`: A feed for a YouTube channel.
   - `flickr`: A feed for a Flickr photo stream.
+  - `atom`: A feed for an Atom feed, with no special handling of the description.
 
 ## Implementation
 

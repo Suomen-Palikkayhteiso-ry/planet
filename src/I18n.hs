@@ -19,7 +19,7 @@ import Data.Time (UTCTime)
 import Data.Time.Format (TimeLocale (..), defaultTimeLocale)
 
 -- Configuration Types
-data FeedType = Blog | YouTube | Flickr
+data FeedType = Rss | YouTube | Flickr | Atom
     deriving (Show, Eq)
 
 -- App Data Types

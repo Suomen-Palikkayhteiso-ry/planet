@@ -101,7 +101,7 @@ configTests =
                         , T.pack "locale = \"en\""
                         , T.pack "timezone = \"Europe/Helsinki\""
                         , T.pack "[[feeds]]"
-                        , T.pack "type = \"blog\""
+                        , T.pack "type = \"rss\""
                         , T.pack "title = \"Test Blog\""
                         , T.pack "url = \"http://example.com/rss.xml\""
                         ]
@@ -112,7 +112,7 @@ configTests =
                     configTimezone config @?= T.pack "Europe/Helsinki"
                     length (configFeeds config) @?= 1
                     let feed = head (configFeeds config)
-                    feedType feed @?= Blog
+                    feedType feed @?= Rss
                     feedTitle feed @?= T.pack "Test Blog"
                     feedUrl feed @?= T.pack "http://example.com/rss.xml"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
@@ -132,13 +132,27 @@ configTests =
             let toml =
                     T.unlines
                         [ T.pack "[[feeds]]"
-                        , T.pack "type = \"blog\""
+                        , T.pack "type = \"rss\""
                         , T.pack "title = \"Test\""
                         , T.pack "url = \"http://example.com\""
                         ]
             case parseConfig toml of
                 Right config -> configTitle config @?= T.pack "Planet"
                 Left _ -> assertFailure "Should succeed with default title"
+        , testCase "PlanetMain.parseConfig atom type" $ do
+            let toml =
+                    T.unlines
+                        [ T.pack "title = \"Test\""
+                        , T.pack "[[feeds]]"
+                        , T.pack "type = \"atom\""
+                        , T.pack "title = \"Test\""
+                        , T.pack "url = \"http://example.com\""
+                        ]
+            case parseConfig toml of
+                Right config -> do
+                    let feed = head (configFeeds config)
+                    feedType feed @?= Atom
+                Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         ]
 
 feedTests :: TestTree
@@ -216,6 +230,14 @@ feedTests =
                         }
                 item = AtomItem entry
             FeedParser.getFlickrMediaDescription item @?= Just (T.pack "<p>second</p>")
+        , testCase "getAtomMediaDescription with HTMLContent" $ do
+            let now = read "2023-01-01 00:00:00 UTC"
+                entry =
+                    (Atom.nullEntry (T.pack "tag:example.com,2023:test") (undefined :: Atom.TextContent) now)
+                        { Atom.entryContent = Just (Atom.HTMLContent (T.pack "<p>first</p><p>second</p>"))
+                        }
+                item = AtomItem entry
+            FeedParser.getAtomMediaDescription item @?= Just (T.pack "<p>first</p><p>second</p>")
         ]
 
 htmlTests :: TestTree
@@ -233,7 +255,7 @@ htmlTests =
             let htmlText = TE.decodeUtf8 $ LBS.toStrict html
             assertBool "Contains title" (T.isInfixOf (T.pack "Test Planet") htmlText)
         , testCase "PlanetMain.renderCard with date" $ do
-            let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing (T.pack "Test Source") Nothing Blog
+            let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing (T.pack "Test Source") Nothing Rss
                 locale = defaultTimeLocale
                 card = HtmlGen.renderCard locale item
                 rendered = renderHtml card

@@ -9,6 +9,7 @@ module FeedParser (
     getMediaDescription,
     getYouTubeMediaDescription,
     getFlickrMediaDescription,
+    getAtomMediaDescription,
     stripFirstPTag,
     cleanTitle,
     getMediaDescriptionFromElements,
@@ -54,8 +55,8 @@ newtype FeedHandler = FeedHandler
 getFeedHandler :: FeedType -> FeedHandler
 getFeedHandler YouTube = FeedHandler{fhGetMediaDescription = getYouTubeMediaDescription}
 getFeedHandler Flickr = FeedHandler{fhGetMediaDescription = getFlickrMediaDescription}
-getFeedHandler Blog = FeedHandler{fhGetMediaDescription = const Nothing}
-
+getFeedHandler Atom = FeedHandler{fhGetMediaDescription = getAtomMediaDescription}
+getFeedHandler Rss = FeedHandler{fhGetMediaDescription = const Nothing}
 -- Fetching
 fetchFeed :: FeedConfig -> IO [AppItem]
 fetchFeed fc = do
@@ -89,13 +90,8 @@ parseItem fc altLink item = do
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc
-    let desc' = if feedType fc == Blog
-                then case item of
-                    AtomItem _ -> fmap stripFirstPTag desc
-                    _ -> desc
-                else desc
-    let thumb = getItemThumbnail item <|> (desc' >>= extractFirstImage)
-    return $ AppItem title link date desc' thumb (feedTitle fc) altLink (feedType fc)
+    let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage)
+    return $ AppItem title link date desc thumb (feedTitle fc) altLink (feedType fc)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
@@ -113,6 +109,15 @@ getFlickrMediaDescription item = case item of
         case Atom.entryContent entry of
             Just (Atom.HTMLContent content) -> Just $ stripFirstPTag content
             _ -> fmap stripFirstPTag (getItemDescription item) -- fallback
+    XMLItem element -> getMediaDescriptionFromElements (elementChildren element)
+    _ -> Nothing
+
+getAtomMediaDescription :: Item -> Maybe Text
+getAtomMediaDescription item = case item of
+    AtomItem entry ->
+        case Atom.entryContent entry of
+            Just (Atom.HTMLContent content) -> Just content
+            _ -> getItemDescription item -- fallback
     XMLItem element -> getMediaDescriptionFromElements (elementChildren element)
     _ -> Nothing
 

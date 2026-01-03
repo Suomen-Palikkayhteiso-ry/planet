@@ -3,13 +3,13 @@
 title = "Palikkalinkit"
 
 [[feeds]]
-type = "blog"
+type = "rss"
 title = "Cyclopic Bricks"
 # url = "https://cyclopicbricks.blogspot.com/feeds/posts/default"
 url = "https://cyclopicbricks.blogspot.com/feeds/posts/default?alt=rss"
 
 [[feeds]]
-type = "blog"
+type = "rss"
 title = "Hovinet"
 url = "https://hovinet.com/?feed=rss2"
 
