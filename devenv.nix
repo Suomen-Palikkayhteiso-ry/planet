@@ -1,5 +1,19 @@
-{ pkgs, lib, config, inputs, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  inputs,
+  ...
+}:
 
+let
+  stable = import inputs.nixpkgs-stable {
+    system = pkgs.system;
+    config = {
+      allowUnfree = true;
+    };
+  };
+in
 {
   profiles = {
     full-vim.module = {
@@ -14,23 +28,24 @@
 
   # https://devenv.sh/packages/
   packages = [
-    pkgs.cabal-install
-    pkgs.fourmolu
     pkgs.gemini-cli
     pkgs.git
-    pkgs.hlint
     pkgs.nodejs
     pkgs.openssl
     pkgs.pkg-config
     pkgs.treefmt
     pkgs.zlib
+    stable.cabal-install
+    stable.fourmolu
+    stable.hlint
+    stable.haskell.packages.ghc96.haskell-language-server
   ];
 
   # https://devenv.sh/languages/
   languages.haskell.enable = true;
-  languages.haskell.package = pkgs.haskell.compiler.ghc96;
+  languages.haskell.package = stable.haskell.compiler.ghc96;
   languages.haskell.stack.enable = true;
-  languages.haskell.languageServer = null;
+  languages.haskell.languageServer = stable.haskell.packages.ghc96.haskell-language-server;
 
   enterShell = ''
     echo $GREET
