@@ -137,3 +137,4 @@ renderCard locale item = H.div H.! A.class_ "card" $ do
             YouTube -> "🎥"
             Rss -> "📝"
             Flickr -> "📷"
+            Atom -> "📝"
