@@ -66,3 +66,9 @@ You **MUST STOP** and escalate to the user for guidance if you encounter any of 
 1.  Clearly document the conflict or ambiguity.
 2.  If possible, create a new failing test case that demonstrates the ambiguity.
 3.  Present the situation to the user and ask for clarification. **Do not guess.**
+
+## Agent Workflow & Best Practices
+
+- **TODO files**: Project-specific `TODO.md` files may be in `.gitignore`. If you can't read them with the `read_file` tool, use `run_shell_command` with `cat`.
+- **Building and Testing**: This project uses a `Makefile` for common tasks. Use `make test` to run the test suite and `make build` to build the project.
+- **Proactive Refactoring**: After completing your primary task, review the codebase for potential refactoring opportunities that would improve maintainability and adherence to the project's ADRs.
