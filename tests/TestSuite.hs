@@ -154,6 +154,33 @@ configTests =
                     let feed = head (configFeeds config)
                     feedType feed @?= Atom
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
+        , testCase "PlanetMain.parseConfig missing type defaults to rss" $ do
+            let toml =
+                    T.unlines
+                        [ T.pack "title = \"Test\""
+                        , T.pack "[[feeds]]"
+                        , T.pack "title = \"Test\""
+                        , T.pack "url = \"http://example.com\""
+                        ]
+            case parseConfig toml of
+                Right config -> do
+                    let feed = head (configFeeds config)
+                    feedType feed @?= Rss
+                Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
+        , testCase "PlanetMain.parseConfig default type is rss" $ do
+            let toml =
+                    T.unlines
+                        [ T.pack "title = \"Test\""
+                        , T.pack "[[feeds]]"
+                        , T.pack "type = \"default\""
+                        , T.pack "title = \"Test\""
+                        , T.pack "url = \"http://example.com\""
+                        ]
+            case parseConfig toml of
+                Right config -> do
+                    let feed = head (configFeeds config)
+                    feedType feed @?= Rss
+                Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         ]
 
 feedTests :: TestTree
@@ -300,6 +327,24 @@ htmlTests =
                 card = HtmlGen.renderCard locale item
                 rendered = renderHtml card
             assertBool "Contains date" (TL.isInfixOf (TL.pack "2023-01-01") rendered)
+        , testCase "PlanetMain.renderCard feed type icons" $ do
+            let locale = defaultTimeLocale
+                rssItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Rss
+                atomItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Atom
+                youtubeItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing YouTube
+                flickrItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Flickr
+            
+            let rssRendered = renderHtml (HtmlGen.renderCard locale rssItem)
+            assertBool "Rss icon" (TL.isInfixOf (TL.pack "📝") rssRendered)
+
+            let atomRendered = renderHtml (HtmlGen.renderCard locale atomItem)
+            assertBool "Atom icon" (TL.isInfixOf (TL.pack "📝") atomRendered)
+
+            let youtubeRendered = renderHtml (HtmlGen.renderCard locale youtubeItem)
+            assertBool "YouTube icon" (TL.isInfixOf (TL.pack "🎥") youtubeRendered)
+
+            let flickrRendered = renderHtml (HtmlGen.renderCard locale flickrItem)
+            assertBool "Flickr icon" (TL.isInfixOf (TL.pack "📷") flickrRendered)
         ]
 
 utilityTests :: TestTree

@@ -38,6 +38,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 
 import Data.Time.Format.ISO8601 (iso8601ParseM)
+import Data.Time.Format (parseTimeM, defaultTimeLocale)
 import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
 import Network.HTTP.Simple (Response, getResponseBody, httpLBS, parseRequest)
 import qualified Text.Atom.Feed as Atom
@@ -89,10 +90,9 @@ parseItem fc altLink item = do
     let title = cleanTitle rawTitle
     link <- getItemLink item
     let date = case item of
-            AtomItem entry -> 
-                case Atom.entryPublished entry of
-                    Just publishedDateText -> iso8601ParseM (T.unpack publishedDateText)
-                    Nothing -> iso8601ParseM (T.unpack $ Atom.entryUpdated entry)
+            AtomItem entry -> case Atom.entryPublished entry of
+                Just pub -> parseTimeM True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%Q%Z" (T.unpack pub) <|> iso8601ParseM (T.unpack pub)
+                Nothing -> iso8601ParseM (T.unpack $ Atom.entryUpdated entry)
             _ -> join $ getItemPublishDate item
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
