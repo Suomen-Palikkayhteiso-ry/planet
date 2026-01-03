@@ -68,4 +68,7 @@ css =
           ".revoke-btn { position: fixed; bottom: 20px; right: 20px; background: rgba(255,255,255,0.8); border: 1px solid #ccc; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; z-index: 999; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }"
         , ".revoke-btn:hover { background: white; }"
         , ".revoke-btn.hidden { display: none; }"
+        , -- Accessibility
+          ".skip-link { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); background: #0070f3; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; z-index: 1001; font-weight: 600; }"
+        , ".skip-link:focus { top: 10px; }"
         ]

@@ -50,6 +50,7 @@ data Messages = Messages
     , msgCookieConsentButton :: Text
     , msgCookieRejectButton :: Text
     , msgRevokeConsentTitle :: Text
+    , msgSkipToContent :: Text
     }
 
 -- Translations
@@ -65,6 +66,7 @@ messagesEn =
         , msgCookieConsentButton = "I Agree"
         , msgCookieRejectButton = "Reject"
         , msgRevokeConsentTitle = "Revoke consent"
+        , msgSkipToContent = "Skip to main content"
         }
 
 messagesFi :: Messages
@@ -79,6 +81,7 @@ messagesFi =
         , msgCookieConsentButton = "Salli"
         , msgCookieRejectButton = "Estä"
         , msgRevokeConsentTitle = "Muuta asetuksia"
+        , msgSkipToContent = "Siirry pääsisältöön"
         }
 
 getMessages :: Locale -> Messages

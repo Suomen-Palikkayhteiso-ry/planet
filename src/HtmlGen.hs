@@ -82,11 +82,12 @@ generateHtml :: Config -> Messages -> [AppItem] -> UTCTime -> TimeZone -> LBS.By
 generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
     renderHead config
     H.body $ do
+        H.a H.! A.href "#main-content" H.! A.class_ "skip-link" $ H.toHtml (msgSkipToContent msgs)
         renderCookieConsent msgs
         renderRevokeButton msgs
         H.div H.! A.class_ "layout" $ do
             renderTimelineNav locale now localTZ groups
-            H.main H.! A.class_ "main-content" $ do
+            H.main H.! A.id "main-content" H.! A.class_ "main-content" $ do
                 renderIntro config
                 forM_ groups (renderMonthSection locale)
         renderFooter msgs locale now localTZ
