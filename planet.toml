@@ -3,10 +3,9 @@
 title = "Palikkalinkit"
 
 [[feeds]]
-type = "rss"
+type = "atom"
 title = "Cyclopic Bricks"
-# url = "https://cyclopicbricks.blogspot.com/feeds/posts/default"
-url = "https://cyclopicbricks.blogspot.com/feeds/posts/default?alt=rss"
+url = "https://cyclopicbricks.blogspot.com/feeds/posts/default"
 
 [[feeds]]
 type = "rss"
