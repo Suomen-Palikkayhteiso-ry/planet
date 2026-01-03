@@ -36,13 +36,11 @@ import Data.List (find)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time (UTCTime)
-import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
 import Network.HTTP.Simple (Response, getResponseBody, httpLBS, parseRequest)
 import qualified Text.Atom.Feed as Atom
 import Text.Feed.Import (parseFeedSource)
-import Text.Feed.Query (getFeedItems, getItemDescription, getItemLink, getItemTitle)
+import Text.Feed.Query (getFeedItems, getItemDescription, getItemLink, getItemPublishDate, getItemTitle)
 import Text.Feed.Types (Feed (..), Item (..))
 import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
 import qualified Text.RSS.Syntax as RSS
@@ -88,22 +86,12 @@ parseItem fc altLink item = do
     rawTitle <- getItemTitle item
     let title = cleanTitle rawTitle
     link <- getItemLink item
-    let date = getPublishedDate item
+    let date = join $ getItemPublishDate item
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc
     let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage)
     return $ AppItem title link date desc thumb (feedTitle fc) altLink (feedType fc)
-
-getPublishedDate :: Item -> Maybe UTCTime
-getPublishedDate item =
-    let maybeDateText = case item of
-            AtomItem entry -> Atom.entryPublished entry <|> Just (Atom.entryUpdated entry)
-            RSSItem rssItem -> RSS.rssItemPubDate rssItem
-            _ -> Nothing
-    in case maybeDateText of
-        Nothing -> Nothing
-        Just dateText -> iso8601ParseM (T.unpack dateText)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
