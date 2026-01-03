@@ -116,10 +116,11 @@ renderCard locale item = H.div H.! A.class_ "card" $ do
     case itemThumbnail item of
         Just url ->
             H.div H.! A.class_ "card-image" $
-                H.img
-                    H.! A.class_ "lazy-consent"
-                    H.! H.dataAttribute "src" (H.toValue url)
-                    H.! A.alt (H.toValue $ itemTitle item)
+                H.a H.! A.href (H.textValue $ itemLink item) H.! A.target "_blank" $
+                    H.img
+                        H.! A.class_ "lazy-consent"
+                        H.! H.dataAttribute "src" (H.toValue url)
+                        H.! A.alt (H.toValue $ itemTitle item)
         Nothing -> return ()
     H.div H.! A.class_ "card-content" $ do
         case itemSourceLink item of
