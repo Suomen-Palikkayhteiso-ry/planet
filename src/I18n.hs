@@ -33,7 +33,7 @@ data AppItem = AppItem
     , itemSourceLink :: Maybe Text
     , itemType :: FeedType
     }
-    deriving (Show)
+    deriving (Show, Eq)
 
 -- Supported locales
 data Locale = En | Fi

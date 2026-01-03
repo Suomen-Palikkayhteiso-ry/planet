@@ -36,6 +36,8 @@ import Data.List (find)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+
+import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
 import Network.HTTP.Simple (Response, getResponseBody, httpLBS, parseRequest)
 import qualified Text.Atom.Feed as Atom
@@ -86,7 +88,11 @@ parseItem fc altLink item = do
     rawTitle <- getItemTitle item
     let title = cleanTitle rawTitle
     link <- getItemLink item
-    let date = join $ getItemPublishDate item
+    let date = case item of
+            AtomItem entry -> case Atom.entryPublished entry of
+                Just publishedDateText -> iso8601ParseM (T.unpack publishedDateText)
+                Nothing -> join $ getItemPublishDate item
+            _ -> join $ getItemPublishDate item
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc

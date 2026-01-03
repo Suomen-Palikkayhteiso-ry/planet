@@ -16,6 +16,7 @@ import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Feed.Types
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree (TagTree (..))
+import Data.Time.Format.ISO8601 (iso8601ParseM)
 
 import Config
 import qualified FeedParser
@@ -238,6 +239,32 @@ feedTests =
                         }
                 item = AtomItem entry
             FeedParser.getAtomMediaDescription item @?= Just (T.pack "<p>first</p><p>second</p>")
+        , testCase "FeedParser.parseItem Atom published date preferred" $ do
+            let publishedDate = T.pack "2025-12-31T23:55:00Z"
+                updatedDate = T.pack "2026-01-01T17:45:09Z"
+                entry = (Atom.nullEntry (T.pack "id") (Atom.TextString (T.pack "Test Atom Title")) (read "2000-01-01 00:00:00 UTC"))
+                    { Atom.entryPublished = Just publishedDate
+                    , Atom.entryUpdated = updatedDate
+                    , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
+                    }
+                item = AtomItem entry
+                feedConfig = FeedConfig Atom (T.pack "Test Feed") (T.pack "http://example.com")
+                expectedDate = iso8601ParseM (T.unpack publishedDate)
+            
+            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Atom)
+
+        , testCase "FeedParser.parseItem Atom updated date used if published missing" $ do
+            let updatedDate = T.pack "2026-01-01T17:45:09Z"
+                entry = (Atom.nullEntry (T.pack "id") (Atom.TextString (T.pack "Test Atom Title")) (read "2000-01-01 00:00:00 UTC"))
+                    { Atom.entryPublished = Nothing
+                    , Atom.entryUpdated = updatedDate
+                    , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
+                    }
+                item = AtomItem entry
+                feedConfig = FeedConfig Atom (T.pack "Test Feed") (T.pack "http://example.com")
+                expectedDate = iso8601ParseM (T.unpack updatedDate)
+
+            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Atom)
         ]
 
 htmlTests :: TestTree
