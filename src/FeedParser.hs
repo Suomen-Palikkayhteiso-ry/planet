@@ -89,9 +89,10 @@ parseItem fc altLink item = do
     let title = cleanTitle rawTitle
     link <- getItemLink item
     let date = case item of
-            AtomItem entry -> case Atom.entryPublished entry of
-                Just publishedDateText -> iso8601ParseM (T.unpack publishedDateText)
-                Nothing -> join $ getItemPublishDate item
+            AtomItem entry -> 
+                case Atom.entryPublished entry of
+                    Just publishedDateText -> iso8601ParseM (T.unpack publishedDateText)
+                    Nothing -> iso8601ParseM (T.unpack $ Atom.entryUpdated entry)
             _ -> join $ getItemPublishDate item
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
