@@ -268,7 +268,10 @@ getFeedAlternateLink feed = case feed of
     Text.Feed.Types.AtomFeed af -> case find (\l -> case Atom.linkRel l of Just (Left r) -> r == "alternate" || r == "http://www.iana.org/assignments/relation/alternate"; Just (Right uri) -> uri == "alternate" || uri == "http://www.iana.org/assignments/relation/alternate"; _ -> False) (Atom.feedLinks af) of
         Just l -> Just (Atom.linkHref l)
         Nothing -> findAlternateLink (map NodeElement (Atom.feedOther af))
-    Text.Feed.Types.RSSFeed rf -> findAlternateLink (map NodeElement (RSS.rssChannelOther (RSS.rssChannel rf)))
+    Text.Feed.Types.RSSFeed rf -> 
+        case findAlternateLink (map NodeElement (RSS.rssChannelOther (RSS.rssChannel rf))) of
+            Just l -> Just l
+            Nothing -> Just (RSS.rssLink (RSS.rssChannel rf))
     Text.Feed.Types.XMLFeed e -> findAlternateLink (map NodeElement (elementChildren e))
     _ -> Nothing
   where
