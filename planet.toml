@@ -41,3 +41,8 @@ url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC3doy6NwIkzNMMBba3xO
 type = "flickr"
 title = "Tuomas Kukkamaa"
 url = "https://www.flickr.com/services/feeds/photos_public.gne?id=63411232@N00&lang=en-us&format=atom"
+
+[[feeds]]
+type = "kuvatfi"
+title = "Palikkatakomo"
+url = "https://palikkatakomo.kuvat.fi/kuvat/rss/"
