@@ -60,6 +60,7 @@ parseConfig content = do
             () | typeStr == T.pack "default" -> Right Rss
             () | typeStr == T.pack "youtube" -> Right YouTube
             () | typeStr == T.pack "flickr" -> Right Flickr
+            () | typeStr == T.pack "kuvatfi" -> Right Kuvatfi
             () | typeStr == T.pack "atom" -> Right Atom
             _ -> Left $ T.pack "Unknown feed type: " <> typeStr
 

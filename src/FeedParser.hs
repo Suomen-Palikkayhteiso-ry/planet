@@ -10,6 +10,7 @@ module FeedParser (
     getYouTubeMediaDescription,
     getFlickrMediaDescription,
     getAtomMediaDescription,
+    getKuvatfiMediaDescription,
     stripFirstPTag,
     cleanTitle,
     getMediaDescriptionFromElements,
@@ -36,6 +37,7 @@ import Data.List (find)
 import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 
 import Data.Time.Format.ISO8601 (iso8601ParseM)
 import Data.Time.Format (parseTimeM, defaultTimeLocale)
@@ -58,6 +60,7 @@ newtype FeedHandler = FeedHandler
 getFeedHandler :: FeedType -> FeedHandler
 getFeedHandler YouTube = FeedHandler{fhGetMediaDescription = getYouTubeMediaDescription}
 getFeedHandler Flickr = FeedHandler{fhGetMediaDescription = getFlickrMediaDescription}
+getFeedHandler Kuvatfi = FeedHandler{fhGetMediaDescription = getKuvatfiMediaDescription}
 getFeedHandler Atom = FeedHandler{fhGetMediaDescription = getAtomMediaDescription}
 getFeedHandler Rss = FeedHandler{fhGetMediaDescription = const Nothing}
 -- Fetching
@@ -71,8 +74,9 @@ fetchFeed fc = do
             putStrLn $ "Error fetching " ++ T.unpack (feedTitle fc) ++ ": " ++ show err
             return []
         Right response -> do
-            let content = getResponseBody response
-            case parseFeedSource content of
+            let content = LBS.toStrict $ getResponseBody response
+            let cleanedContent = T.replace "</media:keywords>" "" (decodeUtf8 content)
+            case parseFeedSource (LBS.fromStrict $ encodeUtf8 cleanedContent) of
                 Nothing -> do
                     putStrLn $ "Failed to parse feed: " ++ T.unpack (feedTitle fc)
                     return []
@@ -118,6 +122,9 @@ getFlickrMediaDescription item = case item of
             _ -> fmap stripFirstPTag (getItemDescription item) -- fallback
     XMLItem element -> getMediaDescriptionFromElements (elementChildren element)
     _ -> Nothing
+
+getKuvatfiMediaDescription :: Item -> Maybe Text
+getKuvatfiMediaDescription = getItemDescription
 
 getAtomMediaDescription :: Item -> Maybe Text
 getAtomMediaDescription item = case item of
