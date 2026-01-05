@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module FeedParser (
     FeedHandler (..),
@@ -26,7 +27,7 @@ module FeedParser (
     findMediaGroupThumbnail,
     isMediaThumbnail,
     getUrlAttr,
-    join,
+    join
 ) where
 
 import Control.Applicative ((<|>))

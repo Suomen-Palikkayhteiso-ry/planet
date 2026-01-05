@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module I18n (
     FeedType (..),
@@ -14,13 +16,18 @@ module I18n (
     fiTimeLocale,
 ) where
 
+import qualified Data.Aeson.Encoding as AE
+import qualified Data.Aeson.Types as Aeson
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time (UTCTime)
-import Data.Time.Format (TimeLocale (..), defaultTimeLocale)
+import Data.Time.Format (TimeLocale (..), defaultTimeLocale, formatTime)
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON (..), Value, object, (.=))
 
 -- Configuration Types
 data FeedType = Rss | YouTube | Flickr | Atom | Kuvatfi
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic, ToJSON)
 
 -- App Data Types
 data AppItem = AppItem
@@ -33,7 +40,7 @@ data AppItem = AppItem
     , itemSourceLink :: Maybe Text
     , itemType :: FeedType
     }
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic, ToJSON)
 
 -- Supported locales
 data Locale = En | Fi

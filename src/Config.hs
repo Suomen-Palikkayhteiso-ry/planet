@@ -57,6 +57,7 @@ parseConfig content = do
 
         ft <- case () of
             () | typeStr == T.pack "rss" -> Right Rss
+            () | typeStr == T.pack "blog" -> Right Rss
             () | typeStr == T.pack "default" -> Right Rss
             () | typeStr == T.pack "youtube" -> Right YouTube
             () | typeStr == T.pack "flickr" -> Right Flickr

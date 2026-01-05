@@ -15,6 +15,7 @@ import Data.Time.Zones.All (fromTZName, tzByLabel)
 import System.Directory (createDirectoryIfMissing)
 
 import Config
+import ElmGen
 import FeedParser
 import HtmlGen
 import I18n
@@ -49,7 +50,12 @@ main = do
                         Nothing -> error "UTC timezone not found"
 
             let html = generateHtml config messages sortedItems now localTZ
+            let elmModule = generateElmModule sortedItems
 
             createDirectoryIfMissing True "public"
             LBS.writeFile "public/index.html" html
             putStrLn "Site generated in public/index.html"
+
+            createDirectoryIfMissing True "elm-app/src"
+            TIO.writeFile "elm-app/src/Data.elm" elmModule
+            putStrLn "Elm data module generated in elm-app/src/Data.elm"
