@@ -13,11 +13,12 @@ module Types exposing
 import Data exposing (AppItem)
 
 
-{-| The application model containing all feed items and generation timestamp
+{-| The application model containing all feed items, generation timestamp, and selected feed types
 -}
 type alias Model =
     { items : List AppItem
     , generatedAt : String
+    , selectedFeedTypes : List Data.FeedType
     }
 
 
@@ -34,3 +35,4 @@ type alias MonthGroup =
 -}
 type Msg
     = NoOp
+    | ToggleFeedType Data.FeedType

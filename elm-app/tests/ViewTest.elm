@@ -2,7 +2,7 @@ module ViewTest exposing (suite)
 
 {-| Tests for View module
 
-Covers: US-005 (Self-Contained Output), US-006 (Differentiate Feed Types)
+Covers: US-005 (Self-Contained Output), US-006 (Differentiate Feed Types), US-007 (Interactive Viewer)
 Constrained by: ADR-0000-agent-guidance.md
 
 -}
@@ -28,6 +28,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
                             }
                     in
                     View.view model
@@ -39,6 +40,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
                             }
                     in
                     View.view model
@@ -50,6 +52,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
                             }
                     in
                     View.view model
@@ -61,6 +64,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
                             }
                     in
                     View.view model
@@ -73,6 +77,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
                             }
                     in
                     View.view model
@@ -94,6 +99,7 @@ suite =
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
                             }
                     in
                     View.view model
@@ -108,12 +114,76 @@ suite =
                                 , createTestItem "2025-12-25T10:00:00Z" "Item 2"
                                 ]
                             , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
                             }
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.find [ Selector.tag "nav" ]
+                        |> Query.findAll [ Selector.tag "nav" ]
+                        |> Query.index 0
                         |> Query.has [ Selector.text "tammikuu 2026" ]
+            , test "filters items based on selected feed types - shows selected" <|
+                \_ ->
+                    let
+                        model =
+                            { items =
+                                [ { itemTitle = "RSS Item"
+                                  , itemLink = "https://example.com/rss"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "RSS description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "RSS Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Rss
+                                  }
+                                , { itemTitle = "YouTube Item"
+                                  , itemLink = "https://example.com/yt"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "YouTube description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "YouTube Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = YouTube
+                                  }
+                                ]
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss ] -- Only RSS selected
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.text "RSS Item" ]
+            , test "filters items based on selected feed types - hides unselected" <|
+                \_ ->
+                    let
+                        model =
+                            { items =
+                                [ { itemTitle = "RSS Item"
+                                  , itemLink = "https://example.com/rss"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "RSS description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "RSS Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Rss
+                                  }
+                                , { itemTitle = "YouTube Item"
+                                  , itemLink = "https://example.com/yt"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "YouTube description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "YouTube Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = YouTube
+                                  }
+                                ]
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss ] -- Only RSS selected
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.hasNot [ Selector.text "YouTube Item" ]
             ]
         ]
 

@@ -7,6 +7,7 @@ Constrained by: ADR-0000-agent-guidance.md
 
 -}
 
+import Data exposing (FeedType(..))
 import Expect
 import Test exposing (Test, describe, test)
 import Types exposing (Model, MonthGroup, Msg(..))
@@ -16,13 +17,14 @@ suite : Test
 suite =
     describe "Types module"
         [ describe "Model"
-            [ test "Model contains items and generatedAt" <|
+            [ test "Model contains items, generatedAt, and selectedFeedTypes" <|
                 \_ ->
                     let
                         model : Model
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss ]
                             }
                     in
                     Expect.equal model.generatedAt "2026-01-09"
@@ -44,5 +46,8 @@ suite =
             [ test "NoOp message exists" <|
                 \_ ->
                     Expect.equal NoOp NoOp
+            , test "ToggleFeedType message exists" <|
+                \_ ->
+                    Expect.equal (ToggleFeedType Rss) (ToggleFeedType Rss)
             ]
         ]

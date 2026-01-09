@@ -12,7 +12,7 @@ This module orchestrates the Elm application, delegating to specialized modules:
 -}
 
 import Browser
-import Data exposing (allAppItems)
+import Data exposing (allAppItems, FeedType(..))
 import Html exposing (Html)
 import Types exposing (Model, Msg(..))
 import View
@@ -34,11 +34,16 @@ main =
 -- MODEL
 
 
-{-| Initialize the model with feed items and generation timestamp
+{-| Initialize the model with feed items, generation timestamp, and all feed types selected
 -}
 init : String -> ( Model, Cmd Msg )
 init timestamp =
-    ( { items = allAppItems, generatedAt = timestamp }, Cmd.none )
+    ( { items = allAppItems
+      , generatedAt = timestamp
+      , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+      }
+    , Cmd.none
+    )
 
 
 
@@ -52,6 +57,17 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        ToggleFeedType feedType ->
+            let
+                newSelected =
+                    if List.member feedType model.selectedFeedTypes then
+                        List.filter ((/=) feedType) model.selectedFeedTypes
+
+                    else
+                        feedType :: model.selectedFeedTypes
+            in
+            ( { model | selectedFeedTypes = newSelected }, Cmd.none )
 
 
 

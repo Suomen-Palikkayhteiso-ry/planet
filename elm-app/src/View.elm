@@ -8,8 +8,9 @@ module View exposing (view)
 
 import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate, groupByMonth)
-import Html exposing (Html, a, div, footer, h1, h2, h3, img, li, main_, nav, p, span, text, ul)
+import Html exposing (Html, a, div, footer, h1, h2, h3, img, input, label, li, main_, nav, p, span, text, ul)
 import Html.Attributes as Attr
+import Html.Events as Events
 import Types exposing (Model, MonthGroup, Msg(..))
 
 
@@ -18,8 +19,11 @@ import Types exposing (Model, MonthGroup, Msg(..))
 view : Model -> Html Msg
 view model =
     let
+        filteredItems =
+            List.filter (\item -> List.member item.itemType model.selectedFeedTypes) model.items
+
         groups =
-            groupByMonth model.items
+            groupByMonth filteredItems
     in
     div [ Attr.class "min-h-screen bg-gray-50" ]
         [ -- Skip to content link for accessibility
@@ -40,6 +44,8 @@ view model =
                 , div [] (List.map renderMonthSection groups)
                 , renderFooter model.generatedAt
                 ]
+            , -- Feed filter navigation
+              renderFeedFilterNav model.selectedFeedTypes
             ]
         ]
 
@@ -62,6 +68,50 @@ renderTimelineNav groups =
                 groups
             )
         ]
+
+
+renderFeedFilterNav : List FeedType -> Html Msg
+renderFeedFilterNav selectedFeedTypes =
+    nav [ Attr.class "hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
+        [ h2 [ Attr.class "sr-only" ] [ text "Feed filters" ]
+        , ul [ Attr.class "space-y-2" ]
+            (List.map
+                (\feedType ->
+                    li []
+                        [ label [ Attr.class "flex items-center space-x-2 cursor-pointer" ]
+                            [ input
+                                [ Attr.type_ "checkbox"
+                                , Attr.checked (List.member feedType selectedFeedTypes)
+                                , Events.onCheck (\_ -> ToggleFeedType feedType)
+                                , Attr.class "form-checkbox"
+                                ]
+                                []
+                            , span [ Attr.class "text-sm text-gray-600" ] [ text (feedTypeToString feedType) ]
+                            ]
+                        ]
+                )
+                [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+            )
+        ]
+
+
+feedTypeToString : FeedType -> String
+feedTypeToString feedType =
+    case feedType of
+        Rss ->
+            "RSS"
+
+        YouTube ->
+            "YouTube"
+
+        Flickr ->
+            "Flickr"
+
+        Atom ->
+            "Atom"
+
+        Kuvatfi ->
+            "Kuvat.fi"
 
 
 renderIntro : Html Msg

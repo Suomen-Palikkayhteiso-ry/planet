@@ -7,7 +7,7 @@ Constrained by: ADR-0000-agent-guidance.md
 
 -}
 
-import Data exposing (allAppItems)
+import Data exposing (allAppItems, FeedType(..))
 import Expect
 import Main
 import Test exposing (Test, describe, test)
@@ -32,6 +32,13 @@ suite =
                             Main.init "2026-01-09"
                     in
                     Expect.equal model.items allAppItems
+            , test "initializes with all feed types selected" <|
+                \_ ->
+                    let
+                        ( model, _ ) =
+                            Main.init "2026-01-09"
+                    in
+                    Expect.equal model.selectedFeedTypes [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
             ]
         , describe "update"
             [ test "NoOp returns unchanged model" <|
@@ -44,6 +51,16 @@ suite =
                             Main.update NoOp initialModel
                     in
                     Expect.equal initialModel updatedModel
+            , test "ToggleFeedType toggles the feed type in selectedFeedTypes" <|
+                \_ ->
+                    let
+                        ( initialModel, _ ) =
+                            Main.init "2026-01-09"
+
+                        ( updatedModel, _ ) =
+                            Main.update (ToggleFeedType Rss) initialModel
+                    in
+                    Expect.equal (List.member Rss updatedModel.selectedFeedTypes) False
             ]
         , describe "subscriptions"
             [ test "returns Sub.none" <|
