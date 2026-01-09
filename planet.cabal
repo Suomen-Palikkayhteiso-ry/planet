@@ -14,7 +14,6 @@ library
       Planet
       I18n
       FeedParser
-      HtmlGen
       Styles
       Scripts
       Main
@@ -59,7 +58,6 @@ executable planet
       I18n
       Config
       FeedParser
-      HtmlGen
       Planet
       Scripts
       Styles

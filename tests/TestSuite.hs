@@ -3,16 +3,12 @@ module Main (main, tests) where
 import Test.Tasty
 import Test.Tasty.HUnit
 
-import qualified Data.ByteString.Lazy as LBS
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as TE
-import qualified Data.Text.Lazy as TL
 import Data.Time
 import Data.Time.Zones
 import Data.Time.Zones.All
 import Data.XML.Types
 import qualified Text.Atom.Feed as Atom
-import Text.Blaze.Html.Renderer.Text (renderHtml)
 import Text.Feed.Types
 import Text.HTML.TagSoup
 import Text.HTML.TagSoup.Tree (TagTree (..))
@@ -20,7 +16,7 @@ import Data.Time.Format.ISO8601 (iso8601ParseM)
 
 import Config
 import qualified FeedParser
-import qualified HtmlGen
+import qualified ElmGen
 import HtmlSanitizer
 import I18n
 
@@ -113,7 +109,7 @@ configTests =
                     configTimezone config @?= T.pack "Europe/Helsinki"
                     length (configFeeds config) @?= 1
                     let feed = head (configFeeds config)
-                    feedType feed @?= Rss
+                    Config.feedType feed @?= I18n.Rss
                     feedTitle feed @?= T.pack "Test Blog"
                     feedUrl feed @?= T.pack "http://example.com/rss.xml"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
@@ -152,7 +148,7 @@ configTests =
             case parseConfig toml of
                 Right config -> do
                     let feed = head (configFeeds config)
-                    feedType feed @?= Atom
+                    Config.feedType feed @?= I18n.Atom
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "PlanetMain.parseConfig missing type defaults to rss" $ do
             let toml =
@@ -165,7 +161,7 @@ configTests =
             case parseConfig toml of
                 Right config -> do
                     let feed = head (configFeeds config)
-                    feedType feed @?= Rss
+                    Config.feedType feed @?= I18n.Rss
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "PlanetMain.parseConfig default type is rss" $ do
             let toml =
@@ -176,10 +172,50 @@ configTests =
                         , T.pack "title = \"Test\""
                         , T.pack "url = \"http://example.com\""
                         ]
-            case parseConfig toml of
+            case Config.parseConfig toml of
                 Right config -> do
-                    let feed = head (configFeeds config)
-                    feedType feed @?= Rss
+                    let feed = head (Config.configFeeds config)
+                    Config.feedType feed @?= I18n.Rss
+                Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
+        , testCase "PlanetMain.parseConfig default values" $ do
+            let toml = T.unlines [T.pack "[[feeds]]", T.pack "type = \"blog\"", T.pack "title = \"Test\"", T.pack "url = \"http://example.com\""]
+            case Config.parseConfig toml of
+                Right config -> do
+                    Config.configTitle config @?= T.pack "Planet"
+                    Config.configLocale config @?= I18n.Fi
+                    Config.configTimezone config @?= T.pack "Europe/Helsinki"
+                Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
+        , testCase "PlanetMain.parseConfig missing feed url" $ do
+            let toml = T.unlines [T.pack "[[feeds]]", T.pack "type = \"blog\"", T.pack "title = \"Test\""]
+            case Config.parseConfig toml of
+                Left _ -> return ()
+                Right _ -> assertFailure "Should fail due to missing url"
+        , testCase "PlanetMain.parseConfig youtube feed type" $ do
+            let toml = T.unlines [T.pack "[[feeds]]", T.pack "type = \"youtube\"", T.pack "title = \"Test YouTube\"", T.pack "url = \"http://youtube.com/feed\""]
+            case Config.parseConfig toml of
+                Right config -> do
+                    let feed = head (Config.configFeeds config)
+                    Config.feedType feed @?= I18n.YouTube
+                    Config.feedTitle feed @?= T.pack "Test YouTube"
+                    Config.feedUrl feed @?= T.pack "http://youtube.com/feed"
+                Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
+        , testCase "PlanetMain.parseConfig flickr feed type" $ do
+            let toml = T.unlines [T.pack "[[feeds]]", T.pack "type = \"flickr\"", T.pack "title = \"Test Flickr\"", T.pack "url = \"http://flickr.com/feed\""]
+            case Config.parseConfig toml of
+                Right config -> do
+                    let feed = head (Config.configFeeds config)
+                    Config.feedType feed @?= I18n.Flickr
+                    Config.feedTitle feed @?= T.pack "Test Flickr"
+                    Config.feedUrl feed @?= T.pack "http://flickr.com/feed"
+                Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
+        , testCase "PlanetMain.parseConfig kuvatfi feed type" $ do
+            let toml = T.unlines [T.pack "[[feeds]]", T.pack "type = \"kuvatfi\"", T.pack "title = \"Test Kuvatfi\"", T.pack "url = \"http://kuvat.fi/feed\""]
+            case Config.parseConfig toml of
+                Right config -> do
+                    let feed = head (Config.configFeeds config)
+                    Config.feedType feed @?= I18n.Kuvatfi
+                    Config.feedTitle feed @?= T.pack "Test Kuvatfi"
+                    Config.feedUrl feed @?= T.pack "http://kuvat.fi/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         ]
 
@@ -310,41 +346,39 @@ feedTests =
 htmlTests :: TestTree
 htmlTests =
     testGroup
-        "HTML Tests" -- Covers US-005, constrained by ADR-0000
-        [ testCase "PlanetMain.generateHtml basic" $ do
-            let config = Config (T.pack "Test Planet") [] En (T.pack "Europe/Helsinki")
-                msgs = getMessages En
-                items = []
-                now = read "2023-01-01 00:00:00 UTC"
-                tz = timeZoneForUTCTime (tzByLabel Europe__Helsinki) now
-                html = HtmlGen.generateHtml config msgs items now tz
-            -- Just check it doesn't crash and contains expected content
-            let htmlText = TE.decodeUtf8 $ LBS.toStrict html
-            assertBool "Contains title" (T.isInfixOf (T.pack "Test Planet") htmlText)
-        , testCase "PlanetMain.renderCard with date" $ do
+        "Elm Generation Tests" -- Tests for ElmGen module
+        [ testCase "ElmGen.generateElmModule basic" $ do
+            let items = []
+                elmCode = ElmGen.generateElmModule items
+            -- Check it contains expected module structure
+            assertBool "Contains module declaration" (T.isInfixOf (T.pack "module Data exposing") elmCode)
+            assertBool "Contains FeedType type" (T.isInfixOf (T.pack "type FeedType") elmCode)
+            assertBool "Contains AppItem type" (T.isInfixOf (T.pack "type alias AppItem") elmCode)
+            assertBool "Contains allAppItems" (T.isInfixOf (T.pack "allAppItems : List AppItem") elmCode)
+        , testCase "ElmGen.generateElmModule with items" $ do
             let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing (T.pack "Test Source") Nothing Rss
-                locale = defaultTimeLocale
-                card = HtmlGen.renderCard locale item
-                rendered = renderHtml card
-            assertBool "Contains date" (TL.isInfixOf (TL.pack "2023-01-01") rendered)
-        , testCase "PlanetMain.renderCard feed type icons" $ do
-            let locale = defaultTimeLocale
-                rssItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Rss
+                elmCode = ElmGen.generateElmModule [item]
+            assertBool "Contains item title" (T.isInfixOf (T.pack "Test Title") elmCode)
+            assertBool "Contains item link" (T.isInfixOf (T.pack "http://example.com") elmCode)
+            assertBool "Contains Rss type" (T.isInfixOf (T.pack "itemType = Rss") elmCode)
+        , testCase "ElmGen.generateElmModule escapes strings" $ do
+            let item = AppItem (T.pack "Title with \"quotes\"") (T.pack "http://example.com") Nothing Nothing Nothing (T.pack "Source") Nothing Rss
+                elmCode = ElmGen.generateElmModule [item]
+            assertBool "Escapes quotes" (T.isInfixOf (T.pack "\\\"quotes\\\"") elmCode)
+        , testCase "ElmGen.generateElmModule all feed types" $ do
+            let rssItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Rss
                 atomItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Atom
                 youtubeItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing YouTube
                 flickrItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Flickr
+                kuvatfiItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Kuvatfi
+                items = [rssItem, atomItem, youtubeItem, flickrItem, kuvatfiItem]
+                elmCode = ElmGen.generateElmModule items
             
-            let rssRendered = renderHtml (HtmlGen.renderCard locale rssItem)
-            assertBool "Rss icon" (TL.isInfixOf (TL.pack "📝") rssRendered)
-
-            let atomRendered = renderHtml (HtmlGen.renderCard locale atomItem)
-            assertBool "Atom icon" (TL.isInfixOf (TL.pack "📝") atomRendered)
-
-            let youtubeRendered = renderHtml (HtmlGen.renderCard locale youtubeItem)
-            assertBool "YouTube icon" (TL.isInfixOf (TL.pack "🎥") youtubeRendered)
-
-            let flickrRendered = renderHtml (HtmlGen.renderCard locale flickrItem)
-            assertBool "Flickr icon" (TL.isInfixOf (TL.pack "📷") flickrRendered)
+            assertBool "Contains Rss type" (T.isInfixOf (T.pack "itemType = Rss") elmCode)
+            assertBool "Contains Atom type" (T.isInfixOf (T.pack "itemType = Atom") elmCode)
+            assertBool "Contains YouTube type" (T.isInfixOf (T.pack "itemType = YouTube") elmCode)
+            assertBool "Contains Flickr type" (T.isInfixOf (T.pack "itemType = Flickr") elmCode)
+            assertBool "Contains Kuvatfi type" (T.isInfixOf (T.pack "itemType = Kuvatfi") elmCode)
         ]
 
 utilityTests :: TestTree

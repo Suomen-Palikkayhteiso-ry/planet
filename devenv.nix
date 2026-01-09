@@ -35,6 +35,11 @@ in
     pkgs.pkg-config
     pkgs.treefmt
     pkgs.zlib
+    pkgs.entr
+    pkgs.elmPackages.elm
+    pkgs.elmPackages.elm-language-server
+    pkgs.elmPackages.elm-format
+    pkgs.elm-land
     stable.cabal-install
     stable.fourmolu
     stable.hlint
@@ -46,6 +51,7 @@ in
   languages.haskell.package = stable.haskell.compiler.ghc96;
   languages.haskell.stack.enable = true;
   languages.haskell.languageServer = stable.haskell.packages.ghc96.haskell-language-server;
+  languages.elm.enable = true;
 
   enterShell = ''
     echo $GREET

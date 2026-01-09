@@ -1,52 +1,106 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- | Generate an Elm data module from Haskell data types.
+-- This module generates Elm source code that embeds feed data directly,
+-- avoiding the need for JSON interchange (which would redistribute data).
 module ElmGen (generateElmModule) where
 
-import Data.Aeson (ToJSON (..), Value (..))
-import Data.Aeson.Key (toText)
-import Data.Aeson.KeyMap (toList)
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Vector as V
-import I18n (AppItem)
+import Data.Time (UTCTime)
+import Data.Time.Format.ISO8601 (iso8601Show)
+import I18n (AppItem (..), FeedType (..))
 
+-- | Generate a complete Elm module containing type definitions and data.
 generateElmModule :: [AppItem] -> Text
-generateElmModule items =
-    let value = toJSON items
-        elmCode = jsonToElm (T.pack "allAppItems") value
-     in T.unlines
-            [ T.pack "module Data exposing (allAppItems)"
-            , T.pack ""
-            , T.pack "import Maybe exposing (Maybe(..))"
-            , T.pack "import Data exposing (FeedType(..), AppItem)"
-            , T.pack ""
-            , elmCode
-            ]
+generateElmModule items = T.unlines
+    [ "module Data exposing (allAppItems, AppItem, FeedType(..))"
+    , ""
+    , ""
+    , "type FeedType"
+    , "    = Rss"
+    , "    | YouTube"
+    , "    | Flickr"
+    , "    | Atom"
+    , "    | Kuvatfi"
+    , ""
+    , ""
+    , "type alias AppItem ="
+    , "    { itemTitle : String"
+    , "    , itemLink : String"
+    , "    , itemDate : Maybe String"
+    , "    , itemDesc : Maybe String"
+    , "    , itemThumbnail : Maybe String"
+    , "    , itemSourceTitle : String"
+    , "    , itemSourceLink : Maybe String"
+    , "    , itemType : FeedType"
+    , "    }"
+    , ""
+    , ""
+    , "allAppItems : List AppItem"
+    , "allAppItems ="
+    , renderItemList items
+    ]
 
-jsonToElm :: Text -> Value -> Text
-jsonToElm name value =
-    T.concat [name, T.pack " : List AppItem\n", name, T.pack " =\n", valueToElm value, T.pack "\n"]
+-- | Render a list of AppItems as an Elm list literal.
+renderItemList :: [AppItem] -> Text
+renderItemList [] = "    []"
+renderItemList items = T.unlines $
+    ["    [ " <> renderItem (head items)]
+    ++ map (\i -> "    , " <> renderItem i) (tail items)
+    ++ ["    ]"]
 
-valueToElm :: Value -> Text
-valueToElm (Object obj) =
-    let fields = map (\(k, v) -> T.concat [T.pack "        ", toText k, T.pack " = ", valueToElm' (toText k) v]) (toList obj)
-     in T.unlines [T.pack "    {", T.intercalate (T.pack ",\n") fields, T.pack "    }"]
-valueToElm (Array arr) =
-    let values = map valueToElm (V.toList arr)
-     in T.unlines [T.pack "[", T.intercalate (T.pack ",\n") values, T.pack "]"]
-valueToElm (String s) = T.concat [T.pack "\"", s, T.pack "\""]
-valueToElm (Number n) = T.pack (show n)
-valueToElm (Bool b) = if b then T.pack "True" else T.pack "False"
-valueToElm Null = T.pack "Nothing"
+-- | Render a single AppItem as an Elm record literal.
+renderItem :: AppItem -> Text
+renderItem item = T.concat
+    [ "{ itemTitle = "
+    , renderString (itemTitle item)
+    , ", itemLink = "
+    , renderString (itemLink item)
+    , ", itemDate = "
+    , renderMaybeUTCTime (itemDate item)
+    , ", itemDesc = "
+    , renderMaybeString (itemDesc item)
+    , ", itemThumbnail = "
+    , renderMaybeString (itemThumbnail item)
+    , ", itemSourceTitle = "
+    , renderString (itemSourceTitle item)
+    , ", itemSourceLink = "
+    , renderMaybeString (itemSourceLink item)
+    , ", itemType = "
+    , renderFeedType (itemType item)
+    , " }"
+    ]
 
-valueToElm' :: Text -> Value -> Text
-valueToElm' "itemType" (String s) = s
-valueToElm' "date" Null = T.pack "Nothing"
-valueToElm' "date" (String s) = T.concat [T.pack "Just \"", s, T.pack "\""]
-valueToElm' "description" Null = T.pack "Nothing"
-valueToElm' "description" (String s) = T.concat [T.pack "Just \"", s, T.pack "\""]
-valueToElm' "thumbnail" Null = T.pack "Nothing"
-valueToElm' "thumbnail" (String s) = T.concat [T.pack "Just \"", s, T.pack "\""]
-valueToElm' "sourceLink" Null = T.pack "Nothing"
-valueToElm' "sourceLink" (String s) = T.concat [T.pack "Just \"", s, T.pack "\""]
-valueToElm' _ v = valueToElm v
+-- | Render a Text value as an Elm string literal.
+renderString :: Text -> Text
+renderString t = "\"" <> escapeElmString t <> "\""
+
+-- | Render a Maybe Text as an Elm Maybe String.
+renderMaybeString :: Maybe Text -> Text
+renderMaybeString Nothing = "Nothing"
+renderMaybeString (Just t) = "Just " <> renderString t
+
+-- | Render a Maybe UTCTime as an Elm Maybe String (ISO8601 format).
+renderMaybeUTCTime :: Maybe UTCTime -> Text
+renderMaybeUTCTime Nothing = "Nothing"
+renderMaybeUTCTime (Just t) = "Just \"" <> T.pack (iso8601Show t) <> "\""
+
+-- | Render a FeedType as its Elm constructor name.
+renderFeedType :: FeedType -> Text
+renderFeedType Rss = "Rss"
+renderFeedType YouTube = "YouTube"
+renderFeedType Flickr = "Flickr"
+renderFeedType Atom = "Atom"
+renderFeedType Kuvatfi = "Kuvatfi"
+
+-- | Escape special characters in an Elm string literal.
+escapeElmString :: Text -> Text
+escapeElmString = T.concatMap escapeChar
+  where
+    escapeChar '\\' = "\\\\"
+    escapeChar '"'  = "\\\""
+    escapeChar '\n' = "\\n"
+    escapeChar '\r' = "\\r"
+    escapeChar '\t' = "\\t"
+    escapeChar c    = T.singleton c

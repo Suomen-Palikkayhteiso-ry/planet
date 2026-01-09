@@ -16,14 +16,11 @@ module I18n (
     fiTimeLocale,
 ) where
 
-import qualified Data.Aeson.Encoding as AE
-import qualified Data.Aeson.Types as Aeson
 import Data.Text (Text)
-import qualified Data.Text as T
 import Data.Time (UTCTime)
-import Data.Time.Format (TimeLocale (..), defaultTimeLocale, formatTime)
+import Data.Time.Format (TimeLocale (..), defaultTimeLocale)
 import GHC.Generics (Generic)
-import Data.Aeson (ToJSON (..), Value, object, (.=))
+import Data.Aeson (ToJSON (..))
 
 -- Configuration Types
 data FeedType = Rss | YouTube | Flickr | Atom | Kuvatfi
