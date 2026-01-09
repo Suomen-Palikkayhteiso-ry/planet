@@ -29,6 +29,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , searchText = ""
                             }
                     in
                     View.view model
@@ -41,6 +42,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , searchText = ""
                             }
                     in
                     View.view model
@@ -53,6 +55,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , searchText = ""
                             }
                     in
                     View.view model
@@ -65,6 +68,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , searchText = ""
                             }
                     in
                     View.view model
@@ -78,6 +82,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , searchText = ""
                             }
                     in
                     View.view model
@@ -100,6 +105,7 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , searchText = ""
                             }
                     in
                     View.view model
@@ -115,6 +121,7 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , searchText = ""
                             }
                     in
                     View.view model
@@ -148,6 +155,7 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss ] -- Only RSS selected
+                            , searchText = ""
                             }
                     in
                     View.view model
@@ -179,11 +187,102 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss ] -- Only RSS selected
+                            , searchText = ""
                             }
                     in
                     View.view model
                         |> Query.fromHtml
                         |> Query.hasNot [ Selector.text "YouTube Item" ]
+            , test "renders search input in feed filter nav" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , searchText = ""
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.attribute (Html.Attributes.placeholder "Hae...") ]
+            , test "filters items based on search text - matches title" <|
+                \_ ->
+                    let
+                        model =
+                            { items =
+                                [ { itemTitle = "Unique Title"
+                                  , itemLink = "https://example.com"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "Some description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Rss
+                                  }
+                                , { itemTitle = "Other Item"
+                                  , itemLink = "https://example.com/other"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "Other description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "Other Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Rss
+                                  }
+                                ]
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss ]
+                            , searchText = "unique"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.text "Unique Title" ]
+            , test "filters items based on search text - hides non-matches" <|
+                \_ ->
+                    let
+                        model =
+                            { items =
+                                [ { itemTitle = "Unique Title"
+                                  , itemLink = "https://example.com"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "Some description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Rss
+                                  }
+                                , { itemTitle = "Other Item"
+                                  , itemLink = "https://example.com/other"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "Other description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "Other Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Rss
+                                  }
+                                ]
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss ]
+                            , searchText = "unique"
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.hasNot [ Selector.text "Other Item" ]
+            , test "renders feed type icons in filter nav" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , searchText = ""
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.tag "button" ]
             ]
         ]
 

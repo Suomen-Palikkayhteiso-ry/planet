@@ -8,7 +8,7 @@ module View exposing (view)
 
 import Data exposing (AppItem, FeedType(..))
 import DateUtils exposing (formatDate, groupByMonth)
-import Html exposing (Html, a, div, footer, h1, h2, h3, img, input, label, li, main_, nav, p, span, text, ul)
+import Html exposing (Html, a, button, div, footer, h1, h2, h3, img, input, label, li, main_, nav, p, span, text, ul)
 import Html.Attributes as Attr
 import Html.Events as Events
 import Types exposing (Model, MonthGroup, Msg(..))
@@ -20,7 +20,9 @@ view : Model -> Html Msg
 view model =
     let
         filteredItems =
-            List.filter (\item -> List.member item.itemType model.selectedFeedTypes) model.items
+            model.items
+                |> List.filter (\item -> List.member item.itemType model.selectedFeedTypes)
+                |> List.filter (matchesSearch model.searchText)
 
         groups =
             groupByMonth filteredItems
@@ -45,7 +47,7 @@ view model =
                 , renderFooter model.generatedAt
                 ]
             , -- Feed filter navigation
-              renderFeedFilterNav model.selectedFeedTypes
+              renderFeedFilterNav model.selectedFeedTypes model.searchText
             ]
         ]
 
@@ -70,25 +72,34 @@ renderTimelineNav groups =
         ]
 
 
-renderFeedFilterNav : List FeedType -> Html Msg
-renderFeedFilterNav selectedFeedTypes =
+renderFeedFilterNav : List FeedType -> String -> Html Msg
+renderFeedFilterNav selectedFeedTypes searchText =
     nav [ Attr.class "hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
         [ h2 [ Attr.class "sr-only" ] [ text "Feed filters" ]
-        , ul [ Attr.class "space-y-2" ]
+        , div [ Attr.class "mb-4" ]
+            [ input
+                [ Attr.type_ "text"
+                , Attr.placeholder "Hae..."
+                , Attr.value searchText
+                , Events.onInput UpdateSearchText
+                , Attr.class "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                ]
+                []
+            ]
+        , div [ Attr.class "flex flex-wrap gap-2" ]
             (List.map
                 (\feedType ->
-                    li []
-                        [ label [ Attr.class "flex items-center space-x-2 cursor-pointer" ]
-                            [ input
-                                [ Attr.type_ "checkbox"
-                                , Attr.checked (List.member feedType selectedFeedTypes)
-                                , Events.onCheck (\_ -> ToggleFeedType feedType)
-                                , Attr.class "form-checkbox"
-                                ]
-                                []
-                            , span [ Attr.class "text-sm text-gray-600" ] [ text (feedTypeToString feedType) ]
-                            ]
+                    button
+                        [ Events.onClick (ToggleFeedType feedType)
+                        , Attr.class ("text-2xl p-2 rounded-md border " ++
+                            if List.member feedType selectedFeedTypes then
+                                "bg-blue-100 border-blue-300 text-blue-700"
+                            else
+                                "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
+                            )
+                        , Attr.title (feedTypeToString feedType)
                         ]
+                        [ text (feedTypeIcon feedType) ]
                 )
                 [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
             )
@@ -241,6 +252,26 @@ feedTypeName feedType =
 
         Atom ->
             "Atom-syöte"
+
+
+{-| Check if an item matches the search text (case insensitive)
+-}
+matchesSearch : String -> AppItem -> Bool
+matchesSearch search item =
+    let
+        lowerSearch =
+            String.toLower search
+
+        matches str =
+            String.contains lowerSearch (String.toLower str)
+    in
+    if String.isEmpty search then
+        True
+
+    else
+        matches item.itemSourceTitle
+            || matches item.itemTitle
+            || (item.itemDesc |> Maybe.map (stripHtml >> matches) |> Maybe.withDefault False)
 
 
 {-| Very basic HTML tag stripping (iterative to avoid stack overflow)

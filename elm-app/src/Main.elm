@@ -41,6 +41,7 @@ init timestamp =
     ( { items = allAppItems
       , generatedAt = timestamp
       , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+      , searchText = ""
       }
     , Cmd.none
     )
@@ -68,6 +69,9 @@ update msg model =
                         feedType :: model.selectedFeedTypes
             in
             ( { model | selectedFeedTypes = newSelected }, Cmd.none )
+
+        UpdateSearchText text ->
+            ( { model | searchText = text }, Cmd.none )
 
 
 

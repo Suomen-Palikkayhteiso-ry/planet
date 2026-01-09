@@ -17,7 +17,7 @@ suite : Test
 suite =
     describe "Types module"
         [ describe "Model"
-            [ test "Model contains items, generatedAt, and selectedFeedTypes" <|
+            [ test "Model contains items, generatedAt, selectedFeedTypes, and searchText" <|
                 \_ ->
                     let
                         model : Model
@@ -25,6 +25,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Rss ]
+                            , searchText = ""
                             }
                     in
                     Expect.equal model.generatedAt "2026-01-09"
@@ -49,5 +50,8 @@ suite =
             , test "ToggleFeedType message exists" <|
                 \_ ->
                     Expect.equal (ToggleFeedType Rss) (ToggleFeedType Rss)
+            , test "UpdateSearchText message exists" <|
+                \_ ->
+                    Expect.equal (UpdateSearchText "test") (UpdateSearchText "test")
             ]
         ]
