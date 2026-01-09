@@ -110,7 +110,7 @@ configTests =
                     length (configFeeds config) @?= 1
                     let feed = head (configFeeds config)
                     Config.feedType feed @?= I18n.Rss
-                    feedTitle feed @?= T.pack "Test Blog"
+                    feedTitle feed @?= Just (T.pack "Test Blog")
                     feedUrl feed @?= T.pack "http://example.com/rss.xml"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "PlanetMain.parseConfig invalid feed type" $ do
@@ -196,7 +196,7 @@ configTests =
                 Right config -> do
                     let feed = head (Config.configFeeds config)
                     Config.feedType feed @?= I18n.YouTube
-                    Config.feedTitle feed @?= T.pack "Test YouTube"
+                    Config.feedTitle feed @?= Just (T.pack "Test YouTube")
                     Config.feedUrl feed @?= T.pack "http://youtube.com/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "PlanetMain.parseConfig flickr feed type" $ do
@@ -205,7 +205,7 @@ configTests =
                 Right config -> do
                     let feed = head (Config.configFeeds config)
                     Config.feedType feed @?= I18n.Flickr
-                    Config.feedTitle feed @?= T.pack "Test Flickr"
+                    Config.feedTitle feed @?= Just (T.pack "Test Flickr")
                     Config.feedUrl feed @?= T.pack "http://flickr.com/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "PlanetMain.parseConfig kuvatfi feed type" $ do
@@ -214,7 +214,7 @@ configTests =
                 Right config -> do
                     let feed = head (Config.configFeeds config)
                     Config.feedType feed @?= I18n.Kuvatfi
-                    Config.feedTitle feed @?= T.pack "Test Kuvatfi"
+                    Config.feedTitle feed @?= Just (T.pack "Test Kuvatfi")
                     Config.feedUrl feed @?= T.pack "http://kuvat.fi/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         ]
@@ -311,7 +311,7 @@ feedTests =
                     , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
                     }
                 item = AtomItem entry
-                feedConfig = FeedConfig Atom (T.pack "Test Feed") (T.pack "http://example.com")
+                feedConfig = FeedConfig Atom (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack publishedDate)
             
             FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Atom)
@@ -324,7 +324,7 @@ feedTests =
                     , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
                     }
                 item = AtomItem entry
-                feedConfig = FeedConfig Atom (T.pack "Test Feed") (T.pack "http://example.com")
+                feedConfig = FeedConfig Atom (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
 
             FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Atom)
@@ -337,7 +337,7 @@ feedTests =
                     , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
                     }
                 item = AtomItem entry
-                feedConfig = FeedConfig Atom (T.pack "Test Feed") (T.pack "http://example.com")
+                feedConfig = FeedConfig Atom (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
 
             FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Atom)

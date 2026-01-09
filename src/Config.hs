@@ -11,7 +11,7 @@ import I18n
 
 data FeedConfig = FeedConfig
     { feedType :: FeedType
-    , feedTitle :: Text
+    , feedTitle :: Maybe Text
     , feedUrl :: Text
     }
     deriving (Show)
@@ -65,9 +65,9 @@ parseConfig content = do
             () | typeStr == T.pack "atom" -> Right Atom
             _ -> Left $ T.pack "Unknown feed type: " <> typeStr
 
-        title <- case lookupKey "title" of
-            Just (Toml.VString t) -> Right t
-            _ -> Left $ T.pack "Missing or invalid feed title"
+        let title = case lookupKey "title" of
+                Just (Toml.VString t) -> Just t
+                _ -> Nothing
 
         url <- case lookupKey "url" of
             Just (Toml.VString t) -> Right t

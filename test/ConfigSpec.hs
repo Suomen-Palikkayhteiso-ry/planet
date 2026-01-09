@@ -31,7 +31,7 @@ configTests =
                     length (configFeeds config) @?= 1
                     let feed = head (configFeeds config)
                     feedType feed @?= Blog
-                    feedTitle feed @?= T.pack "Test Blog"
+                    feedTitle feed @?= Just (T.pack "Test Blog")
                     feedUrl feed @?= T.pack "http://example.com/rss.xml"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "parseConfig invalid feed type" $ do
@@ -83,7 +83,7 @@ configTests =
                 Right config -> do
                     let feed = head (configFeeds config)
                     feedType feed @?= YouTube
-                    feedTitle feed @?= T.pack "Test YouTube"
+                    feedTitle feed @?= Just (T.pack "Test YouTube")
                     feedUrl feed @?= T.pack "http://youtube.com/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "parseConfig flickr feed type" $ do
@@ -92,7 +92,7 @@ configTests =
                 Right config -> do
                     let feed = head (configFeeds config)
                     feedType feed @?= Flickr
-                    feedTitle feed @?= T.pack "Test Flickr"
+                    feedTitle feed @?= Just (T.pack "Test Flickr")
                     feedUrl feed @?= T.pack "http://flickr.com/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "parseConfig kuvatfi feed type" $ do
@@ -101,7 +101,7 @@ configTests =
                 Right config -> do
                     let feed = head (configFeeds config)
                     feedType feed @?= Kuvatfi
-                    feedTitle feed @?= T.pack "Test Kuvatfi"
+                    feedTitle feed @?= Just (T.pack "Test Kuvatfi")
                     feedUrl feed @?= T.pack "http://kuvat.fi/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "parseConfig atom feed type" $ do
@@ -110,7 +110,7 @@ configTests =
                 Right config -> do
                     let feed = head (configFeeds config)
                     feedType feed @?= Atom
-                    feedTitle feed @?= T.pack "Test Atom"
+                    feedTitle feed @?= Just (T.pack "Test Atom")
                     feedUrl feed @?= T.pack "http://atom.com/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         ]

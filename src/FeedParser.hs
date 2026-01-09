@@ -26,7 +26,8 @@ module FeedParser (
     findMediaGroupThumbnail,
     isMediaThumbnail,
     getUrlAttr,
-    join
+    join,
+    getFeedTitle
 ) where
 
 import Control.Applicative ((<|>))
@@ -72,21 +73,32 @@ getFeedHandler Rss = FeedHandler{fhGetMediaDescription = const Nothing}
 -- Fetching
 fetchFeed :: FeedConfig -> IO [AppItem]
 fetchFeed fc = do
-    putStrLn $ "Fetching " ++ T.unpack (feedTitle fc) ++ "..."
+    let displayTitle = case feedTitle fc of
+            Just t -> t
+            Nothing -> feedUrl fc
+    putStrLn $ "Fetching " ++ T.unpack displayTitle ++ "..."
     req <- parseRequest (T.unpack $ feedUrl fc)
     result <- try (httpLBS req) :: IO (Either SomeException (Response LBS.ByteString))
     case result of
         Left err -> do
-            putStrLn $ "Error fetching " ++ T.unpack (feedTitle fc) ++ ": " ++ show err
+            putStrLn $ "Error fetching " ++ T.unpack displayTitle ++ ": " ++ show err
             return []
         Right response -> do
             let content = LBS.toStrict $ getResponseBody response
             let cleanedContent = T.replace "</media:keywords>" "" (decodeUtf8 content)
             case parseFeedSource (LBS.fromStrict $ encodeUtf8 cleanedContent) of
                 Nothing -> do
-                    putStrLn $ "Failed to parse feed: " ++ T.unpack (feedTitle fc) ++ ": invalid or unsupported feed format"
+                    putStrLn $ "Failed to parse feed: " ++ T.unpack displayTitle ++ ": invalid or unsupported feed format"
                     return []
-                Just feed -> let altLink = getFeedAlternateLink feed in return $ mapMaybe (parseItem fc altLink) (getFeedItems feed)
+                Just feed -> 
+                    let altLink = getFeedAlternateLink feed
+                        extractedTitle = getFeedTitle feed
+                        finalTitle = case feedTitle fc of
+                            Just t -> t
+                            Nothing -> case extractedTitle of
+                                Just t -> t
+                                Nothing -> T.pack "Unknown Feed"
+                    in return $ mapMaybe (parseItem (fc { feedTitle = Just finalTitle }) altLink) (getFeedItems feed)
 
 -- Helper for date join
 join :: Maybe (Maybe a) -> Maybe a
@@ -108,7 +120,10 @@ parseItem fc altLink item = do
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc
     let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage)
-    return $ AppItem title link date desc thumb (feedTitle fc) altLink (feedType fc)
+    let sourceTitle = case feedTitle fc of
+            Just t -> t
+            Nothing -> T.pack "Unknown Feed"
+    return $ AppItem title link date desc thumb sourceTitle altLink (feedType fc)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
@@ -293,3 +308,17 @@ getFeedAlternateLink feed = case feed of
         case filter (\(n, _) -> nameLocalName n == attr) (elementAttributes e) of
             ((_, [ContentText t]):_) -> Just t
             _ -> Nothing
+
+getFeedTitle :: Text.Feed.Types.Feed -> Maybe Text
+getFeedTitle feed = case feed of
+    Text.Feed.Types.AtomFeed af -> Just (T.pack $ Atom.txtToString $ Atom.feedTitle af)
+    Text.Feed.Types.RSSFeed rf -> Just (RSS.rssTitle (RSS.rssChannel rf))
+    Text.Feed.Types.XMLFeed e -> findTitle (elementChildren e)
+    _ -> Nothing
+  where
+    findTitle [] = Nothing
+    findTitle (e:es) = case elementName e of
+        Name "title" _ _ -> case elementNodes e of
+            (NodeContent (ContentText t):_) -> Just t
+            _ -> findTitle es
+        _ -> findTitle es
