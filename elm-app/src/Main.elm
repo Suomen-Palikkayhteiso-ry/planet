@@ -6,10 +6,10 @@ import Html.Attributes as Attr
 import Data exposing (AppItem, FeedType(..), allAppItems)
 
 
-main : Program () Model Msg
+main : Program String Model Msg
 main =
     Browser.element
-        { init = \() -> init
+        { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
@@ -22,6 +22,7 @@ main =
 
 type alias Model =
     { items : List AppItem
+    , generatedAt : String
     }
 
 
@@ -32,9 +33,9 @@ type alias MonthGroup =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { items = allAppItems }, Cmd.none )
+init : String -> ( Model, Cmd Msg )
+init timestamp =
+    ( { items = allAppItems, generatedAt = timestamp }, Cmd.none )
 
 
 
@@ -85,19 +86,19 @@ formatMonthLabel dateStr =
 
         monthName =
             case monthNum of
-                "01" -> "January"
-                "02" -> "February"
-                "03" -> "March"
-                "04" -> "April"
-                "05" -> "May"
-                "06" -> "June"
-                "07" -> "July"
-                "08" -> "August"
-                "09" -> "September"
-                "10" -> "October"
-                "11" -> "November"
-                "12" -> "December"
-                _ -> "Unknown"
+                "01" -> "tammikuu"
+                "02" -> "helmikuu"
+                "03" -> "maaliskuu"
+                "04" -> "huhtikuu"
+                "05" -> "toukokuu"
+                "06" -> "kesäkuu"
+                "07" -> "heinäkuu"
+                "08" -> "elokuu"
+                "09" -> "syyskuu"
+                "10" -> "lokakuu"
+                "11" -> "marraskuu"
+                "12" -> "joulukuu"
+                _ -> "Tuntematon"
     in
     monthName ++ " " ++ year
 
@@ -141,7 +142,7 @@ groupByMonth items =
             in
             { monthLabel =
                 if monthKey == "0000-00" then
-                    "Older / Undated"
+                    "Vanhemmat / Päiväämättömät"
 
                 else
                     formatMonthLabel first
@@ -204,7 +205,7 @@ view model =
             [ Attr.href "#main-content"
             , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded"
             ]
-            [ text "Skip to content" ]
+            [ text "Siirry pääsisältöön" ]
         , div [ Attr.class "flex" ]
             [ -- Timeline navigation
               renderTimelineNav groups
@@ -215,7 +216,7 @@ view model =
                 ]
                 [ renderIntro
                 , div [] (List.map renderMonthSection groups)
-                , renderFooter
+                , renderFooter model.generatedAt
                 ]
             ]
         ]
@@ -224,7 +225,7 @@ view model =
 renderTimelineNav : List MonthGroup -> Html Msg
 renderTimelineNav groups =
     nav [ Attr.class "hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
-        [ h2 [ Attr.class "text-lg font-bold text-gray-700 mb-4" ] [ text "Timeline" ]
+        [ h2 [ Attr.class "sr-only" ] [ text "Aikajana" ]
         , ul [ Attr.class "space-y-2" ]
             (List.map
                 (\group ->
@@ -245,7 +246,7 @@ renderIntro : Html Msg
 renderIntro =
     div [ Attr.class "mb-8" ]
         [ h1 [ Attr.class "text-3xl font-bold text-gray-800" ] [ text "Palikkalinkit" ]
-        , p [ Attr.class "text-gray-600 mt-2" ] [ text "Finnish LEGO fan feed aggregator" ]
+        , p [ Attr.class "text-gray-600 mt-2" ] [ text "Suomalaisten LEGO-harrastajien syötekooste" ]
         ]
 
 
@@ -356,19 +357,19 @@ feedTypeName : FeedType -> String
 feedTypeName feedType =
     case feedType of
         YouTube ->
-            "YouTube"
+            "YouTube-video"
 
         Rss ->
-            "RSS Feed"
+            "RSS-syöte"
 
         Flickr ->
-            "Flickr"
+            "Flickr-kuva"
 
         Kuvatfi ->
-            "Kuvat.fi"
+            "Kuvat.fi-kuva"
 
         Atom ->
-            "Atom Feed"
+            "Atom-syöte"
 
 
 {-| Very basic HTML tag stripping (iterative to avoid stack overflow)
@@ -409,9 +410,9 @@ truncateText maxLen str =
         String.left maxLen str ++ "..."
 
 
-renderFooter : Html Msg
-renderFooter =
+renderFooter : String -> Html Msg
+renderFooter timestamp =
     footer [ Attr.class "mt-12 pt-6 border-t text-center text-gray-500 text-sm" ]
-        [ p [] [ text "Powered by Planet Aggregator" ]
-        , p [ Attr.class "mt-1" ] [ text "Built with Elm and Haskell" ]
+        [ p [] [ text "Suomen Palikkayhteisö ry:n tuottama syötekooste" ]
+        , p [ Attr.class "mt-1" ] [ text ("Koottu " ++ timestamp) ]
         ]

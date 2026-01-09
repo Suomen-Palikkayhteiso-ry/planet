@@ -26,7 +26,7 @@ stripHtmlTags html =
         textTags = [t | TagText t <- tags]
         cleanedText = T.intercalate "" textTags
     in
-        T.take 200 $ T.replace "\n" " " $ cleanedText
+        T.take 200 $ T.replace "\n" " " cleanedText
 
 -- Helper to ensure void tags are properly closed for tree construction
 normalizeVoids :: [Tag Text] -> [Tag Text]
