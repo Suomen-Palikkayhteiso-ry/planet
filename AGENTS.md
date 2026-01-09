@@ -43,6 +43,14 @@ Before making any changes, you **MUST** follow this work loop:
     - `src/HtmlGen.hs`: HTML generation logic.
     - `src/Styles.hs` & `src/Scripts.hs`: Embedded CSS and JS.
     - `src/I18n.hs`: Internationalization logic.
+    - `src/ElmGen.hs`: Generates Elm data modules from parsed feeds.
+- **`./elm-app/`**: Interactive Elm-based viewer application.
+    - `elm-app/src/Main.elm`: Application entry point and orchestration.
+    - `elm-app/src/Types.elm`: Core type definitions.
+    - `elm-app/src/DateUtils.elm`: Date formatting and grouping utilities.
+    - `elm-app/src/View.elm`: UI rendering logic.
+    - `elm-app/src/Data.elm`: Generated feed data (from Haskell).
+    - `elm-app/tests/`: Comprehensive test suite for Elm modules.
 - **`./planet.cabal`**: Project definition and dependencies.
 - **`./planet.toml`**: Main configuration file.
 
