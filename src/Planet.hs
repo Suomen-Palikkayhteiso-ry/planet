@@ -8,7 +8,7 @@ import Data.List (sortOn)
 import Data.Ord (Down (..))
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import System.Directory (createDirectoryIfMissing, getCurrentDirectory, setCurrentDirectory)
+import System.Directory (createDirectoryIfMissing)
 
 import Config
 import ElmGen
@@ -17,12 +17,6 @@ import I18n
 
 main :: IO ()
 main = do
-    -- Change to the directory where the executable is located
-    -- This assumes the executable is in the project root
-    putStrLn "Current directory:" 
-    pwd <- getCurrentDirectory
-    putStrLn pwd
-    setCurrentDirectory "/workspaces/planet"
     configContent <- TIO.readFile "planet.toml"
     case parseConfig configContent of
         Left err -> TIO.putStrLn $ "Error parsing configuration: " <> err

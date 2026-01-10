@@ -39,7 +39,6 @@ import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import qualified Data.Text as T.Encoding
 import Data.Time.Format.ISO8601 (iso8601ParseM) -- Re-added missing import
 import Data.Time.Format (parseTimeM, defaultTimeLocale) -- Re-added missing import
 import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
@@ -48,7 +47,7 @@ import qualified Text.Atom.Feed as Atom
 import Text.Feed.Import (parseFeedSource)
 import Text.Feed.Query (getFeedItems, getItemDescription, getItemLink, getItemPublishDate, getItemTitle)
 import Text.Feed.Types (Feed (..), Item (..))
-import Text.HTML.TagSoup (Tag (..), parseTags, renderTags, isTagText)
+import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
 import qualified Text.RSS.Syntax as RSS
 
 import Config
