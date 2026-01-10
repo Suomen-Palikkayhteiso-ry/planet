@@ -30,7 +30,8 @@ view model =
         , -- Hamburger menu button for mobile
           button
             [ Events.onClick ToggleSidebar
-            , Attr.class "md:hidden fixed top-4 right-4 z-40 bg-white p-2 rounded-none shadow-lg border"
+            , Attr.class "md:hidden fixed top-4 right-4 z-40 bg-white p-3 rounded-none"
+            , Attr.style "cursor" "pointer"
             , Attr.attribute "aria-label" "Avaa valikko"
             ]
             [ text "☰" ]
@@ -140,7 +141,7 @@ renderFeedFilterNav selectedFeedTypes searchText viewMode =
 renderMobileSidebar : Model -> Html Msg
 renderMobileSidebar model =
     div
-        [ Attr.class ("md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-40 transform transition-transform duration-300 overflow-y-auto " ++
+        [ Attr.class ("md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-40 transform overflow-y-auto " ++
             if model.isSidebarVisible then
                 "translate-x-0"
             else
@@ -154,26 +155,8 @@ renderMobileSidebar model =
             , Attr.attribute "aria-label" "Sulje valikko"
             ]
             [ text "✕" ]
-        , -- Timeline navigation
-          nav [ Attr.class "p-4" ]
-            [ h2 [ Attr.class "text-lg font-semibold mb-4" ] [ text "Aikajana" ]
-            , ul [ Attr.class "space-y-2" ]
-                (List.map
-                    (\group ->
-                        li []
-                            [ a
-                                [ Attr.href ("#" ++ group.monthId)
-                                , Events.onClick ToggleSidebar
-                                , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline"
-                                ]
-                                [ text group.monthLabel ]
-                            ]
-                    )
-                    model.visibleGroups
-                )
-            ]
         , -- Feed filter navigation
-          nav [ Attr.class "p-4 border-t" ]
+          nav [ Attr.class "p-4" ]
             [ h2 [ Attr.class "text-lg font-semibold mb-4" ] [ text "Suodattimet" ]
             , div [ Attr.class "mb-4" ]
                 [ input
@@ -217,6 +200,24 @@ renderMobileSidebar model =
                     ]
                     [ text "👁️ Kuvaukset" ]
                 ]
+            ]
+        , -- Timeline navigation
+          nav [ Attr.class "p-4 border-t" ]
+            [ h2 [ Attr.class "text-lg font-semibold mb-4" ] [ text "Aikajana" ]
+            , ul [ Attr.class "space-y-2" ]
+                (List.map
+                    (\group ->
+                        li []
+                            [ a
+                                [ Attr.href ("#" ++ group.monthId)
+                                , Events.onClick ToggleSidebar
+                                , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline"
+                                ]
+                                [ text group.monthLabel ]
+                            ]
+                    )
+                    model.visibleGroups
+                )
             ]
         ]
 
