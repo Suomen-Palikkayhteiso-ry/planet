@@ -51,7 +51,7 @@ view model =
                 , Html.Keyed.node "div"
                     []
                     (List.map
-                        (\group -> ( group.monthId, lazy2 renderMonthSection model.viewMode group ))
+                        (\group -> ( group.monthId, renderMonthSection model.lang model.viewMode group ))
                         model.visibleGroups
                     )
                 , renderFooter model.lang model.generatedAt
@@ -98,6 +98,7 @@ renderTimelineNav lang groups =
                             [ Events.onClick (NavigateToSection group.monthId)
                             , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline text-left w-full"
                             , Attr.style "cursor" "pointer"
+                            , Attr.attribute "aria-label" (I18n.translate lang I18n.NavigateTo ++ group.monthLabel)
                             ]
                             [ text group.monthLabel ]
                         ]
@@ -133,8 +134,8 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
                             else
                                 "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
                             )
-                        , Attr.title (feedTypeToString feedType)
-                        , Attr.attribute "aria-label" (feedTypeToString feedType)
+                        , Attr.title (feedTypeToString lang feedType)
+                        , Attr.attribute "aria-label" (feedTypeToString lang feedType)
                         ]
                         [ text (feedTypeIcon feedType) ]
                 )
@@ -200,8 +201,8 @@ renderMobileSidebar model =
                                 else
                                     "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
                                 )
-                            , Attr.title (feedTypeToString feedType)
-                            , Attr.attribute "aria-label" (feedTypeToString feedType)
+                            , Attr.title (feedTypeToString model.lang feedType)
+                            , Attr.attribute "aria-label" (feedTypeToString model.lang feedType)
                             ]
                             [ text (feedTypeIcon feedType) ]
                     )
@@ -233,6 +234,7 @@ renderMobileSidebar model =
                                 [ Events.onClick (NavigateToSection group.monthId)
                                 , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline text-left w-full"
                                 , Attr.style "cursor" "pointer"
+                                , Attr.attribute "aria-label" (I18n.translate model.lang I18n.NavigateTo ++ group.monthLabel)
                                 ]
                                 [ text group.monthLabel ]
                             ]
@@ -243,17 +245,17 @@ renderMobileSidebar model =
         ]
 
 
-feedTypeToString : FeedType -> String
-feedTypeToString feedType =
+feedTypeToString : Types.Lang -> FeedType -> String
+feedTypeToString lang feedType =
     case feedType of
         Feed ->
-            "Feed"
+            I18n.translate lang I18n.FeedName
 
         YouTube ->
-            "YouTube"
+            I18n.translate lang I18n.YouTubeName
 
         Image ->
-            "Image"
+            I18n.translate lang I18n.ImageName
 
 
 renderIntro : Types.Lang -> Html Msg
@@ -263,8 +265,8 @@ renderIntro lang =
         ]
 
 
-renderMonthSection : ViewMode -> MonthGroup -> Html Msg
-renderMonthSection viewMode group =
+renderMonthSection : Types.Lang -> ViewMode -> MonthGroup -> Html Msg
+renderMonthSection lang viewMode group =
     div
         [ Attr.id group.monthId
         , Attr.class "mb-8"
@@ -275,30 +277,30 @@ renderMonthSection viewMode group =
         , Html.Keyed.node "div"
             [ Attr.class "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" ]
             (List.map
-                (\item -> ( item.itemLink, lazy2 renderCard viewMode item ))
+                (\item -> ( item.itemLink, renderCard lang viewMode item ))
                 group.items
             )
         ]
 
 
-renderCard : ViewMode -> AppItem -> Html Msg
-renderCard viewMode item =
+renderCard : Types.Lang -> ViewMode -> AppItem -> Html Msg
+renderCard lang viewMode item =
     case viewMode of
         Full ->
-            renderFullCard item
+            renderFullCard lang item
 
         Thumbnail ->
-            renderThumbnailCard item
+            renderThumbnailCard lang item
 
 
-renderFullCard : AppItem -> Html Msg
-renderFullCard item =
+renderFullCard : Types.Lang -> AppItem -> Html Msg
+renderFullCard lang item =
     div [ Attr.class "bg-white rounded-none shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
         [ -- Card image
           case item.itemThumbnail of
             Just url ->
                 div [ Attr.class "aspect-[4/3] bg-gray-100" ]
-                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)") ]
+                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow) ]
                         [ img
                             [ Attr.src url
                             , Attr.alt item.itemTitle
@@ -310,7 +312,7 @@ renderFullCard item =
 
             Nothing ->
                 div [ Attr.class "aspect-[4/3] bg-gray-200 flex items-center justify-center" ]
-                    [ span [ Attr.class "text-4xl", Attr.attribute "aria-label" (feedTypeName item.itemType) ] [ text (feedTypeIcon item.itemType) ]
+                    [ span [ Attr.class "text-4xl", Attr.attribute "aria-label" (feedTypeName lang item.itemType) ] [ text (feedTypeIcon item.itemType) ]
                     ]
         , -- Card content
           div [ Attr.class "p-4" ]
@@ -321,7 +323,7 @@ renderFullCard item =
                         [ Attr.href url
                         , Attr.target "_blank"
                         , Attr.rel "noopener noreferrer"
-                        , Attr.attribute "aria-label" (item.itemSourceTitle ++ " (avaa uudessa ikkunassa)")
+                        , Attr.attribute "aria-label" (item.itemSourceTitle ++ I18n.translate lang I18n.OpenInNewWindow)
                         , Attr.class "text-xs text-blue-600 hover:underline"
                         ]
                         [ text item.itemSourceTitle ]
@@ -334,7 +336,7 @@ renderFullCard item =
                     [ Attr.href item.itemLink
                     , Attr.target "_blank"
                     , Attr.rel "noopener noreferrer"
-                    , Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)")
+                    , Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow)
                     , Attr.class "hover:text-blue-600"
                     ]
                     [ text item.itemTitle ]
@@ -356,20 +358,20 @@ renderFullCard item =
 
                 Nothing ->
                     text ""
-            , span [ Attr.class "text-lg", Attr.title (feedTypeName item.itemType), Attr.attribute "aria-label" (feedTypeName item.itemType) ]
+            , span [ Attr.class "text-lg", Attr.title (feedTypeName lang item.itemType), Attr.attribute "aria-label" (feedTypeName lang item.itemType) ]
                 [ text (feedTypeIcon item.itemType) ]
             ]
         ]
 
 
-renderThumbnailCard : AppItem -> Html Msg
-renderThumbnailCard item =
+renderThumbnailCard : Types.Lang -> AppItem -> Html Msg
+renderThumbnailCard lang item =
     div [ Attr.class "bg-white rounded-none shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
         [ -- Card image only
           case item.itemThumbnail of
             Just url ->
                 div [ Attr.class "aspect-[4/3] bg-gray-100" ]
-                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)") ]
+                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow) ]
                         [ img
                             [ Attr.src url
                             , Attr.alt item.itemTitle
@@ -381,8 +383,8 @@ renderThumbnailCard item =
 
             Nothing ->
                 div [ Attr.class "aspect-[4/3] bg-gray-200 flex items-center justify-center" ]
-                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)") ]
-                        [ span [ Attr.class "text-2xl", Attr.attribute "aria-label" (feedTypeName item.itemType) ] [ text (feedTypeIcon item.itemType) ]
+                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ I18n.translate lang I18n.OpenInNewWindow) ]
+                        [ span [ Attr.class "text-2xl", Attr.attribute "aria-label" (feedTypeName lang item.itemType) ] [ text (feedTypeIcon item.itemType) ]
                         ]
                     ]
         ]
@@ -405,17 +407,17 @@ feedTypeIcon feedType =
 
 {-| Get human-readable name for feed type
 -}
-feedTypeName : FeedType -> String
-feedTypeName feedType =
+feedTypeName : Types.Lang -> FeedType -> String
+feedTypeName lang feedType =
     case feedType of
         Feed ->
-            "Syöte"
+            I18n.translate lang I18n.FeedName
 
         YouTube ->
-            "YouTube-video"
+            I18n.translate lang I18n.YouTubeName
 
         Image ->
-            "Kuva"
+            I18n.translate lang I18n.ImageName
 
 
 {-| Very basic HTML tag stripping (iterative to avoid stack overflow)

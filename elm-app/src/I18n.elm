@@ -29,6 +29,11 @@ type MsgKey
     | Description
     | DownloadOpml
     | ScrollToTop
+    | FeedName
+    | YouTubeName
+    | ImageName
+    | OpenInNewWindow
+    | NavigateTo
 
 
 {-| Translate a key to the given language
@@ -89,6 +94,21 @@ translate lang key =
                 ScrollToTop ->
                     "Siirry ylös"
 
+                FeedName ->
+                    "Syöte"
+
+                YouTubeName ->
+                    "YouTube-video"
+
+                ImageName ->
+                    "Kuva"
+
+                OpenInNewWindow ->
+                    " (avaa uudessa ikkunassa)"
+
+                NavigateTo ->
+                    "Siirry "
+
         Types.En ->
             case key of
                 SkipToContent ->
@@ -141,3 +161,18 @@ translate lang key =
 
                 ScrollToTop ->
                     "Scroll to top"
+
+                FeedName ->
+                    "Feed"
+
+                YouTubeName ->
+                    "YouTube"
+
+                ImageName ->
+                    "Image"
+
+                OpenInNewWindow ->
+                    " (open in new window)"
+
+                NavigateTo ->
+                    "Navigate to "
