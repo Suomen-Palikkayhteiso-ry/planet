@@ -181,7 +181,7 @@ renderFullCard item =
           case item.itemThumbnail of
             Just url ->
                 div [ Attr.class "aspect-video bg-gray-100" ]
-                    [ a [ Attr.href item.itemLink, Attr.target "_blank" ]
+                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer" ]
                         [ img
                             [ Attr.src url
                             , Attr.alt item.itemTitle
@@ -203,6 +203,7 @@ renderFullCard item =
                     a
                         [ Attr.href url
                         , Attr.target "_blank"
+                        , Attr.rel "noopener noreferrer"
                         , Attr.class "text-xs text-blue-600 hover:underline"
                         ]
                         [ text item.itemSourceTitle ]
@@ -214,6 +215,7 @@ renderFullCard item =
                 [ a
                     [ Attr.href item.itemLink
                     , Attr.target "_blank"
+                    , Attr.rel "noopener noreferrer"
                     , Attr.class "hover:text-blue-600"
                     ]
                     [ text item.itemTitle ]
@@ -247,7 +249,7 @@ renderThumbnailCard item =
         [ -- Card image only
           case item.itemThumbnail of
             Just url ->
-                a [ Attr.href item.itemLink, Attr.target "_blank" ]
+                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer" ]
                     [ img
                         [ Attr.src url
                         , Attr.alt item.itemTitle
@@ -257,7 +259,7 @@ renderThumbnailCard item =
                     ]
 
             Nothing ->
-                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.class "block h-32 bg-gray-200 flex items-center justify-center" ]
+                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.class "block h-32 bg-gray-200 flex items-center justify-center" ]
                     [ span [ Attr.class "text-2xl" ] [ text (feedTypeIcon item.itemType) ]
                     ]
         ]
