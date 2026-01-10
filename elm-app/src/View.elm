@@ -34,6 +34,7 @@ view model =
             , Attr.style "cursor" "pointer"
             , Attr.style "font-size" "2em"
             , Attr.style "padding-top" "0"
+            , Attr.style "mix-blend-mode" "difference"
             , Attr.attribute "aria-label" (if model.isSidebarVisible then "Sulje valikko" else "Avaa valikko")
             ]
             [ text (if model.isSidebarVisible then "✕" else "☰") ]
@@ -66,6 +67,16 @@ view model =
                 , Events.onClick ToggleSidebar
                 ]
                 []
+          else
+            text ""
+        , -- Scroll to top button
+          if model.scrollY > 200 then
+            button
+                [ Events.onClick ScrollToTop
+                , Attr.class "fixed bottom-4 right-4 z-50 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-opacity"
+                , Attr.attribute "aria-label" "Scroll to top"
+                ]
+                [ text "↑" ]
           else
             text ""
         ]

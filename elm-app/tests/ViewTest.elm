@@ -33,6 +33,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -48,6 +49,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -63,6 +65,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -78,6 +81,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -94,6 +98,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -128,6 +133,7 @@ suite =
                                   } ] } ]
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -149,6 +155,7 @@ suite =
                                               ]
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -194,6 +201,7 @@ suite =
                                   } ] } ]
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -237,6 +245,7 @@ suite =
                                   } ] } ]
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -252,6 +261,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -296,6 +306,7 @@ suite =
                                   } ] } ]
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -340,6 +351,7 @@ suite =
                                   } ] } ]
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -355,6 +367,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -372,6 +385,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -387,6 +401,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -404,6 +419,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -419,6 +435,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -434,6 +451,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -449,6 +467,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -464,6 +483,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -479,6 +499,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model
@@ -494,6 +515,7 @@ suite =
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     View.view model

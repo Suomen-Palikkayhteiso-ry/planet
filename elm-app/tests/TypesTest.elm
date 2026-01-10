@@ -32,6 +32,7 @@ suite =
                             , isSidebarVisible = False
                             , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
+                            , scrollY = 0
                             }
                     in
                     Expect.equal model.generatedAt "2026-01-09"
