@@ -2,24 +2,33 @@ module Types exposing
     ( Model
     , MonthGroup
     , Msg(..)
+    , ViewMode(..)
     )
 
 {-| Core types for the application
 
-@docs Model, MonthGroup, Msg
+@docs Model, MonthGroup, Msg, ViewMode
 
 -}
 
 import Data exposing (AppItem)
 
 
-{-| The application model containing all feed items, generation timestamp, selected feed types, and search text
+{-| View mode for displaying items
+-}
+type ViewMode
+    = Full
+    | Thumbnail
+
+
+{-| The application model containing all feed items, generation timestamp, selected feed types, search text, and view mode
 -}
 type alias Model =
     { items : List AppItem
     , generatedAt : String
     , selectedFeedTypes : List Data.FeedType
     , searchText : String
+    , viewMode : ViewMode
     }
 
 
@@ -38,3 +47,4 @@ type Msg
     = NoOp
     | ToggleFeedType Data.FeedType
     | UpdateSearchText String
+    | ToggleViewMode ViewMode

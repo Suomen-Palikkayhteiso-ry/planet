@@ -14,7 +14,7 @@ import Html.Attributes
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Types exposing (Model, Msg(..))
+import Types exposing (Model, Msg(..), ViewMode(..))
 import View
 
 
@@ -29,7 +29,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -42,7 +42,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -55,7 +55,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -68,7 +68,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -82,7 +82,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -105,7 +105,7 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -121,7 +121,7 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -155,7 +155,7 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ] -- Only Feed selected
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -187,7 +187,7 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ] -- Only Feed selected
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -200,7 +200,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -233,6 +233,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
+                            , viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -265,6 +266,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
+                            , viewMode = Types.Full
                             }
                     in
                     View.view model
@@ -277,7 +279,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = ""
+                            , searchText = "", viewMode = Types.Full
                             }
                     in
                     View.view model

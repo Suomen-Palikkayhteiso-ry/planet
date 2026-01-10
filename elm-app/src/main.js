@@ -28,7 +28,18 @@ const formatted = new Intl.DateTimeFormat('fi-FI', options)
 
 const formattedDate = `${formatted.day}.${formatted.month}.${formatted.year} ${formatted.hour}:${formatted.minute}:${formatted.second}`;
 
-Elm.Main.init({
+// Load saved view mode from localStorage
+const savedViewMode = localStorage.getItem('palikkalinkit-viewMode') || 'Full';
+
+const app = Elm.Main.init({
   node: document.getElementById('app'),
-  flags: formattedDate
-})
+  flags: {
+    timestamp: formattedDate,
+    viewMode: savedViewMode
+  }
+});
+
+// Handle saving view mode to localStorage
+app.ports.saveViewMode.subscribe(function(viewMode) {
+  localStorage.setItem('palikkalinkit-viewMode', viewMode);
+});

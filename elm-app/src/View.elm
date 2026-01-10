@@ -11,7 +11,7 @@ import DateUtils exposing (formatDate, groupByMonth)
 import Html exposing (Html, a, button, div, footer, h1, h2, h3, img, input, label, li, main_, nav, p, span, text, ul)
 import Html.Attributes as Attr
 import Html.Events as Events
-import Types exposing (Model, MonthGroup, Msg(..))
+import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..))
 
 
 {-| Main view function
@@ -43,11 +43,11 @@ view model =
                 , Attr.class "flex-1 p-6"
                 ]
                 [ renderIntro
-                , div [] (List.map renderMonthSection groups)
+                , div [] (List.map (renderMonthSection model.viewMode) groups)
                 , renderFooter model.generatedAt
                 ]
             , -- Feed filter navigation
-              renderFeedFilterNav model.selectedFeedTypes model.searchText
+              renderFeedFilterNav model.selectedFeedTypes model.searchText model.viewMode
             ]
         ]
 
@@ -72,8 +72,8 @@ renderTimelineNav groups =
         ]
 
 
-renderFeedFilterNav : List FeedType -> String -> Html Msg
-renderFeedFilterNav selectedFeedTypes searchText =
+renderFeedFilterNav : List FeedType -> String -> ViewMode -> Html Msg
+renderFeedFilterNav selectedFeedTypes searchText viewMode =
     nav [ Attr.class "hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
         [ h2 [ Attr.class "sr-only" ] [ text "Feed filters" ]
         , div [ Attr.class "mb-4" ]
@@ -86,7 +86,7 @@ renderFeedFilterNav selectedFeedTypes searchText =
                 ]
                 []
             ]
-        , div [ Attr.class "flex flex-wrap gap-2" ]
+        , div [ Attr.class "flex flex-wrap gap-2 mb-4" ]
             (List.map
                 (\feedType ->
                     button
@@ -103,6 +103,31 @@ renderFeedFilterNav selectedFeedTypes searchText =
                 )
                 [ Feed, YouTube, Image ]
             )
+        , div [ Attr.class "mb-4" ]
+            [ div [ Attr.class "text-sm font-medium text-gray-700 mb-2" ] [ text "Näkymä" ]
+            , div [ Attr.class "flex gap-2" ]
+                [ button
+                    [ Events.onClick (ToggleViewMode Full)
+                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border " ++
+                        if viewMode == Full then
+                            "bg-blue-100 border-blue-300 text-blue-700"
+                        else
+                            "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                        )
+                    ]
+                    [ text "Täysi" ]
+                , button
+                    [ Events.onClick (ToggleViewMode Thumbnail)
+                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border " ++
+                        if viewMode == Thumbnail then
+                            "bg-blue-100 border-blue-300 text-blue-700"
+                        else
+                            "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                        )
+                    ]
+                    [ text "Kuvat" ]
+                ]
+            ]
         ]
 
 
@@ -126,8 +151,8 @@ renderIntro =
         ]
 
 
-renderMonthSection : MonthGroup -> Html Msg
-renderMonthSection group =
+renderMonthSection : ViewMode -> MonthGroup -> Html Msg
+renderMonthSection viewMode group =
     div
         [ Attr.id group.monthId
         , Attr.class "mb-8"
@@ -135,12 +160,22 @@ renderMonthSection group =
         [ h2 [ Attr.class "text-xl font-semibold text-gray-700 mb-4 border-b pb-2" ]
             [ text group.monthLabel ]
         , div [ Attr.class "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" ]
-            (List.map renderCard group.items)
+            (List.map (renderCard viewMode) group.items)
         ]
 
 
-renderCard : AppItem -> Html Msg
-renderCard item =
+renderCard : ViewMode -> AppItem -> Html Msg
+renderCard viewMode item =
+    case viewMode of
+        Full ->
+            renderFullCard item
+
+        Thumbnail ->
+            renderThumbnailCard item
+
+
+renderFullCard : AppItem -> Html Msg
+renderFullCard item =
     div [ Attr.class "bg-white rounded-none shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
         [ -- Card image
           case item.itemThumbnail of
@@ -203,6 +238,28 @@ renderCard item =
             , span [ Attr.class "text-lg", Attr.title (feedTypeName item.itemType) ]
                 [ text (feedTypeIcon item.itemType) ]
             ]
+        ]
+
+
+renderThumbnailCard : AppItem -> Html Msg
+renderThumbnailCard item =
+    div [ Attr.class "bg-white rounded-none shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
+        [ -- Card image only
+          case item.itemThumbnail of
+            Just url ->
+                a [ Attr.href item.itemLink, Attr.target "_blank" ]
+                    [ img
+                        [ Attr.src url
+                        , Attr.alt item.itemTitle
+                        , Attr.class "w-full h-32 object-cover"
+                        ]
+                        []
+                    ]
+
+            Nothing ->
+                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.class "block h-32 bg-gray-200 flex items-center justify-center" ]
+                    [ span [ Attr.class "text-2xl" ] [ text (feedTypeIcon item.itemType) ]
+                    ]
         ]
 
 

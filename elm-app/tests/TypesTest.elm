@@ -10,7 +10,7 @@ Constrained by: ADR-0000-agent-guidance.md
 import Data exposing (FeedType(..))
 import Expect
 import Test exposing (Test, describe, test)
-import Types exposing (Model, MonthGroup, Msg(..))
+import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..))
 
 
 suite : Test
@@ -26,6 +26,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ]
                             , searchText = ""
+                            , viewMode = Types.Full
                             }
                     in
                     Expect.equal model.generatedAt "2026-01-09"
