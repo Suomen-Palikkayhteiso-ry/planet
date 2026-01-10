@@ -30,7 +30,7 @@ view model =
         , -- Hamburger menu button for mobile
           button
             [ Events.onClick ToggleSidebar
-            , Attr.class "md:hidden fixed top-4 right-4 z-40 bg-white p-3 rounded-none"
+            , Attr.class "md:hidden fixed top-4 right-4 z-40 p-3 rounded-none"
             , Attr.style "cursor" "pointer"
             , Attr.attribute "aria-label" "Avaa valikko"
             ]
