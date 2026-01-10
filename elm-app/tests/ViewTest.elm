@@ -453,7 +453,7 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.has [ Selector.class "bg-black" ]
+                        |> Query.has [ Selector.class "z-30" ]
             , test "does not render overlay when sidebar is hidden" <|
                 \_ ->
                     let
@@ -468,7 +468,7 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.hasNot [ Selector.class "bg-black" ]
+                        |> Query.hasNot [ Selector.class "z-30" ]
             ]
         ]
 

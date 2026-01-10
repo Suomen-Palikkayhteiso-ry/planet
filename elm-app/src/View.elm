@@ -60,7 +60,7 @@ view model =
         , -- Overlay for mobile sidebar
           if model.isSidebarVisible then
             div
-                [ Attr.class "md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+                [ Attr.class "md:hidden fixed inset-0 z-30"
                 , Events.onClick ToggleSidebar
                 ]
                 []
