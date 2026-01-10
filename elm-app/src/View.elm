@@ -157,7 +157,7 @@ renderMobileSidebar model =
             [ text "✕" ]
         , -- Feed filter navigation
           nav [ Attr.class "p-4" ]
-            [ h2 [ Attr.class "text-lg font-semibold mb-4" ] [ text "Suodattimet" ]
+            [ h2 [ Attr.class "sr-only" ] [ text "Suodattimet" ]
             , div [ Attr.class "mb-4" ]
                 [ input
                     [ Attr.type_ "text"
@@ -203,14 +203,13 @@ renderMobileSidebar model =
             ]
         , -- Timeline navigation
           nav [ Attr.class "p-4 border-t" ]
-            [ h2 [ Attr.class "text-lg font-semibold mb-4" ] [ text "Aikajana" ]
+            [ h2 [ Attr.class "sr-only" ] [ text "Aikajana" ]
             , ul [ Attr.class "space-y-2" ]
                 (List.map
                     (\group ->
                         li []
                             [ a
                                 [ Attr.href ("#" ++ group.monthId)
-                                , Events.onClick ToggleSidebar
                                 , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline"
                                 ]
                                 [ text group.monthLabel ]
