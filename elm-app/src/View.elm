@@ -256,7 +256,7 @@ feedTypeToString feedType =
 renderIntro : Html Msg
 renderIntro =
     div [ Attr.class "mb-8" ]
-        [ h1 [ Attr.class "text-3xl font-bold text-gray-800" ] [ text "Palikkalinkit" ]
+        [ a [ Attr.href "/", Attr.class "text-3xl font-bold text-gray-800 hover:text-blue-600" ] [ text "Palikkalinkit" ]
         ]
 
 

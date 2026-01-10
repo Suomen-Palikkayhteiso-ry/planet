@@ -60,6 +60,7 @@ suite =
             , test "renders main content area" <|
                 \_ ->
                     let
+                        model : ViewModel
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
@@ -68,7 +69,6 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
-                            , navKey = "dummy"
                             }
                     in
                     View.view model
@@ -91,9 +91,11 @@ suite =
                         |> Query.fromHtml
                         |> Query.find [ Selector.tag "footer" ]
                         |> Query.has [ Selector.text "Koottu 2026-01-09" ]
-            , test "renders title" <|
+            , test "renders title as link to root" <|
                 \_ ->
-                    let                        model : ViewModel                        model =
+                    let
+                        model : ViewModel
+                        model =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
@@ -105,6 +107,7 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
+                        |> Query.find [ Selector.tag "a", Selector.attribute (Html.Attributes.href "/") ]
                         |> Query.has [ Selector.text "Palikkalinkit" ]
             , test "renders items in cards" <|
                 \_ ->
