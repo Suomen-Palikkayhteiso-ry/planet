@@ -23,7 +23,7 @@ import Ports
 import Process
 import RemoteData
 import Task
-import Types exposing (Model, Msg(..), ViewMode(..), ViewModel, SearchItem)
+import Types exposing (Model, Msg(..), ViewMode(..), ViewModel, SearchItem, Lang(..))
 import Url
 import View
 
@@ -171,6 +171,7 @@ modelToViewModel model =
     , searchIndex = model.searchIndex
     , searchedIds = model.searchedIds
     , scrollY = model.scrollY
+    , lang = model.lang
     }
 
 
@@ -194,10 +195,11 @@ init flags _ navKey =
             , searchIndex = RemoteData.NotAsked
             , searchedIds = []
             , scrollY = 0
-            , navKey = navKey
+            , navKey = Just navKey
+            , lang = Fi
             }
     in
-    ( recalculateVisibleGroups model, Cmd.none )
+    ( recalculateVisibleGroups { model | visibleGroups = groupByMonth allAppItems }, Cmd.none )
 
 
 
@@ -286,12 +288,20 @@ update msg model =
             ( model, Ports.scrollToTop () )
 
         NavigateToSection sectionId ->
-            ( { model | isSidebarVisible = False }, Cmd.batch [ Browser.Navigation.pushUrl model.navKey ("#" ++ sectionId), Ports.scrollToElement sectionId ] )
+            case model.navKey of
+                Just key ->
+                    ( { model | isSidebarVisible = False }, Cmd.batch [ Browser.Navigation.pushUrl key ("#" ++ sectionId), Ports.scrollToElement sectionId ] )
+                Nothing ->
+                    ( { model | isSidebarVisible = False }, Ports.scrollToElement sectionId )
 
         UrlRequested urlRequest ->
             case urlRequest of
                 Browser.Internal url ->
-                    ( model, Browser.Navigation.pushUrl model.navKey (Url.toString url) )
+                    case model.navKey of
+                        Just key ->
+                            ( model, Browser.Navigation.pushUrl key (Url.toString url) )
+                        Nothing ->
+                            ( model, Cmd.none )
 
                 Browser.External href ->
                     ( model, Browser.Navigation.load href )

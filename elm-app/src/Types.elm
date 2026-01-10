@@ -5,11 +5,12 @@ module Types exposing
     , ViewMode(..)
     , ViewModel
     , SearchItem
+    , Lang(..)
     )
 
 {-| Core types for the application
 
-@docs Model, MonthGroup, Msg, ViewMode, SearchItem
+@docs Model, MonthGroup, Msg, ViewMode, SearchItem, Lang
 
 -}
 
@@ -19,6 +20,13 @@ import Data exposing (AppItem)
 import Http
 import RemoteData exposing (RemoteData)
 import Url
+
+
+{-| Language for internationalization
+-}
+type Lang
+    = Fi
+    | En
 
 
 {-| View mode for displaying items
@@ -51,7 +59,8 @@ type alias Model =
     , searchIndex : RemoteData Http.Error (List SearchItem)
     , searchedIds : List Int
     , scrollY : Float
-    , navKey : Browser.Navigation.Key
+    , navKey : Maybe Browser.Navigation.Key
+    , lang : Lang
     }
 
 
@@ -68,6 +77,7 @@ type alias ViewModel =
     , searchIndex : RemoteData Http.Error (List SearchItem)
     , searchedIds : List Int
     , scrollY : Float
+    , lang : Lang
     }
 
 

@@ -15,7 +15,7 @@ import RemoteData
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Types exposing (Model, Msg(..), ViewMode(..), ViewModel)
+import Types exposing (Model, Msg(..), ViewMode(..), ViewModel, Lang(..))
 import View
 
 
@@ -35,6 +35,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -52,6 +53,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -69,6 +71,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -86,6 +89,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -104,6 +108,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -122,6 +127,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -158,6 +164,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -180,6 +187,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -226,6 +234,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -270,6 +279,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -286,6 +296,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -331,6 +342,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -376,6 +388,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -392,6 +405,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -410,6 +424,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -426,11 +441,12 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.findAll [ Selector.attribute (Html.Attributes.attribute "aria-label" "Kuvaukset") ]
+                        |> Query.findAll [ Selector.attribute (Html.Attributes.attribute "aria-label" "👁️ Kuvaukset") ]
                         |> Query.first
                         |> Query.has [ Selector.text "👁️ Kuvaukset" ]
             , test "renders hamburger menu button on mobile" <|
@@ -444,6 +460,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -460,6 +477,7 @@ suite =
                             , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -476,6 +494,7 @@ suite =
                             , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -492,6 +511,7 @@ suite =
                             , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -508,6 +528,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -524,6 +545,7 @@ suite =
                             , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model
@@ -540,6 +562,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , lang = Fi
                             }
                     in
                     View.view model

@@ -10,8 +10,28 @@ Constrained by: ADR-0000-agent-guidance.md
 import Data exposing (allAppItems, FeedType(..))
 import Expect
 import Main exposing (addAsterisks)
+import RemoteData
 import Test exposing (Test, describe, test)
-import Types exposing (Msg(..))
+import Types exposing (Msg(..), Model, Lang(..))
+
+
+{-| Create a test model for testing
+-}
+createTestModel : Model
+createTestModel =
+    { items = allAppItems
+    , generatedAt = "2026-01-09"
+    , selectedFeedTypes = [ Feed, YouTube, Image ]
+    , searchText = ""
+    , viewMode = Types.Full
+    , visibleGroups = []
+    , isSidebarVisible = False
+    , searchIndex = RemoteData.NotAsked
+    , searchedIds = []
+    , scrollY = 0
+    , navKey = Nothing
+    , lang = Fi
+    }
 
 
 suite : Test
@@ -46,8 +66,7 @@ suite =
             [ test "NoOp returns unchanged model" <|
                 \_ ->
                     let
-                        ( initialModel, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
+                        initialModel = createTestModel
 
                         ( updatedModel, _ ) =
                             Main.update NoOp initialModel
@@ -56,8 +75,7 @@ suite =
             , test "ToggleFeedType toggles the feed type in selectedFeedTypes" <|
                 \_ ->
                     let
-                        ( initialModel, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
+                        initialModel = createTestModel
 
                         ( updatedModel, _ ) =
                             Main.update (ToggleFeedType Feed) initialModel
@@ -66,8 +84,7 @@ suite =
             , test "UpdateSearchText updates the search text" <|
                 \_ ->
                     let
-                        ( initialModel, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
+                        initialModel = createTestModel
 
                         ( updatedModel, _ ) =
                             Main.update (UpdateSearchText "test search") initialModel
@@ -76,8 +93,7 @@ suite =
             , test "ToggleSidebar toggles the sidebar visibility" <|
                 \_ ->
                     let
-                        ( initialModel, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
+                        initialModel = createTestModel
 
                         ( updatedModel, _ ) =
                             Main.update ToggleSidebar initialModel
@@ -88,8 +104,7 @@ suite =
             [ test "returns subscriptions for ports" <|
                 \_ ->
                     let
-                        ( model, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
+                        model = createTestModel
                     in
                     Main.subscriptions model
                         |> Expect.notEqual Sub.none

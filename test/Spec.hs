@@ -6,6 +6,7 @@ import ConfigSpec
 import FeedParserSpec
 import HtmlGenSpec
 import I18nSpec
+import PlanetSpec
 import UtilsSpec
 
 main :: IO ()
@@ -17,6 +18,7 @@ tests =
         "Planet Tests"
         [ i18nTests
         , configTests
+        , planetTests
         , feedTests
         , htmlTests
         , utilityTests

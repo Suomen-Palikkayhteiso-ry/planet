@@ -13,6 +13,7 @@ import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
 import Html.Lazy exposing (lazy2)
+import I18n
 import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..), ViewModel)
 
 
@@ -26,7 +27,7 @@ view model =
             [ Attr.href "#main-content"
             , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-none"
             ]
-            [ text "Siirry pääsisältöön" ]
+            [ text (I18n.translate model.lang I18n.SkipToContent) ]
         , -- Hamburger menu button for mobile
           button
             [ Events.onClick ToggleSidebar
@@ -35,28 +36,28 @@ view model =
             , Attr.style "font-size" "2em"
             , Attr.style "padding-top" "0"
             , Attr.style "mix-blend-mode" "difference"
-            , Attr.attribute "aria-label" (if model.isSidebarVisible then "Sulje valikko" else "Avaa valikko")
+            , Attr.attribute "aria-label" (if model.isSidebarVisible then I18n.translate model.lang I18n.CloseMenu else I18n.translate model.lang I18n.OpenMenu)
             ]
-            [ text (if model.isSidebarVisible then "✕" else "≡") ]
+            [ text (if model.isSidebarVisible then I18n.translate model.lang I18n.Close else I18n.translate model.lang I18n.Open) ]
         , div [ Attr.class "flex" ]
             [ -- Timeline navigation
-              renderTimelineNav model.visibleGroups
+              renderTimelineNav model.lang model.visibleGroups
             , -- Main content
               main_
                 [ Attr.id "main-content"
                 , Attr.class "flex-1 p-6"
                 ]
-                [ renderIntro
+                [ renderIntro model.lang
                 , Html.Keyed.node "div"
                     []
                     (List.map
                         (\group -> ( group.monthId, lazy2 renderMonthSection model.viewMode group ))
                         model.visibleGroups
                     )
-                , renderFooter model.generatedAt
+                , renderFooter model.lang model.generatedAt
                 ]
             , -- Feed filter navigation
-              renderFeedFilterNav model.selectedFeedTypes model.searchText model.viewMode
+              renderFeedFilterNav model.lang model.selectedFeedTypes model.searchText model.viewMode
             ]
         , -- Mobile sidebar
           renderMobileSidebar model
@@ -85,10 +86,10 @@ view model =
         ]
 
 
-renderTimelineNav : List MonthGroup -> Html Msg
-renderTimelineNav groups =
+renderTimelineNav : Types.Lang -> List MonthGroup -> Html Msg
+renderTimelineNav lang groups =
     nav [ Attr.class "hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
-        [ h2 [ Attr.class "sr-only" ] [ text "Aikajana" ]
+        [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.Timeline) ]
         , ul [ Attr.class "space-y-2" ]
             (List.map
                 (\group ->
@@ -106,14 +107,14 @@ renderTimelineNav groups =
         ]
 
 
-renderFeedFilterNav : List FeedType -> String -> ViewMode -> Html Msg
-renderFeedFilterNav selectedFeedTypes searchText viewMode =
+renderFeedFilterNav : Types.Lang -> List FeedType -> String -> ViewMode -> Html Msg
+renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
     nav [ Attr.class "hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
-        [ h2 [ Attr.class "sr-only" ] [ text "Feed filters" ]
+        [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.FeedFilters) ]
         , div [ Attr.class "mb-4" ]
             [ input
                 [ Attr.type_ "text"
-                , Attr.placeholder "Hae..."
+                , Attr.placeholder (I18n.translate lang I18n.SearchPlaceholder)
                 , Attr.value searchText
                 , Events.onInput UpdateSearchText
                 , Attr.class "w-full px-3 py-2 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -139,7 +140,7 @@ renderFeedFilterNav selectedFeedTypes searchText viewMode =
                 [ Feed, YouTube, Image ]
             )
         , div [ Attr.class "mb-4" ]
-            [ label [ Attr.class "sr-only" ] [ text "Näkymä" ]
+            [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.View) ]
             , button
                 [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
                 , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border w-full " ++
@@ -148,9 +149,9 @@ renderFeedFilterNav selectedFeedTypes searchText viewMode =
                     else
                         "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
                     )
-                , Attr.attribute "aria-label" "Kuvaukset"
+                , Attr.attribute "aria-label" (I18n.translate lang I18n.Descriptions)
                 ]
-                [ text "👁️ Kuvaukset" ]
+                [ text (I18n.translate lang I18n.Descriptions) ]
             ]
         ]
 
@@ -169,17 +170,17 @@ renderMobileSidebar model =
           button
             [ Events.onClick ToggleSidebar
             , Attr.class "sr-only"
-            , Attr.attribute "aria-label" "Sulje valikko"
+            , Attr.attribute "aria-label" (I18n.translate model.lang I18n.CloseMenu)
             ]
-            [ text "✕" ]
+            [ text (I18n.translate model.lang I18n.Close) ]
         , -- Feed filter navigation
           nav [ Attr.class "p-4" ]
-            [ h2 [ Attr.class "sr-only" ] [ text "Suodattimet" ]
+            [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Filters) ]
             , div [ Attr.class "mb-4" ]
                 [ input
                     [ Attr.type_ "text"
                     , Attr.id "mobile-search-input"
-                    , Attr.placeholder "Hae..."
+                    , Attr.placeholder (I18n.translate model.lang I18n.SearchPlaceholder)
                     , Attr.value model.searchText
                     , Events.onInput UpdateSearchText
                     , Attr.class "w-full px-3 py-2 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -205,7 +206,7 @@ renderMobileSidebar model =
                     [ Feed, YouTube, Image ]
                 )
             , div [ Attr.class "mb-4" ]
-                [ label [ Attr.class "sr-only" ] [ text "Näkymä" ]
+                [ label [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.View) ]
                 , button
                     [ Events.onClick (ToggleViewMode (if model.viewMode == Full then Thumbnail else Full))
                     , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border w-full " ++
@@ -214,9 +215,9 @@ renderMobileSidebar model =
                         else
                             "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
                         )
-                    , Attr.attribute "aria-label" "Kuvaukset"
+                    , Attr.attribute "aria-label" (I18n.translate model.lang I18n.Descriptions)
                     ]
-                    [ text "👁️ Kuvaukset" ]
+                    [ text (I18n.translate model.lang I18n.Descriptions) ]
                 ]
             ]
         , -- Timeline navigation
@@ -253,10 +254,10 @@ feedTypeToString feedType =
             "Image"
 
 
-renderIntro : Html Msg
-renderIntro =
+renderIntro : Types.Lang -> Html Msg
+renderIntro lang =
     div [ Attr.class "mb-8" ]
-        [ a [ Attr.href "/", Attr.class "text-3xl font-bold text-gray-800 hover:text-blue-600" ] [ text "Palikkalinkit" ]
+        [ a [ Attr.href "/", Attr.class "text-3xl font-bold text-gray-800 hover:text-blue-600" ] [ text (I18n.translate lang I18n.Title) ]
         ]
 
 
@@ -452,9 +453,9 @@ truncateText maxLen str =
         String.left maxLen str ++ "..."
 
 
-renderFooter : String -> Html Msg
-renderFooter timestamp =
+renderFooter : Types.Lang -> String -> Html Msg
+renderFooter lang timestamp =
     footer [ Attr.class "mt-12 pt-6 border-t text-center text-gray-500 text-sm" ]
-        [ p [] [ text "Suomen Palikkayhteisö ry:n tuottama syötekooste" ]
-        , p [ Attr.class "mt-1" ] [ text ("Koottu " ++ timestamp ++ " | "), a [ Attr.href "opml.xml", Attr.download "" ] [ text "Lataa OPML" ] ]
+        [ p [] [ text (I18n.translate lang I18n.Description) ]
+        , p [ Attr.class "mt-1" ] [ text (I18n.translate lang I18n.Compiled ++ timestamp ++ " | "), a [ Attr.href "opml.xml", Attr.download "" ] [ text (I18n.translate lang I18n.DownloadOpml) ] ]
         ]
