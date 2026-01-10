@@ -14,16 +14,19 @@ This module orchestrates the Elm application, delegating to specialized modules:
 import Browser
 import Data exposing (allAppItems, FeedType(..))
 import Html exposing (Html)
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Ports
 import Types exposing (Model, Msg(..), ViewMode(..))
 import View
 
 
-{-| Flags passed from JavaScript containing timestamp and saved view mode
+{-| Flags passed from JavaScript containing timestamp, saved view mode, and saved selected feed types
 -}
 type alias Flags =
     { timestamp : String
     , viewMode : String
+    , selectedFeedTypes : String
     }
 
 
@@ -49,6 +52,58 @@ viewModeToString viewMode =
 
         Thumbnail ->
             "Thumbnail"
+
+
+{-| Convert FeedType to string
+-}
+feedTypeToString : FeedType -> String
+feedTypeToString feedType =
+    case feedType of
+        Feed ->
+            "Feed"
+
+        YouTube ->
+            "YouTube"
+
+        Image ->
+            "Image"
+
+
+{-| Parse string to FeedType, defaulting to Feed
+-}
+stringToFeedType : String -> FeedType
+stringToFeedType str =
+    case str of
+        "YouTube" ->
+            YouTube
+
+        "Image" ->
+            Image
+
+        _ ->
+            Feed
+
+
+{-| Encode list of FeedType to JSON string
+-}
+encodeSelectedFeedTypes : List FeedType -> String
+encodeSelectedFeedTypes feedTypes =
+    feedTypes
+        |> List.map feedTypeToString
+        |> Encode.list Encode.string
+        |> Encode.encode 0
+
+
+{-| Decode JSON string to list of FeedType
+-}
+decodeSelectedFeedTypes : String -> List FeedType
+decodeSelectedFeedTypes str =
+    case Decode.decodeString (Decode.list Decode.string) str of
+        Ok strings ->
+            List.map stringToFeedType strings
+
+        Err _ ->
+            [ Feed, YouTube, Image ] -- default
 
 
 {-| Main program entry point
@@ -84,7 +139,7 @@ init : Flags -> url -> key -> ( Model, Cmd Msg )
 init flags _ _ =
     ( { items = allAppItems
       , generatedAt = flags.timestamp
-      , selectedFeedTypes = [ Feed, YouTube, Image ]
+      , selectedFeedTypes = decodeSelectedFeedTypes flags.selectedFeedTypes
       , searchText = ""
       , viewMode = parseViewMode flags.viewMode
       }
@@ -113,7 +168,9 @@ update msg model =
                     else
                         feedType :: model.selectedFeedTypes
             in
-            ( { model | selectedFeedTypes = newSelected }, Cmd.none )
+            ( { model | selectedFeedTypes = newSelected }
+            , Ports.saveSelectedFeedTypes (encodeSelectedFeedTypes newSelected)
+            )
 
         UpdateSearchText text ->
             ( { model | searchText = text }, Cmd.none )

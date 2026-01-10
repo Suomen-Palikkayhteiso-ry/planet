@@ -22,28 +22,28 @@ suite =
                 \_ ->
                     let
                         ( model, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full" } "url" "key"
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
                     in
                     Expect.equal model.generatedAt "2026-01-09"
             , test "initializes with all app items" <|
                 \_ ->
                     let
                         ( model, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full" } "url" "key"
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
                     in
                     Expect.equal model.items allAppItems
             , test "initializes with all feed types selected" <|
                 \_ ->
                     let
                         ( model, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full" } "url" "key"
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
                     in
                     Expect.equal model.selectedFeedTypes [ Feed, YouTube, Image ]
             , test "initializes with empty search text" <|
                 \_ ->
                     let
                         ( model, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full" } "url" "key"
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
                     in
                     Expect.equal model.searchText ""
             ]
@@ -52,7 +52,7 @@ suite =
                 \_ ->
                     let
                         ( initialModel, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full" } "url" "key"
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
 
                         ( updatedModel, _ ) =
                             Main.update NoOp initialModel
@@ -62,7 +62,7 @@ suite =
                 \_ ->
                     let
                         ( initialModel, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full" } "url" "key"
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
 
                         ( updatedModel, _ ) =
                             Main.update (ToggleFeedType Feed) initialModel
@@ -72,7 +72,7 @@ suite =
                 \_ ->
                     let
                         ( initialModel, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full" } "url" "key"
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
 
                         ( updatedModel, _ ) =
                             Main.update (UpdateSearchText "test search") initialModel
@@ -84,7 +84,7 @@ suite =
                 \_ ->
                     let
                         ( model, _ ) =
-                            Main.init { timestamp = "2026-01-09", viewMode = "Full" } "url" "key"
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
                     in
                     Expect.equal Sub.none (Main.subscriptions model)
             ]

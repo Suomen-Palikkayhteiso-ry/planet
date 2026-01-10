@@ -31,15 +31,24 @@ const formattedDate = `${formatted.day}.${formatted.month}.${formatted.year} ${f
 // Load saved view mode from localStorage
 const savedViewMode = localStorage.getItem('palikkalinkit-viewMode') || 'Full';
 
+// Load saved selected feed types from localStorage
+const savedSelectedFeedTypes = localStorage.getItem('palikkalinkit-selectedFeedTypes') || '["Feed","YouTube","Image"]';
+
 const app = Elm.Main.init({
   node: document.getElementById('app'),
   flags: {
     timestamp: formattedDate,
-    viewMode: savedViewMode
+    viewMode: savedViewMode,
+    selectedFeedTypes: savedSelectedFeedTypes
   }
 });
 
 // Handle saving view mode to localStorage
 app.ports.saveViewMode.subscribe(function(viewMode) {
   localStorage.setItem('palikkalinkit-viewMode', viewMode);
+});
+
+// Handle saving selected feed types to localStorage
+app.ports.saveSelectedFeedTypes.subscribe(function(selectedFeedTypes) {
+  localStorage.setItem('palikkalinkit-selectedFeedTypes', selectedFeedTypes);
 });
