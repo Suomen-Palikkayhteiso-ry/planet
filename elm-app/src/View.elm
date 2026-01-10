@@ -182,7 +182,7 @@ renderFullCard item =
           case item.itemThumbnail of
             Just url ->
                 div [ Attr.class "aspect-video bg-gray-100" ]
-                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer" ]
+                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)") ]
                         [ img
                             [ Attr.src url
                             , Attr.alt item.itemTitle
@@ -205,6 +205,7 @@ renderFullCard item =
                         [ Attr.href url
                         , Attr.target "_blank"
                         , Attr.rel "noopener noreferrer"
+                        , Attr.attribute "aria-label" (item.itemSourceTitle ++ " (avaa uudessa ikkunassa)")
                         , Attr.class "text-xs text-blue-600 hover:underline"
                         ]
                         [ text item.itemSourceTitle ]
@@ -217,6 +218,7 @@ renderFullCard item =
                     [ Attr.href item.itemLink
                     , Attr.target "_blank"
                     , Attr.rel "noopener noreferrer"
+                    , Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)")
                     , Attr.class "hover:text-blue-600"
                     ]
                     [ text item.itemTitle ]
@@ -250,7 +252,7 @@ renderThumbnailCard item =
         [ -- Card image only
           case item.itemThumbnail of
             Just url ->
-                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer" ]
+                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)") ]
                     [ img
                         [ Attr.src url
                         , Attr.alt item.itemTitle
@@ -260,7 +262,7 @@ renderThumbnailCard item =
                     ]
 
             Nothing ->
-                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.class "block h-32 bg-gray-200 flex items-center justify-center" ]
+                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)"), Attr.class "block h-32 bg-gray-200 flex items-center justify-center" ]
                     [ span [ Attr.class "text-2xl", Attr.attribute "aria-label" (feedTypeName item.itemType) ] [ text (feedTypeIcon item.itemType) ]
                     ]
         ]
