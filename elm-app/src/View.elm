@@ -456,5 +456,5 @@ renderFooter : String -> Html Msg
 renderFooter timestamp =
     footer [ Attr.class "mt-12 pt-6 border-t text-center text-gray-500 text-sm" ]
         [ p [] [ text "Suomen Palikkayhteisö ry:n tuottama syötekooste" ]
-        , p [ Attr.class "mt-1" ] [ text ("Koottu " ++ timestamp) ]
+        , p [ Attr.class "mt-1" ] [ text ("Koottu " ++ timestamp ++ " | "), a [ Attr.href "opml.xml", Attr.download "" ] [ text "Lataa OPML" ] ]
         ]

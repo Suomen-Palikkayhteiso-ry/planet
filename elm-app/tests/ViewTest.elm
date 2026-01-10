@@ -74,9 +74,10 @@ suite =
                     View.view model
                         |> Query.fromHtml
                         |> Query.has [ Selector.id "main-content" ]
-            , test "renders footer with generation timestamp" <|
+            , test "renders footer with generation timestamp and OPML link" <|
                 \_ ->
                     let
+                        model : ViewModel
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
@@ -91,6 +92,24 @@ suite =
                         |> Query.fromHtml
                         |> Query.find [ Selector.tag "footer" ]
                         |> Query.has [ Selector.text "Koottu 2026-01-09" ]
+            , test "renders OPML download link in footer" <|
+                \_ ->
+                    let
+                        model : ViewModel
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            , scrollY = 0
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.find [ Selector.tag "a", Selector.attribute (Html.Attributes.href "opml.xml") ]
+                        |> Query.has [ Selector.text "Lataa OPML" ]
             , test "renders title as link to root" <|
                 \_ ->
                     let
