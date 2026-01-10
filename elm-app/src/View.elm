@@ -98,6 +98,7 @@ renderFeedFilterNav selectedFeedTypes searchText viewMode =
                                 "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
                             )
                         , Attr.title (feedTypeToString feedType)
+                        , Attr.attribute "aria-label" (feedTypeToString feedType)
                         ]
                         [ text (feedTypeIcon feedType) ]
                 )
@@ -193,7 +194,7 @@ renderFullCard item =
 
             Nothing ->
                 div [ Attr.class "aspect-video bg-gray-200 flex items-center justify-center" ]
-                    [ span [ Attr.class "text-4xl" ] [ text (feedTypeIcon item.itemType) ]
+                    [ span [ Attr.class "text-4xl", Attr.attribute "aria-label" (feedTypeName item.itemType) ] [ text (feedTypeIcon item.itemType) ]
                     ]
         , -- Card content
           div [ Attr.class "p-4" ]
@@ -237,7 +238,7 @@ renderFullCard item =
 
                 Nothing ->
                     text ""
-            , span [ Attr.class "text-lg", Attr.title (feedTypeName item.itemType) ]
+            , span [ Attr.class "text-lg", Attr.title (feedTypeName item.itemType), Attr.attribute "aria-label" (feedTypeName item.itemType) ]
                 [ text (feedTypeIcon item.itemType) ]
             ]
         ]
@@ -260,7 +261,7 @@ renderThumbnailCard item =
 
             Nothing ->
                 a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.class "block h-32 bg-gray-200 flex items-center justify-center" ]
-                    [ span [ Attr.class "text-2xl" ] [ text (feedTypeIcon item.itemType) ]
+                    [ span [ Attr.class "text-2xl", Attr.attribute "aria-label" (feedTypeName item.itemType) ] [ text (feedTypeIcon item.itemType) ]
                     ]
         ]
 
