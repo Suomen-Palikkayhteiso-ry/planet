@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module HtmlSanitizer (cleanAndTruncate, normalizeVoids, pruneTree, takeWithLimit) where
+module HtmlSanitizer (cleanAndTruncate, normalizeVoids, pruneTree, takeWithLimit, stripHtmlTags) where
 
 import Data.Char (isSpace)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
+import Text.HTML.TagSoup (Tag (..), parseTags, renderTags, isTagText)
 import Text.HTML.TagSoup.Tree (TagTree (..), flattenTree, tagTree)
 
 -- HTML sanitization and cleaning utilities
@@ -17,6 +17,16 @@ cleanAndTruncate maxLength html =
         pruned = pruneTree tree
         flat = flattenTree pruned
      in renderTags $ takeWithLimit maxLength [] flat
+
+-- Strips all HTML tags, leaving only plain text
+stripHtmlTags :: Text -> Text
+stripHtmlTags html =
+    let
+        tags = parseTags html
+        textTags = [t | TagText t <- tags]
+        cleanedText = T.intercalate "" textTags
+    in
+        T.take 200 $ T.replace "\n" " " cleanedText
 
 -- Helper to ensure void tags are properly closed for tree construction
 normalizeVoids :: [Tag Text] -> [Tag Text]

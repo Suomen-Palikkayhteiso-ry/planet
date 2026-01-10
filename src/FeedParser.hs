@@ -27,6 +27,7 @@ module FeedParser (
     isMediaThumbnail,
     getUrlAttr,
     join,
+    getFeedTitle
 ) where
 
 import Control.Applicative ((<|>))
@@ -38,61 +39,82 @@ import Data.Maybe (mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-
-import Data.Time.Format.ISO8601 (iso8601ParseM)
-import Data.Time.Format (parseTimeM, defaultTimeLocale)
+import qualified Data.Text as T.Encoding
+import Data.Time.Format.ISO8601 (iso8601ParseM) -- Re-added missing import
+import Data.Time.Format (parseTimeM, defaultTimeLocale) -- Re-added missing import
 import Data.XML.Types (Content (..), Element (..), Name (..), Node (..))
 import Network.HTTP.Simple (Response, getResponseBody, httpLBS, parseRequest)
 import qualified Text.Atom.Feed as Atom
 import Text.Feed.Import (parseFeedSource)
 import Text.Feed.Query (getFeedItems, getItemDescription, getItemLink, getItemPublishDate, getItemTitle)
 import Text.Feed.Types (Feed (..), Item (..))
-import Text.HTML.TagSoup (Tag (..), parseTags, renderTags)
+import Text.HTML.TagSoup (Tag (..), parseTags, renderTags, isTagText)
 import qualified Text.RSS.Syntax as RSS
 
 import Config
 import I18n
+
+-- Normalizes URLs by replacing multiple slashes in the protocol part
+normalizeUrl :: Text -> Text
+normalizeUrl =
+    T.replace "https://///" "https://"
+    . T.replace "http://///" "http://"
 
 newtype FeedHandler = FeedHandler
     { fhGetMediaDescription :: Item -> Maybe Text
     }
 
 getFeedHandler :: FeedType -> FeedHandler
+getFeedHandler Feed = FeedHandler{fhGetMediaDescription = getAtomMediaDescription}
 getFeedHandler YouTube = FeedHandler{fhGetMediaDescription = getYouTubeMediaDescription}
-getFeedHandler Flickr = FeedHandler{fhGetMediaDescription = getFlickrMediaDescription}
-getFeedHandler Kuvatfi = FeedHandler{fhGetMediaDescription = getKuvatfiMediaDescription}
-getFeedHandler Atom = FeedHandler{fhGetMediaDescription = getAtomMediaDescription}
-getFeedHandler Rss = FeedHandler{fhGetMediaDescription = const Nothing}
+getFeedHandler Image = FeedHandler{fhGetMediaDescription = getFlickrMediaDescription}
 -- Fetching
 fetchFeed :: FeedConfig -> IO [AppItem]
 fetchFeed fc = do
-    putStrLn $ "Fetching " ++ T.unpack (feedTitle fc) ++ "..."
+    let displayTitle = case feedTitle fc of
+            Just t -> t
+            Nothing -> feedUrl fc
+    putStrLn $ "Fetching " ++ T.unpack displayTitle ++ "..."
     req <- parseRequest (T.unpack $ feedUrl fc)
     result <- try (httpLBS req) :: IO (Either SomeException (Response LBS.ByteString))
     case result of
         Left err -> do
-            putStrLn $ "Error fetching " ++ T.unpack (feedTitle fc) ++ ": " ++ show err
+            putStrLn $ "Error fetching " ++ T.unpack displayTitle ++ ": " ++ show err
             return []
         Right response -> do
             let content = LBS.toStrict $ getResponseBody response
             let cleanedContent = T.replace "</media:keywords>" "" (decodeUtf8 content)
             case parseFeedSource (LBS.fromStrict $ encodeUtf8 cleanedContent) of
                 Nothing -> do
-                    putStrLn $ "Failed to parse feed: " ++ T.unpack (feedTitle fc)
+                    putStrLn $ "Failed to parse feed: " ++ T.unpack displayTitle ++ ": invalid or unsupported feed format"
                     return []
-                Just feed -> let altLink = getFeedAlternateLink feed in return $ mapMaybe (parseItem fc altLink) (getFeedItems feed)
+                Just feed -> 
+                    let altLink = getFeedAlternateLink feed
+                        extractedTitle = getFeedTitle feed
+                        finalTitle = case feedTitle fc of
+                            Just t -> t
+                            Nothing -> case extractedTitle of
+                                Just t -> t
+                                Nothing -> T.pack "Unknown Feed"
+                    in return $ mapMaybe (parseItem (fc { feedTitle = Just finalTitle }) altLink) (getFeedItems feed)
 
 -- Helper for date join
 join :: Maybe (Maybe a) -> Maybe a
 join (Just (Just x)) = Just x
 join _ = Nothing
 
+stripHtml :: Text -> Text
+stripHtml = T.unwords . mapMaybe fromTagText . parseTags
+  where
+    fromTagText (TagText s) = Just s
+    fromTagText _           = Nothing
+
 -- Base parseItem function
 parseItem :: FeedConfig -> Maybe Text -> Item -> Maybe AppItem
 parseItem fc altLink item = do
     rawTitle <- getItemTitle item
     let title = cleanTitle rawTitle
-    link <- getItemLink item
+    link <- normalizeUrl <$> getItemLink item
     let date = case item of
             AtomItem entry -> case Atom.entryPublished entry of
                 Just pub -> parseTimeM True defaultTimeLocale "%Y-%m-%dT%H:%M:%S%Q%Z" (T.unpack pub) <|> iso8601ParseM (T.unpack pub)
@@ -101,8 +123,12 @@ parseItem fc altLink item = do
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc
+    let descText = fmap stripHtml desc
     let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage)
-    return $ AppItem title link date desc thumb (feedTitle fc) altLink (feedType fc)
+    let sourceTitle = case feedTitle fc of
+            Just t -> t
+            Nothing -> T.pack "Unknown Feed"
+    return $ AppItem title link date desc descText thumb sourceTitle altLink (feedType fc)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text
@@ -203,7 +229,7 @@ extractFirstImage html =
     let tags = parseTags html
         imgTags = filter (\case TagOpen "img" _ -> True; _ -> False) tags
      in case imgTags of
-            (TagOpen "img" attrs : _) -> lookup "src" attrs
+            (TagOpen "img" attrs : _) -> normalizeUrl <$> lookup "src" attrs
             _ -> Nothing
 
 -- Thumbnail extraction
@@ -228,7 +254,7 @@ getAtomThumbnail entry =
 findEnclosureImage :: [Atom.Link] -> Maybe Text
 findEnclosureImage links =
     case filter (\l -> Atom.linkRel l == Just (Right (T.pack "enclosure")) && maybe False (T.isPrefixOf "image/") (Atom.linkType l)) links of
-        (l : _) -> Just (Atom.linkHref l)
+        (l : _) -> Just (normalizeUrl $ Atom.linkHref l)
         [] -> Nothing
 
 getRSSThumbnail :: RSS.RSSItem -> Maybe Text
@@ -240,7 +266,7 @@ getRSSThumbnail item =
 findMediaThumbnail :: [Element] -> Maybe Text
 findMediaThumbnail elems =
     case filter isMediaThumbnail elems of
-        (e : _) -> getUrlAttr e
+        (e : _) -> normalizeUrl <$> getUrlAttr e
         [] -> Nothing
 
 findMediaGroupThumbnail :: [Element] -> Maybe Text
@@ -271,7 +297,7 @@ getFeedAlternateLink feed = case feed of
     Text.Feed.Types.RSSFeed rf -> 
         case findAlternateLink (map NodeElement (RSS.rssChannelOther (RSS.rssChannel rf))) of
             Just l -> Just l
-            Nothing -> Just (RSS.rssLink (RSS.rssChannel rf))
+            Nothing -> Just (normalizeUrl $ RSS.rssLink (RSS.rssChannel rf))
     Text.Feed.Types.XMLFeed e -> findAlternateLink (map NodeElement (elementChildren e))
     _ -> Nothing
   where
@@ -287,3 +313,17 @@ getFeedAlternateLink feed = case feed of
         case filter (\(n, _) -> nameLocalName n == attr) (elementAttributes e) of
             ((_, [ContentText t]):_) -> Just t
             _ -> Nothing
+
+getFeedTitle :: Text.Feed.Types.Feed -> Maybe Text
+getFeedTitle feed = case feed of
+    Text.Feed.Types.AtomFeed af -> Just (T.pack $ Atom.txtToString $ Atom.feedTitle af)
+    Text.Feed.Types.RSSFeed rf -> Just (RSS.rssTitle (RSS.rssChannel rf))
+    Text.Feed.Types.XMLFeed e -> findTitle (elementChildren e)
+    _ -> Nothing
+  where
+    findTitle [] = Nothing
+    findTitle (e:es) = case elementName e of
+        Name "title" _ _ -> case elementNodes e of
+            (NodeContent (ContentText t):_) -> Just t
+            _ -> findTitle es
+        _ -> findTitle es

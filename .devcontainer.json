@@ -13,7 +13,8 @@
         "haskell.haskell",
         "justusadam.language-haskell",
         "mkhl.direnv",
-        "ms-vscode.makefile-tools"
+        "ms-vscode.makefile-tools",
+        "Elmtooling.elm-ls-vscode"
       ]
     }
   },

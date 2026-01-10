@@ -4,42 +4,34 @@ title = "Palikkalinkit"
 
 [[feeds]]
 type = "atom"
-title = "Cyclopic Bricks"
 url = "https://cyclopicbricks.blogspot.com/feeds/posts/default"
 
 [[feeds]]
 type = "rss"
-title = "Hovinet"
 url = "https://hovinet.com/?feed=rss2"
 
 [[feeds]]
 type = "youtube"
-title = "FinnBrixStudio"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC1gpjceZQv8qKxcCJB4BKhw"
 
 [[feeds]]
 type = "youtube"
-title = "Legokauppakeisari"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIobvkZGI5zAd55vooUokqg"
 
 [[feeds]]
 type = "youtube"
-title = "Jvvv"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCWNl-SeihlkLKGsx9L9450Q"
 
 [[feeds]]
 type = "youtube"
-title = "Hovinet"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCRM3pjKaP5BoevfZuE9_kEw"
 
 [[feeds]]
 type = "youtube"
-title = "Saija's Brickcave"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC3doy6NwIkzNMMBba3xOOJw"
 
 [[feeds]]
 type = "flickr"
-title = "Tuomas Kukkamaa"
 url = "https://www.flickr.com/services/feeds/photos_public.gne?id=63411232@N00&lang=en-us&format=atom"
 
 [[feeds]]

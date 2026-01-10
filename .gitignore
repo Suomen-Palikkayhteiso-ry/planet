@@ -5,4 +5,5 @@ dist-newstyle/
 public/
 /planet
 /src/Main
+/elm-app/src/Data.elm
 TODO*

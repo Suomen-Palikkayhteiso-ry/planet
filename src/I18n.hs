@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
 module I18n (
     FeedType (..),
@@ -17,10 +19,12 @@ module I18n (
 import Data.Text (Text)
 import Data.Time (UTCTime)
 import Data.Time.Format (TimeLocale (..), defaultTimeLocale)
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON (..))
 
 -- Configuration Types
-data FeedType = Rss | YouTube | Flickr | Atom | Kuvatfi
-    deriving (Show, Eq)
+data FeedType = Feed | YouTube | Image
+    deriving (Show, Eq, Generic, ToJSON)
 
 -- App Data Types
 data AppItem = AppItem
@@ -28,12 +32,13 @@ data AppItem = AppItem
     , itemLink :: Text
     , itemDate :: Maybe UTCTime
     , itemDesc :: Maybe Text
+    , itemDescText :: Maybe Text
     , itemThumbnail :: Maybe Text
     , itemSourceTitle :: Text
     , itemSourceLink :: Maybe Text
     , itemType :: FeedType
     }
-    deriving (Show, Eq)
+    deriving (Show, Eq, Generic, ToJSON)
 
 -- Supported locales
 data Locale = En | Fi
@@ -51,6 +56,7 @@ data Messages = Messages
     , msgCookieRejectButton :: Text
     , msgRevokeConsentTitle :: Text
     , msgSkipToContent :: Text
+    , msgTimeline :: Text
     }
 
 -- Translations
@@ -67,6 +73,7 @@ messagesEn =
         , msgCookieRejectButton = "Reject"
         , msgRevokeConsentTitle = "Revoke consent"
         , msgSkipToContent = "Skip to main content"
+        , msgTimeline = "Timeline"
         }
 
 messagesFi :: Messages
@@ -82,6 +89,7 @@ messagesFi =
         , msgCookieRejectButton = "Estä"
         , msgRevokeConsentTitle = "Muuta asetuksia"
         , msgSkipToContent = "Siirry pääsisältöön"
+        , msgTimeline = "Aikajana"
         }
 
 getMessages :: Locale -> Messages

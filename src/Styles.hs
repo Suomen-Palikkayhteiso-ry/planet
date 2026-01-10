@@ -69,6 +69,7 @@ css =
         , ".revoke-btn:hover { background: white; }"
         , ".revoke-btn.hidden { display: none; }"
         , -- Accessibility
-          ".skip-link { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }"
+          ".sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }"
+        , ".skip-link { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }"
         , ".skip-link:focus { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); width: auto; height: auto; padding: 8px 16px; margin: 0; overflow: visible; clip: auto; white-space: normal; background: #0070f3; color: white; text-decoration: none; border-radius: 4px; z-index: 1001; font-weight: 600; }"
         ]

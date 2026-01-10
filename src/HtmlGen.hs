@@ -51,9 +51,10 @@ renderRevokeButton msgs =
     H.button H.! A.id "revoke-btn" H.! A.class_ "revoke-btn hidden" H.! A.title (H.toValue $ msgRevokeConsentTitle msgs) $
         "⚙️"
 
-renderTimelineNav :: TimeLocale -> UTCTime -> TimeZone -> [(Text, Text, [AppItem])] -> H.Html
-renderTimelineNav locale now localTZ groups = H.nav H.! A.class_ "timeline" $ do
-    H.div H.! A.class_ "timeline-header" $ H.toHtml (formatTime locale "%Y" (utcToZonedTime localTZ now))
+renderTimelineNav :: Messages -> TimeLocale -> UTCTime -> TimeZone -> [(Text, Text, [AppItem])] -> H.Html
+renderTimelineNav msgs locale now localTZ groups = H.nav H.! A.class_ "timeline" $ do
+    H.h2 H.! A.class_ "sr-only" $ H.toHtml (msgTimeline msgs)
+    H.div H.! A.class_ "timeline-header" H.! A.attribute "aria-hidden" "" "true" $ H.toHtml (formatTime locale "%Y" (utcToZonedTime localTZ now))
     H.ul $ forM_ groups $ \(monthLabel, monthId, _) ->
         H.li $ H.a H.! A.href (H.toValue $ "#" <> monthId) $ H.toHtml monthLabel
 
@@ -86,7 +87,7 @@ generateHtml config msgs items now localTZ = renderHtml $ H.docTypeHtml $ do
         renderCookieConsent msgs
         renderRevokeButton msgs
         H.div H.! A.class_ "layout" $ do
-            renderTimelineNav locale now localTZ groups
+            renderTimelineNav msgs locale now localTZ groups
             H.main H.! A.id "main-content" H.! A.class_ "main-content" $ do
                 renderIntro config
                 forM_ groups (renderMonthSection locale)

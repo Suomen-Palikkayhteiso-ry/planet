@@ -11,7 +11,7 @@ import I18n
 
 data FeedConfig = FeedConfig
     { feedType :: FeedType
-    , feedTitle :: Text
+    , feedTitle :: Maybe Text
     , feedUrl :: Text
     }
     deriving (Show)
@@ -56,17 +56,18 @@ parseConfig content = do
             _ -> Right $ T.pack "rss" -- Default to "rss" if not specified
 
         ft <- case () of
-            () | typeStr == T.pack "rss" -> Right Rss
-            () | typeStr == T.pack "default" -> Right Rss
+            () | typeStr == T.pack "rss" -> Right Feed
+            () | typeStr == T.pack "blog" -> Right Feed
+            () | typeStr == T.pack "default" -> Right Feed
+            () | typeStr == T.pack "atom" -> Right Feed
             () | typeStr == T.pack "youtube" -> Right YouTube
-            () | typeStr == T.pack "flickr" -> Right Flickr
-            () | typeStr == T.pack "kuvatfi" -> Right Kuvatfi
-            () | typeStr == T.pack "atom" -> Right Atom
+            () | typeStr == T.pack "flickr" -> Right Image
+            () | typeStr == T.pack "kuvatfi" -> Right Image
             _ -> Left $ T.pack "Unknown feed type: " <> typeStr
 
-        title <- case lookupKey "title" of
-            Just (Toml.VString t) -> Right t
-            _ -> Left $ T.pack "Missing or invalid feed title"
+        let title = case lookupKey "title" of
+                Just (Toml.VString t) -> Just t
+                _ -> Nothing
 
         url <- case lookupKey "url" of
             Just (Toml.VString t) -> Right t

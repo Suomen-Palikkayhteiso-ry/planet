@@ -8,6 +8,8 @@ This document defines the canonical terminology for the Planet project to ensure
 - **Feed**: A single source of content, typically an RSS, Atom, or similar XML feed.
 - **Item**: A single entry within a feed, such as a blog post, a YouTube video, or a Flickr photo.
 - **Self-Contained**: A core architectural principle. The generated HTML file must contain all necessary CSS and JS, requiring no external file requests to render correctly.
+- **Interactive Viewer**: The Elm-based web application that provides a modern, responsive interface for viewing aggregated feeds.
+- **Module**: In the Elm context, a discrete unit of code with a single responsibility (e.g., `Types.elm`, `DateUtils.elm`, `View.elm`).
 
 ## Configuration (`planet.toml`)
 
@@ -26,6 +28,9 @@ This document defines the canonical terminology for the Planet project to ensure
 - **`blaze-html`**: The Haskell DSL used for generating type-safe HTML.
 - **`htoml-megaparsec`**: The library used for parsing the `planet.toml` configuration file.
 - **`feed`**: The library for parsing generic RSS/Atom feed data.
+- **Elm**: The functional programming language used for the interactive viewer frontend.
+- **The Elm Architecture (TEA)**: The standard pattern for structuring Elm applications with Model, View, and Update functions.
+- **TailwindCSS**: The utility-first CSS framework used for styling the Elm application.
 
 ## Deprecated/Ambiguous Terms
 
