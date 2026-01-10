@@ -103,6 +103,12 @@ join :: Maybe (Maybe a) -> Maybe a
 join (Just (Just x)) = Just x
 join _ = Nothing
 
+stripHtml :: Text -> Text
+stripHtml = T.unwords . mapMaybe fromTagText . parseTags
+  where
+    fromTagText (TagText s) = Just s
+    fromTagText _           = Nothing
+
 -- Base parseItem function
 parseItem :: FeedConfig -> Maybe Text -> Item -> Maybe AppItem
 parseItem fc altLink item = do
@@ -117,11 +123,12 @@ parseItem fc altLink item = do
     let defaultDesc = getItemDescription item
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc
+    let descText = fmap stripHtml desc
     let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage)
     let sourceTitle = case feedTitle fc of
             Just t -> t
             Nothing -> T.pack "Unknown Feed"
-    return $ AppItem title link date desc thumb sourceTitle altLink (feedType fc)
+    return $ AppItem title link date desc descText thumb sourceTitle altLink (feedType fc)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text

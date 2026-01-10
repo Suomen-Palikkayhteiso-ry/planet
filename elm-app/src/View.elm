@@ -7,10 +7,12 @@ module View exposing (view)
 -}
 
 import Data exposing (AppItem, FeedType(..))
-import DateUtils exposing (formatDate, groupByMonth)
+import DateUtils exposing (formatDate)
 import Html exposing (Html, a, button, div, footer, h1, h2, h3, img, input, label, li, main_, nav, p, span, text, ul)
 import Html.Attributes as Attr
 import Html.Events as Events
+import Html.Keyed
+import Html.Lazy exposing (lazy2)
 import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..))
 
 
@@ -18,15 +20,6 @@ import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..))
 -}
 view : Model -> Html Msg
 view model =
-    let
-        filteredItems =
-            model.items
-                |> List.filter (\item -> List.member item.itemType model.selectedFeedTypes)
-                |> List.filter (matchesSearch model.searchText)
-
-        groups =
-            groupByMonth filteredItems
-    in
     div [ Attr.class "min-h-screen bg-gray-50" ]
         [ -- Skip to content link for accessibility
           a
@@ -36,14 +29,19 @@ view model =
             [ text "Siirry pääsisältöön" ]
         , div [ Attr.class "flex" ]
             [ -- Timeline navigation
-              renderTimelineNav groups
+              renderTimelineNav model.visibleGroups
             , -- Main content
               main_
                 [ Attr.id "main-content"
                 , Attr.class "flex-1 p-6"
                 ]
                 [ renderIntro
-                , div [] (List.map (renderMonthSection model.viewMode) groups)
+                , Html.Keyed.node "div"
+                    []
+                    (List.map
+                        (\group -> ( group.monthId, lazy2 renderMonthSection model.viewMode group ))
+                        model.visibleGroups
+                    )
                 , renderFooter model.generatedAt
                 ]
             , -- Feed filter navigation
@@ -149,8 +147,12 @@ renderMonthSection viewMode group =
         ]
         [ h2 [ Attr.class "text-xl font-semibold text-gray-700 mb-4 border-b pb-2" ]
             [ text group.monthLabel ]
-        , div [ Attr.class "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" ]
-            (List.map (renderCard viewMode) group.items)
+        , Html.Keyed.node "div"
+            [ Attr.class "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" ]
+            (List.map
+                (\item -> ( item.itemLink, lazy2 renderCard viewMode item ))
+                group.items
+            )
         ]
 
 
@@ -287,26 +289,6 @@ feedTypeName feedType =
             "Kuva"
 
 
-{-| Check if an item matches the search text (case insensitive)
--}
-matchesSearch : String -> AppItem -> Bool
-matchesSearch search item =
-    let
-        lowerSearch =
-            String.toLower search
-
-        matches str =
-            String.contains lowerSearch (String.toLower str)
-    in
-    if String.isEmpty search then
-        True
-
-    else
-        matches item.itemSourceTitle
-            || matches item.itemTitle
-            || (item.itemDesc |> Maybe.map (stripHtml >> matches) |> Maybe.withDefault False)
-
-
 {-| Very basic HTML tag stripping (iterative to avoid stack overflow)
 -}
 stripHtml : String -> String
@@ -340,7 +322,6 @@ truncateText : Int -> String -> String
 truncateText maxLen str =
     if String.length str <= maxLen then
         str
-
     else
         String.left maxLen str ++ "..."
 

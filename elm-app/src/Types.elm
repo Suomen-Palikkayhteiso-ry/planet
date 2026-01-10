@@ -29,6 +29,7 @@ type alias Model =
     , selectedFeedTypes : List Data.FeedType
     , searchText : String
     , viewMode : ViewMode
+    , visibleGroups : List MonthGroup
     }
 
 
@@ -47,4 +48,5 @@ type Msg
     = NoOp
     | ToggleFeedType Data.FeedType
     | UpdateSearchText String
+    | ApplySearch
     | ToggleViewMode ViewMode

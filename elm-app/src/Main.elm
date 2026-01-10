@@ -12,11 +12,14 @@ This module orchestrates the Elm application, delegating to specialized modules:
 -}
 
 import Browser
-import Data exposing (allAppItems, FeedType(..))
+import Data exposing (allAppItems, AppItem, FeedType(..))
+import DateUtils exposing (groupByMonth)
 import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Ports
+import Process
+import Task
 import Types exposing (Model, Msg(..), ViewMode(..))
 import View
 
@@ -137,14 +140,17 @@ view model =
 -}
 init : Flags -> url -> key -> ( Model, Cmd Msg )
 init flags _ _ =
-    ( { items = allAppItems
-      , generatedAt = flags.timestamp
-      , selectedFeedTypes = decodeSelectedFeedTypes flags.selectedFeedTypes
-      , searchText = ""
-      , viewMode = parseViewMode flags.viewMode
-      }
-    , Cmd.none
-    )
+    let
+        model =
+            { items = allAppItems
+            , generatedAt = flags.timestamp
+            , selectedFeedTypes = decodeSelectedFeedTypes flags.selectedFeedTypes
+            , searchText = ""
+            , viewMode = parseViewMode flags.viewMode
+            , visibleGroups = []
+            }
+    in
+    ( recalculateVisibleGroups model, Cmd.none )
 
 
 
@@ -167,18 +173,60 @@ update msg model =
 
                     else
                         feedType :: model.selectedFeedTypes
+
+                newModel =
+                    { model | selectedFeedTypes = newSelected }
             in
-            ( { model | selectedFeedTypes = newSelected }
+            ( recalculateVisibleGroups newModel
             , Ports.saveSelectedFeedTypes (encodeSelectedFeedTypes newSelected)
             )
 
         UpdateSearchText text ->
-            ( { model | searchText = text }, Cmd.none )
+            ( { model | searchText = text }
+            , Process.sleep 200 |> Task.perform (\_ -> ApplySearch)
+            )
+
+        ApplySearch ->
+            ( recalculateVisibleGroups model, Cmd.none )
 
         ToggleViewMode viewMode ->
             ( { model | viewMode = viewMode }
             , Ports.saveViewMode (viewModeToString viewMode)
             )
+
+
+recalculateVisibleGroups : Model -> Model
+recalculateVisibleGroups model =
+    let
+        filteredItems =
+            model.items
+                |> List.filter (\item -> List.member item.itemType model.selectedFeedTypes)
+                |> List.filter (matchesSearch model.searchText)
+    in
+    { model | visibleGroups = groupByMonth filteredItems }
+
+
+{-| Check if an item matches the search text (case insensitive)
+-}
+matchesSearch : String -> AppItem -> Bool
+matchesSearch search item =
+    let
+        lowerSearch =
+            String.toLower search
+
+        matches str =
+            String.contains lowerSearch (String.toLower str)
+    in
+    if String.isEmpty search then
+        True
+
+    else
+        matches item.itemSourceTitle
+            || matches item.itemTitle
+            || (item.itemDescText |> Maybe.map matches |> Maybe.withDefault False)
+
+
+
 
 
 

@@ -28,6 +28,7 @@ generateElmModule items = T.unlines
     , "    , itemLink : String"
     , "    , itemDate : Maybe String"
     , "    , itemDesc : Maybe String"
+    , "    , itemDescText : Maybe String"
     , "    , itemThumbnail : Maybe String"
     , "    , itemSourceTitle : String"
     , "    , itemSourceLink : Maybe String"
@@ -59,6 +60,8 @@ renderItem item = T.concat
     , renderMaybeUTCTime (itemDate item)
     , ", itemDesc = "
     , renderMaybeString (itemDesc item)
+    , ", itemDescText = "
+    , renderMaybeString (itemDescText item)
     , ", itemThumbnail = "
     , renderMaybeString (itemThumbnail item)
     , ", itemSourceTitle = "
