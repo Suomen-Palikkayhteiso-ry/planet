@@ -286,6 +286,33 @@ suite =
                         |> Query.fromHtml
                         |> Query.findAll [ Selector.tag "button" ]
                         |> Query.each (Query.has [ Selector.class "cursor-pointer" ])
+            , test "renders view mode toggle button with correct text" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = "", viewMode = Types.Full
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.text "Vain kuvat" ]
+            , test "renders view mode toggle button with aria-label" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = "", viewMode = Types.Full
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.find [ Selector.attribute (Html.Attributes.attribute "aria-label" "Vain kuvat") ]
+                        |> Query.has [ Selector.text "Vain kuvat" ]
             ]
         ]
 
