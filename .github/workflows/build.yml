@@ -33,8 +33,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ghc9.6-cabal-
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: elm-app/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('elm-app/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Cache elm-stuff
+        uses: actions/cache@v4
+        with:
+          path: elm-app/elm-stuff
+          key: ${{ runner.os }}-elm-${{ hashFiles('elm-app/elm.json') }}
+          restore-keys: |
+            ${{ runner.os }}-elm-
+
       - name: Build All
         run: make build-all
+
+      - name: Cache Planet CLI
+        uses: actions/cache@v4
+        with:
+          path: planet
+          key: planet-bin-${{ github.sha }}
+          restore-keys: |
+            planet-bin-
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
