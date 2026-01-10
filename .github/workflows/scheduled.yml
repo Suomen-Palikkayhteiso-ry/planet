@@ -23,8 +23,9 @@ jobs:
         with:
           path: planet
           key: planet-bin-
-          restore-keys: |
-            planet-bin-
+
+      - name: Make Planet executable
+        run: chmod +x planet
 
       - name: Cache node_modules
         id: cache-node-modules
