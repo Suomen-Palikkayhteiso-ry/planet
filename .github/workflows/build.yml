@@ -49,6 +49,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-elm-
 
+      - name: Install npm dependencies
+        run: npm install --prefix elm-app
+
       - name: Build All
         run: make build-all
 
