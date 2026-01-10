@@ -1,6 +1,6 @@
-port module Ports exposing (saveViewMode, loadViewMode, saveSelectedFeedTypes, loadSelectedFeedTypes, performSearch, searchResults)
+port module Ports exposing (saveViewMode, loadViewMode, saveSelectedFeedTypes, loadSelectedFeedTypes, performSearch, searchResults, scrollToTop, onScroll, focusMobileSearch)
 
-{-| Ports for communicating with JavaScript for localStorage persistence and search
+{-| Ports for communicating with JavaScript for localStorage persistence, search, and scroll
 -}
 
 
@@ -32,3 +32,18 @@ port performSearch : String -> Cmd msg
 {-| Receive search results from JavaScript
 -}
 port searchResults : (List Int -> msg) -> Sub msg
+
+
+{-| Send command to scroll to top
+-}
+port scrollToTop : () -> Cmd msg
+
+
+{-| Receive scroll position from JavaScript
+-}
+port onScroll : (Float -> msg) -> Sub msg
+
+
+{-| Send command to focus mobile search input
+-}
+port focusMobileSearch : () -> Cmd msg

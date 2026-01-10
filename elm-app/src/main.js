@@ -82,3 +82,19 @@ app.ports.performSearch.subscribe(function(query) {
     app.ports.searchResults.send([]);
   }
 });
+
+// Handle scroll to top
+app.ports.scrollToTop.subscribe(function() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Handle focus mobile search
+app.ports.focusMobileSearch.subscribe(function() {
+  const el = document.getElementById('mobile-search-input');
+  if (el) el.focus();
+});
+
+// Listen for scroll events
+window.addEventListener('scroll', function() {
+  app.ports.onScroll.send(window.scrollY);
+});

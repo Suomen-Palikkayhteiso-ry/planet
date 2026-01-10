@@ -37,7 +37,7 @@ view model =
             , Attr.style "mix-blend-mode" "difference"
             , Attr.attribute "aria-label" (if model.isSidebarVisible then "Sulje valikko" else "Avaa valikko")
             ]
-            [ text (if model.isSidebarVisible then "✕" else "☰") ]
+            [ text (if model.isSidebarVisible then "✕" else "🔍") ]
         , div [ Attr.class "flex" ]
             [ -- Timeline navigation
               renderTimelineNav model.visibleGroups
@@ -177,6 +177,7 @@ renderMobileSidebar model =
             , div [ Attr.class "mb-4" ]
                 [ input
                     [ Attr.type_ "text"
+                    , Attr.id "mobile-search-input"
                     , Attr.placeholder "Hae..."
                     , Attr.value model.searchText
                     , Events.onInput UpdateSearchText

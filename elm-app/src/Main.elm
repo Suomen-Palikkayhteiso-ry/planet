@@ -174,6 +174,7 @@ init flags _ _ =
             , isSidebarVisible = False
             , searchIndex = RemoteData.NotAsked
             , searchedIds = []
+            , scrollY = 0
             }
     in
     ( recalculateVisibleGroups model, Cmd.none )
@@ -240,7 +241,11 @@ update msg model =
             )
 
         ToggleSidebar ->
-            ( { model | isSidebarVisible = not model.isSidebarVisible }, Cmd.none )
+            let
+                newVisible = not model.isSidebarVisible
+                cmd = if newVisible then Ports.focusMobileSearch () else Cmd.none
+            in
+            ( { model | isSidebarVisible = newVisible }, cmd )
 
         OnSearchIndexFetch result ->
             let
@@ -253,6 +258,12 @@ update msg model =
 
         LoadSelectedFeedTypes feedTypesStr ->
             ( { model | selectedFeedTypes = decodeSelectedFeedTypes feedTypesStr } |> recalculateVisibleGroups, Cmd.none )
+
+        ScrollY y ->
+            ( { model | scrollY = y }, Cmd.none )
+
+        ScrollToTop ->
+            ( model, Ports.scrollToTop () )
 
 
 recalculateVisibleGroups : Model -> Model
@@ -319,4 +330,5 @@ subscriptions _ =
         [ Ports.loadViewMode LoadViewMode
         , Ports.loadSelectedFeedTypes LoadSelectedFeedTypes
         , Ports.searchResults OnSearchResults
+        , Ports.onScroll ScrollY
         ]
