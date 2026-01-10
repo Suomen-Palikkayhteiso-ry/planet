@@ -65,11 +65,9 @@ newtype FeedHandler = FeedHandler
     }
 
 getFeedHandler :: FeedType -> FeedHandler
+getFeedHandler Feed = FeedHandler{fhGetMediaDescription = getAtomMediaDescription}
 getFeedHandler YouTube = FeedHandler{fhGetMediaDescription = getYouTubeMediaDescription}
-getFeedHandler Flickr = FeedHandler{fhGetMediaDescription = getFlickrMediaDescription}
-getFeedHandler Kuvatfi = FeedHandler{fhGetMediaDescription = getKuvatfiMediaDescription}
-getFeedHandler Atom = FeedHandler{fhGetMediaDescription = getAtomMediaDescription}
-getFeedHandler Rss = FeedHandler{fhGetMediaDescription = const Nothing}
+getFeedHandler Image = FeedHandler{fhGetMediaDescription = getFlickrMediaDescription}
 -- Fetching
 fetchFeed :: FeedConfig -> IO [AppItem]
 fetchFeed fc = do

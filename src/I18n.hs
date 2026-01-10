@@ -23,7 +23,7 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON (..))
 
 -- Configuration Types
-data FeedType = Rss | YouTube | Flickr | Atom | Kuvatfi
+data FeedType = Feed | YouTube | Image
     deriving (Show, Eq, Generic, ToJSON)
 
 -- App Data Types

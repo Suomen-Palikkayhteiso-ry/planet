@@ -24,7 +24,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss ]
+                            , selectedFeedTypes = [ Feed ]
                             , searchText = ""
                             }
                     in
@@ -49,7 +49,7 @@ suite =
                     Expect.equal NoOp NoOp
             , test "ToggleFeedType message exists" <|
                 \_ ->
-                    Expect.equal (ToggleFeedType Rss) (ToggleFeedType Rss)
+                    Expect.equal (ToggleFeedType Feed) (ToggleFeedType Feed)
             , test "UpdateSearchText message exists" <|
                 \_ ->
                     Expect.equal (UpdateSearchText "test") (UpdateSearchText "test")

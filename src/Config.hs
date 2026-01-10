@@ -56,13 +56,13 @@ parseConfig content = do
             _ -> Right $ T.pack "rss" -- Default to "rss" if not specified
 
         ft <- case () of
-            () | typeStr == T.pack "rss" -> Right Rss
-            () | typeStr == T.pack "blog" -> Right Rss
-            () | typeStr == T.pack "default" -> Right Rss
+            () | typeStr == T.pack "rss" -> Right Feed
+            () | typeStr == T.pack "blog" -> Right Feed
+            () | typeStr == T.pack "default" -> Right Feed
+            () | typeStr == T.pack "atom" -> Right Feed
             () | typeStr == T.pack "youtube" -> Right YouTube
-            () | typeStr == T.pack "flickr" -> Right Flickr
-            () | typeStr == T.pack "kuvatfi" -> Right Kuvatfi
-            () | typeStr == T.pack "atom" -> Right Atom
+            () | typeStr == T.pack "flickr" -> Right Image
+            () | typeStr == T.pack "kuvatfi" -> Right Image
             _ -> Left $ T.pack "Unknown feed type: " <> typeStr
 
         let title = case lookupKey "title" of

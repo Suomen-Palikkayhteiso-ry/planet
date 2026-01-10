@@ -109,7 +109,7 @@ configTests =
                     configTimezone config @?= T.pack "Europe/Helsinki"
                     length (configFeeds config) @?= 1
                     let feed = head (configFeeds config)
-                    Config.feedType feed @?= I18n.Rss
+                    Config.feedType feed @?= I18n.Feed
                     feedTitle feed @?= Just (T.pack "Test Blog")
                     feedUrl feed @?= T.pack "http://example.com/rss.xml"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
@@ -148,7 +148,7 @@ configTests =
             case parseConfig toml of
                 Right config -> do
                     let feed = head (configFeeds config)
-                    Config.feedType feed @?= I18n.Atom
+                    Config.feedType feed @?= I18n.Feed
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "PlanetMain.parseConfig missing type defaults to rss" $ do
             let toml =
@@ -161,7 +161,7 @@ configTests =
             case parseConfig toml of
                 Right config -> do
                     let feed = head (configFeeds config)
-                    Config.feedType feed @?= I18n.Rss
+                    Config.feedType feed @?= I18n.Feed
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "PlanetMain.parseConfig default type is rss" $ do
             let toml =
@@ -175,7 +175,7 @@ configTests =
             case Config.parseConfig toml of
                 Right config -> do
                     let feed = head (Config.configFeeds config)
-                    Config.feedType feed @?= I18n.Rss
+                    Config.feedType feed @?= I18n.Feed
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
         , testCase "PlanetMain.parseConfig default values" $ do
             let toml = T.unlines [T.pack "[[feeds]]", T.pack "type = \"blog\"", T.pack "title = \"Test\"", T.pack "url = \"http://example.com\""]
@@ -204,7 +204,7 @@ configTests =
             case Config.parseConfig toml of
                 Right config -> do
                     let feed = head (Config.configFeeds config)
-                    Config.feedType feed @?= I18n.Flickr
+                    Config.feedType feed @?= I18n.Image
                     Config.feedTitle feed @?= Just (T.pack "Test Flickr")
                     Config.feedUrl feed @?= T.pack "http://flickr.com/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
@@ -213,7 +213,7 @@ configTests =
             case Config.parseConfig toml of
                 Right config -> do
                     let feed = head (Config.configFeeds config)
-                    Config.feedType feed @?= I18n.Kuvatfi
+                    Config.feedType feed @?= I18n.Image
                     Config.feedTitle feed @?= Just (T.pack "Test Kuvatfi")
                     Config.feedUrl feed @?= T.pack "http://kuvat.fi/feed"
                 Left err -> assertFailure $ "Parse failed: " ++ T.unpack err
@@ -311,10 +311,10 @@ feedTests =
                     , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
                     }
                 item = AtomItem entry
-                feedConfig = FeedConfig Atom (Just $ T.pack "Test Feed") (T.pack "http://example.com")
+                feedConfig = FeedConfig Feed (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack publishedDate)
             
-            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Atom)
+            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Feed)
 
         , testCase "FeedParser.parseItem Atom updated date used if published missing" $ do
             let updatedDate = T.pack "2026-01-01T17:45:09Z"
@@ -324,10 +324,10 @@ feedTests =
                     , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
                     }
                 item = AtomItem entry
-                feedConfig = FeedConfig Atom (Just $ T.pack "Test Feed") (T.pack "http://example.com")
+                feedConfig = FeedConfig Feed (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
 
-            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Atom)
+            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Feed)
 
         , testCase "FeedParser.parseItem Atom updated date used when published is missing" $ do
             let updatedDate = T.pack "2026-01-01T17:45:09Z"
@@ -337,10 +337,10 @@ feedTests =
                     , Atom.entryLinks = [Atom.nullLink (T.pack "http://example.com/atom-link")]
                     }
                 item = AtomItem entry
-                feedConfig = FeedConfig Atom (Just $ T.pack "Test Feed") (T.pack "http://example.com")
+                feedConfig = FeedConfig Feed (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
 
-            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Atom)
+            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Feed)
         ]
 
 htmlTests :: TestTree
@@ -356,29 +356,25 @@ htmlTests =
             assertBool "Contains AppItem type" (T.isInfixOf (T.pack "type alias AppItem") elmCode)
             assertBool "Contains allAppItems" (T.isInfixOf (T.pack "allAppItems : List AppItem") elmCode)
         , testCase "ElmGen.generateElmModule with items" $ do
-            let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing (T.pack "Test Source") Nothing Rss
+            let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing (T.pack "Test Source") Nothing Feed
                 elmCode = ElmGen.generateElmModule [item]
             assertBool "Contains item title" (T.isInfixOf (T.pack "Test Title") elmCode)
             assertBool "Contains item link" (T.isInfixOf (T.pack "http://example.com") elmCode)
-            assertBool "Contains Rss type" (T.isInfixOf (T.pack "itemType = Rss") elmCode)
+            assertBool "Contains Feed type" (T.isInfixOf (T.pack "itemType = Feed") elmCode)
         , testCase "ElmGen.generateElmModule escapes strings" $ do
-            let item = AppItem (T.pack "Title with \"quotes\"") (T.pack "http://example.com") Nothing Nothing Nothing (T.pack "Source") Nothing Rss
+            let item = AppItem (T.pack "Title with \"quotes\"") (T.pack "http://example.com") Nothing Nothing Nothing (T.pack "Source") Nothing Feed
                 elmCode = ElmGen.generateElmModule [item]
             assertBool "Escapes quotes" (T.isInfixOf (T.pack "\\\"quotes\\\"") elmCode)
         , testCase "ElmGen.generateElmModule all feed types" $ do
-            let rssItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Rss
-                atomItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Atom
+            let feedItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Feed
                 youtubeItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing YouTube
-                flickrItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Flickr
-                kuvatfiItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Kuvatfi
-                items = [rssItem, atomItem, youtubeItem, flickrItem, kuvatfiItem]
+                imageItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Image
+                items = [feedItem, youtubeItem, imageItem]
                 elmCode = ElmGen.generateElmModule items
             
-            assertBool "Contains Rss type" (T.isInfixOf (T.pack "itemType = Rss") elmCode)
-            assertBool "Contains Atom type" (T.isInfixOf (T.pack "itemType = Atom") elmCode)
+            assertBool "Contains Feed type" (T.isInfixOf (T.pack "itemType = Feed") elmCode)
             assertBool "Contains YouTube type" (T.isInfixOf (T.pack "itemType = YouTube") elmCode)
-            assertBool "Contains Flickr type" (T.isInfixOf (T.pack "itemType = Flickr") elmCode)
-            assertBool "Contains Kuvatfi type" (T.isInfixOf (T.pack "itemType = Kuvatfi") elmCode)
+            assertBool "Contains Image type" (T.isInfixOf (T.pack "itemType = Image") elmCode)
         ]
 
 utilityTests :: TestTree

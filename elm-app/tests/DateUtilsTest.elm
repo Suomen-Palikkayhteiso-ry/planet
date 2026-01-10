@@ -121,7 +121,7 @@ createTestItem date =
     , itemThumbnail = Nothing
     , itemSourceTitle = "Test Source"
     , itemSourceLink = Nothing
-    , itemType = Rss
+    , itemType = Feed
     }
 
 
@@ -136,5 +136,5 @@ createTestItemNoDate =
     , itemThumbnail = Nothing
     , itemSourceTitle = "Test Source"
     , itemSourceLink = Nothing
-    , itemType = Rss
+    , itemType = Feed
     }

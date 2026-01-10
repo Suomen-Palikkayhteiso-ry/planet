@@ -18,11 +18,9 @@ generateElmModule items = T.unlines
     , ""
     , ""
     , "type FeedType"
-    , "    = Rss"
+    , "    = Feed"
     , "    | YouTube"
-    , "    | Flickr"
-    , "    | Atom"
-    , "    | Kuvatfi"
+    , "    | Image"
     , ""
     , ""
     , "type alias AppItem ="
@@ -88,11 +86,9 @@ renderMaybeUTCTime (Just t) = "Just \"" <> T.pack (iso8601Show t) <> "\""
 
 -- | Render a FeedType as its Elm constructor name.
 renderFeedType :: FeedType -> Text
-renderFeedType Rss = "Rss"
+renderFeedType Feed = "Feed"
 renderFeedType YouTube = "YouTube"
-renderFeedType Flickr = "Flickr"
-renderFeedType Atom = "Atom"
-renderFeedType Kuvatfi = "Kuvatfi"
+renderFeedType Image = "Image"
 
 -- | Escape special characters in an Elm string literal.
 escapeElmString :: Text -> Text

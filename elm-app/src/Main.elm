@@ -40,7 +40,7 @@ init : String -> ( Model, Cmd Msg )
 init timestamp =
     ( { items = allAppItems
       , generatedAt = timestamp
-      , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+      , selectedFeedTypes = [ Feed, YouTube, Image ]
       , searchText = ""
       }
     , Cmd.none

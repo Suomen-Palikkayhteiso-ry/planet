@@ -38,7 +38,7 @@ suite =
                         ( model, _ ) =
                             Main.init "2026-01-09"
                     in
-                    Expect.equal model.selectedFeedTypes [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                    Expect.equal model.selectedFeedTypes [ Feed, YouTube, Image ]
             , test "initializes with empty search text" <|
                 \_ ->
                     let
@@ -65,9 +65,9 @@ suite =
                             Main.init "2026-01-09"
 
                         ( updatedModel, _ ) =
-                            Main.update (ToggleFeedType Rss) initialModel
+                            Main.update (ToggleFeedType Feed) initialModel
                     in
-                    Expect.equal (List.member Rss updatedModel.selectedFeedTypes) False
+                    Expect.equal (List.member Feed updatedModel.selectedFeedTypes) False
             , test "UpdateSearchText updates the search text" <|
                 \_ ->
                     let

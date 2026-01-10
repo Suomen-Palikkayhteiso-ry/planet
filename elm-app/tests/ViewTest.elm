@@ -28,7 +28,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = ""
                             }
                     in
@@ -41,7 +41,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = ""
                             }
                     in
@@ -54,7 +54,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = ""
                             }
                     in
@@ -67,7 +67,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = ""
                             }
                     in
@@ -81,7 +81,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = ""
                             }
                     in
@@ -100,11 +100,11 @@ suite =
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Test Source"
                                   , itemSourceLink = Nothing
-                                  , itemType = Rss
+                                  , itemType = Feed
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = ""
                             }
                     in
@@ -120,7 +120,7 @@ suite =
                                 , createTestItem "2025-12-25T10:00:00Z" "Item 2"
                                 ]
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = ""
                             }
                     in
@@ -141,7 +141,7 @@ suite =
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "RSS Source"
                                   , itemSourceLink = Nothing
-                                  , itemType = Rss
+                                  , itemType = Feed
                                   }
                                 , { itemTitle = "YouTube Item"
                                   , itemLink = "https://example.com/yt"
@@ -154,7 +154,7 @@ suite =
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss ] -- Only RSS selected
+                            , selectedFeedTypes = [ Feed ] -- Only Feed selected
                             , searchText = ""
                             }
                     in
@@ -173,7 +173,7 @@ suite =
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "RSS Source"
                                   , itemSourceLink = Nothing
-                                  , itemType = Rss
+                                  , itemType = Feed
                                   }
                                 , { itemTitle = "YouTube Item"
                                   , itemLink = "https://example.com/yt"
@@ -186,7 +186,7 @@ suite =
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss ] -- Only RSS selected
+                            , selectedFeedTypes = [ Feed ] -- Only Feed selected
                             , searchText = ""
                             }
                     in
@@ -199,7 +199,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = ""
                             }
                     in
@@ -218,7 +218,7 @@ suite =
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Source"
                                   , itemSourceLink = Nothing
-                                  , itemType = Rss
+                                  , itemType = Feed
                                   }
                                 , { itemTitle = "Other Item"
                                   , itemLink = "https://example.com/other"
@@ -227,11 +227,11 @@ suite =
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Other Source"
                                   , itemSourceLink = Nothing
-                                  , itemType = Rss
+                                  , itemType = Feed
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss ]
+                            , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
                             }
                     in
@@ -250,7 +250,7 @@ suite =
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Source"
                                   , itemSourceLink = Nothing
-                                  , itemType = Rss
+                                  , itemType = Feed
                                   }
                                 , { itemTitle = "Other Item"
                                   , itemLink = "https://example.com/other"
@@ -259,11 +259,11 @@ suite =
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Other Source"
                                   , itemSourceLink = Nothing
-                                  , itemType = Rss
+                                  , itemType = Feed
                                   }
                                 ]
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss ]
+                            , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
                             }
                     in
@@ -276,7 +276,7 @@ suite =
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
-                            , selectedFeedTypes = [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = ""
                             }
                     in
@@ -298,5 +298,5 @@ createTestItem date title =
     , itemThumbnail = Nothing
     , itemSourceTitle = "Test Source"
     , itemSourceLink = Nothing
-    , itemType = Rss
+    , itemType = Feed
     }

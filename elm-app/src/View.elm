@@ -101,7 +101,7 @@ renderFeedFilterNav selectedFeedTypes searchText =
                         ]
                         [ text (feedTypeIcon feedType) ]
                 )
-                [ Rss, YouTube, Flickr, Atom, Kuvatfi ]
+                [ Feed, YouTube, Image ]
             )
         ]
 
@@ -109,20 +109,14 @@ renderFeedFilterNav selectedFeedTypes searchText =
 feedTypeToString : FeedType -> String
 feedTypeToString feedType =
     case feedType of
-        Rss ->
-            "RSS"
+        Feed ->
+            "Feed"
 
         YouTube ->
             "YouTube"
 
-        Flickr ->
-            "Flickr"
-
-        Atom ->
-            "Atom"
-
-        Kuvatfi ->
-            "Kuvat.fi"
+        Image ->
+            "Image"
 
 
 renderIntro : Html Msg
@@ -217,20 +211,14 @@ renderCard item =
 feedTypeIcon : FeedType -> String
 feedTypeIcon feedType =
     case feedType of
+        Feed ->
+            "📝"
+
         YouTube ->
             "🎥"
 
-        Rss ->
-            "📝"
-
-        Flickr ->
+        Image ->
             "📷"
-
-        Kuvatfi ->
-            "📷"
-
-        Atom ->
-            "📝"
 
 
 {-| Get human-readable name for feed type
@@ -238,20 +226,14 @@ feedTypeIcon feedType =
 feedTypeName : FeedType -> String
 feedTypeName feedType =
     case feedType of
+        Feed ->
+            "Syöte"
+
         YouTube ->
             "YouTube-video"
 
-        Rss ->
-            "RSS-syöte"
-
-        Flickr ->
-            "Flickr-kuva"
-
-        Kuvatfi ->
-            "Kuvat.fi-kuva"
-
-        Atom ->
-            "Atom-syöte"
+        Image ->
+            "Kuva"
 
 
 {-| Check if an item matches the search text (case insensitive)
