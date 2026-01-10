@@ -3,15 +3,18 @@ module Types exposing
     , MonthGroup
     , Msg(..)
     , ViewMode(..)
+    , SearchItem
     )
 
 {-| Core types for the application
 
-@docs Model, MonthGroup, Msg, ViewMode
+@docs Model, MonthGroup, Msg, ViewMode, SearchItem
 
 -}
 
 import Data exposing (AppItem)
+import Http
+import RemoteData exposing (RemoteData)
 
 
 {-| View mode for displaying items
@@ -19,6 +22,16 @@ import Data exposing (AppItem)
 type ViewMode
     = Full
     | Thumbnail
+
+
+{-| Search item for client-side search
+-}
+type alias SearchItem =
+    { id : String
+    , title : String
+    , description : String
+    , source : String
+    }
 
 
 {-| The application model containing all feed items, generation timestamp, selected feed types, search text, and view mode
@@ -31,6 +44,8 @@ type alias Model =
     , viewMode : ViewMode
     , visibleGroups : List MonthGroup
     , isSidebarVisible : Bool
+    , searchIndex : RemoteData Http.Error (List SearchItem)
+    , searchedIds : List Int
     }
 
 
@@ -52,3 +67,7 @@ type Msg
     | ApplySearch
     | ToggleViewMode ViewMode
     | ToggleSidebar
+    | OnSearchIndexFetch (Result Http.Error (List SearchItem))
+    | OnSearchResults (List Int)
+    | LoadViewMode String
+    | LoadSelectedFeedTypes String

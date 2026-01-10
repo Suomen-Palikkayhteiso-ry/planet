@@ -1,5 +1,6 @@
 import './main.css'
 import { Elm } from './Main.elm'
+import lunr from 'lunr'
 
 // Format date in Finnish locale with Europe/Helsinki timezone
 const now = new Date();
@@ -51,4 +52,33 @@ app.ports.saveViewMode.subscribe(function(viewMode) {
 // Handle saving selected feed types to localStorage
 app.ports.saveSelectedFeedTypes.subscribe(function(selectedFeedTypes) {
   localStorage.setItem('palikkalinkit-selectedFeedTypes', selectedFeedTypes);
+});
+
+// Load search index and set up lunr
+let searchIndex = null;
+fetch('/search-index.json')
+  .then(response => response.json())
+  .then(data => {
+    searchIndex = lunr(function () {
+      this.ref('id');
+      this.field('title');
+      this.field('description');
+      this.field('source');
+      data.forEach((item, index) => {
+        item.id = index; // Use index as id
+        this.add(item);
+      });
+    });
+  })
+  .catch(err => console.error('Failed to load search index:', err));
+
+// Handle performSearch
+app.ports.performSearch.subscribe(function(query) {
+  if (searchIndex) {
+    const results = searchIndex.search(query);
+    const ids = results.map(result => parseInt(result.ref));
+    app.ports.searchResults.send(ids);
+  } else {
+    app.ports.searchResults.send([]);
+  }
 });

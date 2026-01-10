@@ -9,6 +9,7 @@ Constrained by: ADR-0000-agent-guidance.md
 
 import Data exposing (FeedType(..))
 import Expect
+import RemoteData
 import Test exposing (Test, describe, test)
 import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..))
 
@@ -29,6 +30,8 @@ suite =
                             , viewMode = Types.Full
                             , visibleGroups = []
                             , isSidebarVisible = False
+                            , searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
                             }
                     in
                     Expect.equal model.generatedAt "2026-01-09"

@@ -15,5 +15,8 @@
     "build": "vite build",
     "test": "elm-test",
     "test:watch": "elm-test --watch"
+  },
+  "dependencies": {
+    "lunr": "^2.3.9"
   }
 }

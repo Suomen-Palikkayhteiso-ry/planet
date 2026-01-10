@@ -1,4 +1,4 @@
-module Main exposing (main, init, update, subscriptions)
+module Main exposing (main, init, update, subscriptions, addAsterisks)
 
 {-| Main entry point for the Palikkalinkit application
 
@@ -15,12 +15,14 @@ import Browser
 import Data exposing (allAppItems, AppItem, FeedType(..))
 import DateUtils exposing (groupByMonth)
 import Html exposing (Html)
+import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Ports
 import Process
+import RemoteData
 import Task
-import Types exposing (Model, Msg(..), ViewMode(..))
+import Types exposing (Model, Msg(..), ViewMode(..), SearchItem)
 import View
 
 
@@ -109,6 +111,27 @@ decodeSelectedFeedTypes str =
             [ Feed, YouTube, Image ] -- default
 
 
+{-| Decode SearchItem from JSON
+-}
+decodeSearchItem : Decode.Decoder SearchItem
+decodeSearchItem =
+    Decode.map4 SearchItem
+        (Decode.field "id" Decode.string)
+        (Decode.field "title" Decode.string)
+        (Decode.field "description" Decode.string)
+        (Decode.field "source" Decode.string)
+
+
+{-| Add asterisks around each search term for wildcard matching
+-}
+addAsterisks : String -> String
+addAsterisks text =
+    text
+        |> String.words
+        |> List.map (\word -> "*" ++ word ++ "*")
+        |> String.join " "
+
+
 {-| Main program entry point
 -}
 main : Program Flags Model Msg
@@ -149,6 +172,8 @@ init flags _ _ =
             , viewMode = parseViewMode flags.viewMode
             , visibleGroups = []
             , isSidebarVisible = False
+            , searchIndex = RemoteData.NotAsked
+            , searchedIds = []
             }
     in
     ( recalculateVisibleGroups model, Cmd.none )
@@ -183,12 +208,31 @@ update msg model =
             )
 
         UpdateSearchText text ->
-            ( { model | searchText = text }
-            , Process.sleep 200 |> Task.perform (\_ -> ApplySearch)
+            let
+                cmd =
+                    if String.isEmpty text then
+                        Cmd.none
+                    else
+                        case model.searchIndex of
+                            RemoteData.Success _ ->
+                                Ports.performSearch (addAsterisks text)
+                            RemoteData.NotAsked ->
+                                Http.get
+                                    { url = "/search-index.json"
+                                    , expect = Http.expectJson OnSearchIndexFetch (Decode.list decodeSearchItem)
+                                    }
+                            _ ->
+                                Cmd.none
+            in
+            ( { model | searchText = text, searchedIds = if String.isEmpty text then [] else model.searchedIds }
+            , cmd
             )
 
         ApplySearch ->
-            ( recalculateVisibleGroups model, Cmd.none )
+            ( model, Cmd.none )
+
+        OnSearchResults ids ->
+            ( { model | searchedIds = ids } |> recalculateVisibleGroups, Cmd.none )
 
         ToggleViewMode viewMode ->
             ( { model | viewMode = viewMode }
@@ -198,36 +242,66 @@ update msg model =
         ToggleSidebar ->
             ( { model | isSidebarVisible = not model.isSidebarVisible }, Cmd.none )
 
+        OnSearchIndexFetch result ->
+            let
+                newModel = { model | searchIndex = RemoteData.fromResult result }
+            in
+            ( recalculateVisibleGroups newModel, Cmd.none )
+
+        LoadViewMode viewModeStr ->
+            ( { model | viewMode = parseViewMode viewModeStr }, Cmd.none )
+
+        LoadSelectedFeedTypes feedTypesStr ->
+            ( { model | selectedFeedTypes = decodeSelectedFeedTypes feedTypesStr } |> recalculateVisibleGroups, Cmd.none )
+
 
 recalculateVisibleGroups : Model -> Model
 recalculateVisibleGroups model =
     let
+        baseItems =
+            if String.isEmpty model.searchText then
+                model.items
+            else
+                List.filterMap (\idx -> List.drop idx model.items |> List.head) model.searchedIds
+
         filteredItems =
-            model.items
+            baseItems
                 |> List.filter (\item -> List.member item.itemType model.selectedFeedTypes)
-                |> List.filter (matchesSearch model.searchText)
     in
     { model | visibleGroups = groupByMonth filteredItems }
 
 
 {-| Check if an item matches the search text (case insensitive)
 -}
-matchesSearch : String -> AppItem -> Bool
-matchesSearch search item =
-    let
-        lowerSearch =
-            String.toLower search
+matchesSearch : Model -> AppItem -> Bool
+matchesSearch model item =
+    case ( String.isEmpty model.searchText, model.searchIndex ) of
+        ( True, _ ) ->
+            True
 
-        matches str =
-            String.contains lowerSearch (String.toLower str)
-    in
-    if String.isEmpty search then
-        True
+        ( False, RemoteData.Success searchItems ) ->
+            let
+                lowerSearch = String.toLower model.searchText
+                matchingIds = 
+                    searchItems
+                        |> List.filter (\si -> 
+                            String.contains lowerSearch (String.toLower si.title) ||
+                            String.contains lowerSearch (String.toLower si.description) ||
+                            String.contains lowerSearch (String.toLower si.source)
+                        )
+                        |> List.map .id
+            in
+            List.member item.itemLink matchingIds
 
-    else
-        matches item.itemSourceTitle
-            || matches item.itemTitle
-            || (item.itemDescText |> Maybe.map matches |> Maybe.withDefault False)
+        ( False, _ ) ->
+            -- Fallback to old logic if search index not loaded
+            let
+                lowerSearch = String.toLower model.searchText
+                matches str = String.contains lowerSearch (String.toLower str)
+            in
+            matches item.itemSourceTitle
+                || matches item.itemTitle
+                || (item.itemDescSnippet |> Maybe.map matches |> Maybe.withDefault False)
 
 
 
@@ -237,8 +311,12 @@ matchesSearch search item =
 -- SUBSCRIPTIONS
 
 
-{-| Subscriptions (currently none)
+{-| Subscriptions for ports
 -}
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Sub.batch
+        [ Ports.loadViewMode LoadViewMode
+        , Ports.loadSelectedFeedTypes LoadSelectedFeedTypes
+        , Ports.searchResults OnSearchResults
+        ]

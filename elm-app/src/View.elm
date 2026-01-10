@@ -317,10 +317,10 @@ renderFullCard item =
                     [ text item.itemTitle ]
                 ]
             , -- Description (truncated)
-              case item.itemDesc of
+              case item.itemDescSnippet of
                 Just desc ->
                     p [ Attr.class "text-sm text-gray-600 mt-2 line-clamp-2" ]
-                        [ text (truncateText 120 (stripHtml desc)) ]
+                        [ text desc ]
 
                 Nothing ->
                     text ""

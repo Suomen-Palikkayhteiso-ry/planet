@@ -2,14 +2,14 @@ module MainTest exposing (suite)
 
 {-| Tests for Main module
 
-Covers: US-001 (Aggregate Feeds) - Application initialization and orchestration
+Covers: US-001 (Aggregate Feeds), US-009 (Client-Side Search)
 Constrained by: ADR-0000-agent-guidance.md
 
 -}
 
 import Data exposing (allAppItems, FeedType(..))
 import Expect
-import Main
+import Main exposing (addAsterisks)
 import Test exposing (Test, describe, test)
 import Types exposing (Msg(..))
 
@@ -17,7 +17,18 @@ import Types exposing (Msg(..))
 suite : Test
 suite =
     describe "Main module"
-        [ describe "init"
+        [ describe "addAsterisks"
+            [ test "adds asterisks around single word" <|
+                \_ ->
+                    Expect.equal (addAsterisks "hello") "*hello*"
+            , test "adds asterisks around multiple words" <|
+                \_ ->
+                    Expect.equal (addAsterisks "hello world") "*hello* *world*"
+            , test "handles multiple spaces" <|
+                \_ ->
+                    Expect.equal (addAsterisks "hello   world") "*hello* *world*"
+            ]
+        , describe "init"
             [ test "initializes model with items and timestamp" <|
                 \_ ->
                     let
@@ -97,12 +108,13 @@ suite =
                     Expect.equal updatedModel.isSidebarVisible True
             ]
         , describe "subscriptions"
-            [ test "returns Sub.none" <|
+            [ test "returns subscriptions for ports" <|
                 \_ ->
                     let
                         ( model, _ ) =
                             Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
                     in
-                    Expect.equal Sub.none (Main.subscriptions model)
+                    Main.subscriptions model
+                        |> Expect.notEqual Sub.none
             ]
         ]
