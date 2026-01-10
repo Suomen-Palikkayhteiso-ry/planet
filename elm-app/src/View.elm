@@ -27,6 +27,13 @@ view model =
             , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-none"
             ]
             [ text "Siirry pääsisältöön" ]
+        , -- Hamburger menu button for mobile
+          button
+            [ Events.onClick ToggleSidebar
+            , Attr.class "md:hidden fixed top-4 right-4 z-40 bg-white p-2 rounded-none shadow-lg border"
+            , Attr.attribute "aria-label" "Avaa valikko"
+            ]
+            [ text "☰" ]
         , div [ Attr.class "flex" ]
             [ -- Timeline navigation
               renderTimelineNav model.visibleGroups
@@ -47,6 +54,17 @@ view model =
             , -- Feed filter navigation
               renderFeedFilterNav model.selectedFeedTypes model.searchText model.viewMode
             ]
+        , -- Mobile sidebar
+          renderMobileSidebar model
+        , -- Overlay for mobile sidebar
+          if model.isSidebarVisible then
+            div
+                [ Attr.class "md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+                , Events.onClick ToggleSidebar
+                ]
+                []
+          else
+            text ""
         ]
 
 
@@ -106,15 +124,99 @@ renderFeedFilterNav selectedFeedTypes searchText viewMode =
             [ label [ Attr.class "sr-only" ] [ text "Näkymä" ]
             , button
                 [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
-                , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border " ++
+                , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border w-full " ++
                     if viewMode == Full then
                         "bg-blue-100 border-blue-300 text-blue-700"
                     else
-                        "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
+                        "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
                     )
                 , Attr.attribute "aria-label" "Kuvaukset"
                 ]
                 [ text "👁️ Kuvaukset" ]
+            ]
+        ]
+
+
+renderMobileSidebar : Model -> Html Msg
+renderMobileSidebar model =
+    div
+        [ Attr.class ("md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-40 transform transition-transform duration-300 overflow-y-auto " ++
+            if model.isSidebarVisible then
+                "translate-x-0"
+            else
+                "-translate-x-full"
+            )
+        ]
+        [ -- Close button
+          button
+            [ Events.onClick ToggleSidebar
+            , Attr.class "absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            , Attr.attribute "aria-label" "Sulje valikko"
+            ]
+            [ text "✕" ]
+        , -- Timeline navigation
+          nav [ Attr.class "p-4" ]
+            [ h2 [ Attr.class "text-lg font-semibold mb-4" ] [ text "Aikajana" ]
+            , ul [ Attr.class "space-y-2" ]
+                (List.map
+                    (\group ->
+                        li []
+                            [ a
+                                [ Attr.href ("#" ++ group.monthId)
+                                , Events.onClick ToggleSidebar
+                                , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline"
+                                ]
+                                [ text group.monthLabel ]
+                            ]
+                    )
+                    model.visibleGroups
+                )
+            ]
+        , -- Feed filter navigation
+          nav [ Attr.class "p-4 border-t" ]
+            [ h2 [ Attr.class "text-lg font-semibold mb-4" ] [ text "Suodattimet" ]
+            , div [ Attr.class "mb-4" ]
+                [ input
+                    [ Attr.type_ "text"
+                    , Attr.placeholder "Hae..."
+                    , Attr.value model.searchText
+                    , Events.onInput UpdateSearchText
+                    , Attr.class "w-full px-3 py-2 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    ]
+                    []
+                ]
+            , div [ Attr.class "flex flex-wrap gap-2 mb-4" ]
+                (List.map
+                    (\feedType ->
+                        button
+                            [ Events.onClick (ToggleFeedType feedType)
+                            , Attr.class ("cursor-pointer text-2xl p-2 rounded-none border " ++
+                                if List.member feedType model.selectedFeedTypes then
+                                    "bg-blue-100 border-blue-300 text-blue-700"
+                                else
+                                    "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
+                                )
+                            , Attr.title (feedTypeToString feedType)
+                            , Attr.attribute "aria-label" (feedTypeToString feedType)
+                            ]
+                            [ text (feedTypeIcon feedType) ]
+                    )
+                    [ Feed, YouTube, Image ]
+                )
+            , div [ Attr.class "mb-4" ]
+                [ label [ Attr.class "sr-only" ] [ text "Näkymä" ]
+                , button
+                    [ Events.onClick (ToggleViewMode (if model.viewMode == Full then Thumbnail else Full))
+                    , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border w-full " ++
+                        if model.viewMode == Full then
+                            "bg-blue-100 border-blue-300 text-blue-700"
+                        else
+                            "bg-gray-100 border-gray-300 text-gray-500 opacity-50"
+                        )
+                    , Attr.attribute "aria-label" "Kuvaukset"
+                    ]
+                    [ text "👁️ Kuvaukset" ]
+                ]
             ]
         ]
 

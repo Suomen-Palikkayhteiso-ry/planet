@@ -28,6 +28,7 @@ suite =
                             , searchText = ""
                             , viewMode = Types.Full
                             , visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     Expect.equal model.generatedAt "2026-01-09"
@@ -55,5 +56,8 @@ suite =
             , test "UpdateSearchText message exists" <|
                 \_ ->
                     Expect.equal (UpdateSearchText "test") (UpdateSearchText "test")
+            , test "ToggleSidebar message exists" <|
+                \_ ->
+                    Expect.equal ToggleSidebar ToggleSidebar
             ]
         ]

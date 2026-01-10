@@ -46,6 +46,13 @@ suite =
                             Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
                     in
                     Expect.equal model.searchText ""
+            , test "initializes with sidebar not visible" <|
+                \_ ->
+                    let
+                        ( model, _ ) =
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
+                    in
+                    Expect.equal model.isSidebarVisible False
             ]
         , describe "update"
             [ test "NoOp returns unchanged model" <|
@@ -78,6 +85,16 @@ suite =
                             Main.update (UpdateSearchText "test search") initialModel
                     in
                     Expect.equal updatedModel.searchText "test search"
+            , test "ToggleSidebar toggles the sidebar visibility" <|
+                \_ ->
+                    let
+                        ( initialModel, _ ) =
+                            Main.init { timestamp = "2026-01-09", viewMode = "Full", selectedFeedTypes = "[\"Feed\",\"YouTube\",\"Image\"]" } "url" "key"
+
+                        ( updatedModel, _ ) =
+                            Main.update ToggleSidebar initialModel
+                    in
+                    Expect.equal updatedModel.isSidebarVisible True
             ]
         , describe "subscriptions"
             [ test "returns Sub.none" <|

@@ -148,6 +148,7 @@ init flags _ _ =
             , searchText = ""
             , viewMode = parseViewMode flags.viewMode
             , visibleGroups = []
+            , isSidebarVisible = False
             }
     in
     ( recalculateVisibleGroups model, Cmd.none )
@@ -193,6 +194,9 @@ update msg model =
             ( { model | viewMode = viewMode }
             , Ports.saveViewMode (viewModeToString viewMode)
             )
+
+        ToggleSidebar ->
+            ( { model | isSidebarVisible = not model.isSidebarVisible }, Cmd.none )
 
 
 recalculateVisibleGroups : Model -> Model

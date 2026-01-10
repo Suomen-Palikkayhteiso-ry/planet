@@ -30,6 +30,7 @@ type alias Model =
     , searchText : String
     , viewMode : ViewMode
     , visibleGroups : List MonthGroup
+    , isSidebarVisible : Bool
     }
 
 
@@ -50,3 +51,4 @@ type Msg
     | UpdateSearchText String
     | ApplySearch
     | ToggleViewMode ViewMode
+    | ToggleSidebar

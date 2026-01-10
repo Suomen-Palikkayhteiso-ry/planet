@@ -30,6 +30,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -43,6 +44,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -56,6 +58,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -69,6 +72,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -83,6 +87,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -117,6 +122,7 @@ suite =
                                   , itemSourceLink = Nothing
                                   , itemType = Feed
                                   } ] } ]
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -136,6 +142,7 @@ suite =
                             , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ createTestItem "2026-01-08T19:27:04Z" "Item 1" ] }
                                               , { monthLabel = "joulukuu 2025", monthId = "m-2025-12", items = [ createTestItem "2025-12-25T10:00:00Z" "Item 2" ] }
                                               ]
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -171,7 +178,18 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ] -- Only Feed selected
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , searchText = "", viewMode = Types.Full
+                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "RSS Item"
+                                  , itemLink = "https://example.com/rss"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "RSS description"
+                                  , itemDescText = Just "Test description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "RSS Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Feed
+                                  } ] } ]
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -205,7 +223,18 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ] -- Only Feed selected
-                            , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , searchText = "", viewMode = Types.Full
+                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "RSS Item"
+                                  , itemLink = "https://example.com/rss"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "RSS description"
+                                  , itemDescText = Just "Test description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "RSS Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Feed
+                                  } ] } ]
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -219,6 +248,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -253,7 +283,18 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
-                            , viewMode = Types.Full, visibleGroups = []
+                            , viewMode = Types.Full
+                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "Unique Title"
+                                  , itemLink = "https://example.com"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "Some description"
+                                  , itemDescText = Just "Test description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Feed
+                                  } ] } ]
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -288,7 +329,18 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
-                            , viewMode = Types.Full, visibleGroups = []
+                            , viewMode = Types.Full
+                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "Unique Title"
+                                  , itemLink = "https://example.com"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "Some description"
+                                  , itemDescText = Just "Test description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Feed
+                                  } ] } ]
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -302,12 +354,14 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.findAll [ Selector.tag "button" ]
-                        |> Query.each (Query.has [ Selector.class "cursor-pointer" ])
+                        |> Query.findAll [ Selector.tag "button", Selector.containing [ Selector.text "📝" ] ]
+                        |> Query.first
+                        |> Query.has [ Selector.class "cursor-pointer" ]
             , test "renders view mode toggle button with correct text" <|
                 \_ ->
                     let
@@ -316,6 +370,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
@@ -329,11 +384,13 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = False
                             }
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.find [ Selector.attribute (Html.Attributes.attribute "aria-label" "Kuvaukset") ]
+                        |> Query.findAll [ Selector.attribute (Html.Attributes.attribute "aria-label" "Kuvaukset") ]
+                        |> Query.first
                         |> Query.has [ Selector.text "👁️ Kuvaukset" ]
             ]
         ]
