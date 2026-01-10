@@ -1,5 +1,12 @@
 module I18nSpec where
 
+{-| Tests for I18n module
+
+Covers: US-005 (Self-Contained Output)
+Constrained by: ADR-0000-agent-guidance.md
+
+-}
+
 import Test.Tasty
 import Test.Tasty.HUnit
 

@@ -314,7 +314,7 @@ feedTests =
                 feedConfig = FeedConfig Feed (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack publishedDate)
             
-            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Feed)
+            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing Nothing Nothing (T.pack "Test Feed") Nothing Feed)
 
         , testCase "FeedParser.parseItem Atom updated date used if published missing" $ do
             let updatedDate = T.pack "2026-01-01T17:45:09Z"
@@ -327,7 +327,7 @@ feedTests =
                 feedConfig = FeedConfig Feed (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
 
-            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Feed)
+            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing Nothing Nothing (T.pack "Test Feed") Nothing Feed)
 
         , testCase "FeedParser.parseItem Atom updated date used when published is missing" $ do
             let updatedDate = T.pack "2026-01-01T17:45:09Z"
@@ -340,7 +340,7 @@ feedTests =
                 feedConfig = FeedConfig Feed (Just $ T.pack "Test Feed") (T.pack "http://example.com")
                 expectedDate = iso8601ParseM (T.unpack updatedDate)
 
-            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing (T.pack "Test Feed") Nothing Feed)
+            FeedParser.parseItem feedConfig Nothing item @?= Just (AppItem (T.pack "Test Atom Title") (T.pack "http://example.com/atom-link") expectedDate Nothing Nothing Nothing Nothing (T.pack "Test Feed") Nothing Feed)
         ]
 
 htmlTests :: TestTree
@@ -356,19 +356,19 @@ htmlTests =
             assertBool "Contains AppItem type" (T.isInfixOf (T.pack "type alias AppItem") elmCode)
             assertBool "Contains allAppItems" (T.isInfixOf (T.pack "allAppItems : List AppItem") elmCode)
         , testCase "ElmGen.generateElmModule with items" $ do
-            let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing (T.pack "Test Source") Nothing Feed
+            let item = AppItem (T.pack "Test Title") (T.pack "http://example.com") (Just $ read "2023-01-01 00:00:00 UTC") (Just (T.pack "Test desc")) Nothing Nothing Nothing (T.pack "Test Source") Nothing Feed
                 elmCode = ElmGen.generateElmModule [item]
             assertBool "Contains item title" (T.isInfixOf (T.pack "Test Title") elmCode)
             assertBool "Contains item link" (T.isInfixOf (T.pack "http://example.com") elmCode)
             assertBool "Contains Feed type" (T.isInfixOf (T.pack "itemType = Feed") elmCode)
         , testCase "ElmGen.generateElmModule escapes strings" $ do
-            let item = AppItem (T.pack "Title with \"quotes\"") (T.pack "http://example.com") Nothing Nothing Nothing (T.pack "Source") Nothing Feed
+            let item = AppItem (T.pack "Title with \"quotes\"") (T.pack "http://example.com") Nothing Nothing Nothing Nothing Nothing (T.pack "Source") Nothing Feed
                 elmCode = ElmGen.generateElmModule [item]
             assertBool "Escapes quotes" (T.isInfixOf (T.pack "\\\"quotes\\\"") elmCode)
         , testCase "ElmGen.generateElmModule all feed types" $ do
-            let feedItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Feed
-                youtubeItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing YouTube
-                imageItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing (T.pack "") Nothing Image
+            let feedItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing Nothing Nothing (T.pack "") Nothing Feed
+                youtubeItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing Nothing Nothing (T.pack "") Nothing YouTube
+                imageItem = AppItem (T.pack "") (T.pack "") Nothing Nothing Nothing Nothing Nothing (T.pack "") Nothing Image
                 items = [feedItem, youtubeItem, imageItem]
                 elmCode = ElmGen.generateElmModule items
             

@@ -46,6 +46,7 @@ type alias Model =
     , isSidebarVisible : Bool
     , searchIndex : RemoteData Http.Error (List SearchItem)
     , searchedIds : List Int
+    , scrollY : Float
     }
 
 
@@ -71,3 +72,5 @@ type Msg
     | OnSearchResults (List Int)
     | LoadViewMode String
     | LoadSelectedFeedTypes String
+    | ScrollY Float
+    | ScrollToTop

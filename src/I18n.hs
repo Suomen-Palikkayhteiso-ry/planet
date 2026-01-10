@@ -33,6 +33,7 @@ data AppItem = AppItem
     , itemDate :: Maybe UTCTime
     , itemDesc :: Maybe Text
     , itemDescText :: Maybe Text
+    , itemDescSnippet :: Maybe Text
     , itemThumbnail :: Maybe Text
     , itemSourceTitle :: Text
     , itemSourceLink :: Maybe Text

@@ -124,11 +124,12 @@ parseItem fc altLink item = do
     let mediaDesc = getMediaDescription fc item
     let desc = mediaDesc <|> defaultDesc
     let descText = fmap stripHtml desc
+    let descSnippet = fmap (T.take 250) descText
     let thumb = getItemThumbnail item <|> (desc >>= extractFirstImage)
     let sourceTitle = case feedTitle fc of
             Just t -> t
             Nothing -> T.pack "Unknown Feed"
-    return $ AppItem title link date desc descText thumb sourceTitle altLink (feedType fc)
+    return $ AppItem title link date desc descText descSnippet thumb sourceTitle altLink (feedType fc)
 
 -- Media Description Extraction (feed-type specific)
 getMediaDescription :: FeedConfig -> Item -> Maybe Text

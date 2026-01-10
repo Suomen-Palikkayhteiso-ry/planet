@@ -3,43 +3,53 @@
 -- | Generate an Elm data module from Haskell data types.
 -- This module generates Elm source code that embeds feed data directly,
 -- avoiding the need for JSON interchange (which would redistribute data).
-module ElmGen (generateElmModule) where
+module ElmGen (generateElmModule, generateSearchIndex) where
 
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (UTCTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import I18n (AppItem (..), FeedType (..))
+import Data.Aeson (encode, object, (.=))
+import qualified Data.ByteString.Lazy as LBS
+import Data.Maybe (fromMaybe)
 
 -- | Generate a complete Elm module containing type definitions and data.
 generateElmModule :: [AppItem] -> Text
 generateElmModule items = T.unlines
     [ "module Data exposing (allAppItems, AppItem, FeedType(..))"
     , ""
-    , ""
     , "type FeedType"
     , "    = Feed"
     , "    | YouTube"
     , "    | Image"
     , ""
-    , ""
     , "type alias AppItem ="
     , "    { itemTitle : String"
     , "    , itemLink : String"
     , "    , itemDate : Maybe String"
-    , "    , itemDesc : Maybe String"
-    , "    , itemDescText : Maybe String"
+    , "    , itemDescSnippet : Maybe String"
     , "    , itemThumbnail : Maybe String"
     , "    , itemSourceTitle : String"
     , "    , itemSourceLink : Maybe String"
     , "    , itemType : FeedType"
     , "    }"
     , ""
-    , ""
     , "allAppItems : List AppItem"
     , "allAppItems ="
     , renderItemList items
     ]
+
+-- | Generate a search index as JSON.
+generateSearchIndex :: [AppItem] -> LBS.ByteString
+generateSearchIndex items = encode (map toSearchItem items)
+  where
+    toSearchItem item = object
+        [ "id" .= itemLink item
+        , "title" .= itemTitle item
+        , "description" .= fromMaybe "" (itemDescText item)
+        , "source" .= itemSourceTitle item
+        ]
 
 -- | Render a list of AppItems as an Elm list literal.
 renderItemList :: [AppItem] -> Text
@@ -58,10 +68,8 @@ renderItem item = T.concat
     , renderString (itemLink item)
     , ", itemDate = "
     , renderMaybeUTCTime (itemDate item)
-    , ", itemDesc = "
-    , renderMaybeString (itemDesc item)
-    , ", itemDescText = "
-    , renderMaybeString (itemDescText item)
+    , ", itemDescSnippet = "
+    , renderMaybeString (itemDescSnippet item)
     , ", itemThumbnail = "
     , renderMaybeString (itemThumbnail item)
     , ", itemSourceTitle = "

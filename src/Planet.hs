@@ -8,7 +8,7 @@ import Data.List (sortOn)
 import Data.Ord (Down (..))
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import System.Directory (createDirectoryIfMissing)
+import System.Directory (createDirectoryIfMissing, getCurrentDirectory, setCurrentDirectory)
 
 import Config
 import ElmGen
@@ -17,6 +17,12 @@ import I18n
 
 main :: IO ()
 main = do
+    -- Change to the directory where the executable is located
+    -- This assumes the executable is in the project root
+    putStrLn "Current directory:" 
+    pwd <- getCurrentDirectory
+    putStrLn pwd
+    setCurrentDirectory "/workspaces/planet"
     configContent <- TIO.readFile "planet.toml"
     case parseConfig configContent of
         Left err -> TIO.putStrLn $ "Error parsing configuration: " <> err
@@ -32,6 +38,12 @@ main = do
             let sortedItems = sortOn (Down . itemDate) allItems
 
             let elmModule = generateElmModule sortedItems
+
+            -- Generate search index
+            let searchIndex = generateSearchIndex sortedItems
+            createDirectoryIfMissing True "elm-app/public"
+            LBS.writeFile "elm-app/public/search-index.json" searchIndex
+            putStrLn "Search index generated in elm-app/public/search-index.json"
 
             -- No longer creating public/data.json
             createDirectoryIfMissing True "elm-app/src"
