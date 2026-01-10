@@ -286,7 +286,7 @@ update msg model =
             ( model, Ports.scrollToTop () )
 
         NavigateToSection sectionId ->
-            ( model, Cmd.batch [ Browser.Navigation.pushUrl model.navKey ("#" ++ sectionId), Ports.scrollToElement sectionId ] )
+            ( { model | isSidebarVisible = False }, Cmd.batch [ Browser.Navigation.pushUrl model.navKey ("#" ++ sectionId), Ports.scrollToElement sectionId ] )
 
         UrlRequested urlRequest ->
             case urlRequest of
