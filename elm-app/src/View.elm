@@ -249,6 +249,7 @@ renderMonthSection viewMode group =
     div
         [ Attr.id group.monthId
         , Attr.class "mb-8"
+        , Attr.style "scroll-margin-top" "80px"
         ]
         [ h2 [ Attr.class "text-xl font-semibold text-gray-700 mb-4 border-b pb-2" ]
             [ text group.monthLabel ]
