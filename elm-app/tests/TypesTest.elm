@@ -27,6 +27,7 @@ suite =
                             , selectedFeedTypes = [ Feed ]
                             , searchText = ""
                             , viewMode = Types.Full
+                            , visibleGroups = []
                             }
                     in
                     Expect.equal model.generatedAt "2026-01-09"

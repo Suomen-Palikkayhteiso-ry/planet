@@ -29,7 +29,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -42,7 +42,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -55,7 +55,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -68,7 +68,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -82,7 +82,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -97,6 +97,7 @@ suite =
                                   , itemLink = "https://example.com"
                                   , itemDate = Just "2026-01-08T19:27:04Z"
                                   , itemDesc = Just "Test description"
+                                  , itemDescText = Just "Test description"
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Test Source"
                                   , itemSourceLink = Nothing
@@ -106,6 +107,16 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full
+                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ { itemTitle = "Test Item"
+                                  , itemLink = "https://example.com"
+                                  , itemDate = Just "2026-01-08T19:27:04Z"
+                                  , itemDesc = Just "Test description"
+                                  , itemDescText = Just "Test description"
+                                  , itemThumbnail = Nothing
+                                  , itemSourceTitle = "Test Source"
+                                  , itemSourceLink = Nothing
+                                  , itemType = Feed
+                                  } ] } ]
                             }
                     in
                     View.view model
@@ -122,6 +133,9 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
                             , searchText = "", viewMode = Types.Full
+                            , visibleGroups = [ { monthLabel = "tammikuu 2026", monthId = "m-2026-01", items = [ createTestItem "2026-01-08T19:27:04Z" "Item 1" ] }
+                                              , { monthLabel = "joulukuu 2025", monthId = "m-2025-12", items = [ createTestItem "2025-12-25T10:00:00Z" "Item 2" ] }
+                                              ]
                             }
                     in
                     View.view model
@@ -138,6 +152,7 @@ suite =
                                   , itemLink = "https://example.com/rss"
                                   , itemDate = Just "2026-01-08T19:27:04Z"
                                   , itemDesc = Just "RSS description"
+                                  , itemDescText = Just "Test description"
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "RSS Source"
                                   , itemSourceLink = Nothing
@@ -147,6 +162,7 @@ suite =
                                   , itemLink = "https://example.com/yt"
                                   , itemDate = Just "2026-01-08T19:27:04Z"
                                   , itemDesc = Just "YouTube description"
+                                  , itemDescText = Just "Test description"
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "YouTube Source"
                                   , itemSourceLink = Nothing
@@ -155,7 +171,7 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ] -- Only Feed selected
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -170,6 +186,7 @@ suite =
                                   , itemLink = "https://example.com/rss"
                                   , itemDate = Just "2026-01-08T19:27:04Z"
                                   , itemDesc = Just "RSS description"
+                                  , itemDescText = Just "Test description"
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "RSS Source"
                                   , itemSourceLink = Nothing
@@ -179,6 +196,7 @@ suite =
                                   , itemLink = "https://example.com/yt"
                                   , itemDate = Just "2026-01-08T19:27:04Z"
                                   , itemDesc = Just "YouTube description"
+                                  , itemDescText = Just "Test description"
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "YouTube Source"
                                   , itemSourceLink = Nothing
@@ -187,7 +205,7 @@ suite =
                                 ]
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ] -- Only Feed selected
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -200,7 +218,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -215,6 +233,7 @@ suite =
                                   , itemLink = "https://example.com"
                                   , itemDate = Just "2026-01-08T19:27:04Z"
                                   , itemDesc = Just "Some description"
+                                  , itemDescText = Just "Test description"
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Source"
                                   , itemSourceLink = Nothing
@@ -224,6 +243,7 @@ suite =
                                   , itemLink = "https://example.com/other"
                                   , itemDate = Just "2026-01-08T19:27:04Z"
                                   , itemDesc = Just "Other description"
+                                  , itemDescText = Just "Test description"
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Other Source"
                                   , itemSourceLink = Nothing
@@ -233,7 +253,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
-                            , viewMode = Types.Full
+                            , viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -248,6 +268,7 @@ suite =
                                   , itemLink = "https://example.com"
                                   , itemDate = Just "2026-01-08T19:27:04Z"
                                   , itemDesc = Just "Some description"
+                                  , itemDescText = Just "Test description"
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Source"
                                   , itemSourceLink = Nothing
@@ -257,6 +278,7 @@ suite =
                                   , itemLink = "https://example.com/other"
                                   , itemDate = Just "2026-01-08T19:27:04Z"
                                   , itemDesc = Just "Other description"
+                                  , itemDescText = Just "Test description"
                                   , itemThumbnail = Nothing
                                   , itemSourceTitle = "Other Source"
                                   , itemSourceLink = Nothing
@@ -266,7 +288,7 @@ suite =
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed ]
                             , searchText = "unique"
-                            , viewMode = Types.Full
+                            , viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -279,7 +301,7 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
@@ -293,12 +315,12 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.has [ Selector.text "Vain kuvat" ]
+                        |> Query.has [ Selector.text "👁️ Kuvaukset" ]
             , test "renders view mode toggle button with aria-label" <|
                 \_ ->
                     let
@@ -306,13 +328,13 @@ suite =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]
-                            , searchText = "", viewMode = Types.Full
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
                             }
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.find [ Selector.attribute (Html.Attributes.attribute "aria-label" "Vain kuvat") ]
-                        |> Query.has [ Selector.text "Vain kuvat" ]
+                        |> Query.find [ Selector.attribute (Html.Attributes.attribute "aria-label" "Kuvaukset") ]
+                        |> Query.has [ Selector.text "👁️ Kuvaukset" ]
             ]
         ]
 
@@ -325,6 +347,7 @@ createTestItem date title =
     , itemLink = "https://example.com"
     , itemDate = Just date
     , itemDesc = Just "Test description"
+    , itemDescText = Just "Test description"
     , itemThumbnail = Nothing
     , itemSourceTitle = "Test Source"
     , itemSourceLink = Nothing

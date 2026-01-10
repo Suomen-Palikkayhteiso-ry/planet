@@ -107,14 +107,14 @@ renderFeedFilterNav selectedFeedTypes searchText viewMode =
             , button
                 [ Events.onClick (ToggleViewMode (if viewMode == Full then Thumbnail else Full))
                 , Attr.class ("cursor-pointer px-3 py-1 text-sm rounded-none border " ++
-                    if viewMode == Thumbnail then
+                    if viewMode == Full then
                         "bg-blue-100 border-blue-300 text-blue-700"
                     else
                         "bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200"
                     )
-                , Attr.attribute "aria-label" "Vain kuvat"
+                , Attr.attribute "aria-label" "Kuvaukset"
                 ]
-                [ text "Vain kuvat" ]
+                [ text "👁️ Kuvaukset" ]
             ]
         ]
 
