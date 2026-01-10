@@ -73,7 +73,7 @@ view model =
           if model.scrollY > 200 then
             button
                 [ Events.onClick ScrollToTop
-                , Attr.class "fixed bottom-4 right-4 z-50 p-3 text-white"
+                , Attr.class "fixed bottom-4 md:right-52 right-4 z-50 p-3 text-white"
                 , Attr.style "mix-blend-mode" "difference"
                 , Attr.style "font-size" "2em"
                 , Attr.style "cursor" "pointer"
