@@ -12,6 +12,7 @@ This module orchestrates the Elm application, delegating to specialized modules:
 -}
 
 import Browser
+import Browser.Navigation
 import Data exposing (allAppItems, AppItem, FeedType(..))
 import DateUtils exposing (groupByMonth)
 import Html exposing (Html)
@@ -22,7 +23,8 @@ import Ports
 import Process
 import RemoteData
 import Task
-import Types exposing (Model, Msg(..), ViewMode(..), SearchItem)
+import Types exposing (Model, Msg(..), ViewMode(..), ViewModel, SearchItem)
+import Url
 import View
 
 
@@ -141,8 +143,8 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , onUrlRequest = \_ -> NoOp
-        , onUrlChange = \_ -> NoOp
+        , onUrlRequest = UrlRequested
+        , onUrlChange = UrlChanged
         }
 
 
@@ -151,7 +153,24 @@ main =
 view : Model -> Browser.Document Msg
 view model =
     { title = "Palikkalinkit"
-    , body = [ View.view model ]
+    , body = [ View.view (modelToViewModel model) ]
+    }
+
+
+{-| Convert Model to ViewModel for rendering
+-}
+modelToViewModel : Model -> ViewModel
+modelToViewModel model =
+    { items = model.items
+    , generatedAt = model.generatedAt
+    , selectedFeedTypes = model.selectedFeedTypes
+    , searchText = model.searchText
+    , viewMode = model.viewMode
+    , visibleGroups = model.visibleGroups
+    , isSidebarVisible = model.isSidebarVisible
+    , searchIndex = model.searchIndex
+    , searchedIds = model.searchedIds
+    , scrollY = model.scrollY
     }
 
 
@@ -161,8 +180,8 @@ view model =
 
 {-| Initialize the model with feed items, generation timestamp, and all feed types selected
 -}
-init : Flags -> url -> key -> ( Model, Cmd Msg )
-init flags _ _ =
+init : Flags -> Url.Url -> Browser.Navigation.Key -> ( Model, Cmd Msg )
+init flags _ navKey =
     let
         model =
             { items = allAppItems
@@ -175,6 +194,7 @@ init flags _ _ =
             , searchIndex = RemoteData.NotAsked
             , searchedIds = []
             , scrollY = 0
+            , navKey = navKey
             }
     in
     ( recalculateVisibleGroups model, Cmd.none )
@@ -264,6 +284,20 @@ update msg model =
 
         ScrollToTop ->
             ( model, Ports.scrollToTop () )
+
+        NavigateToSection sectionId ->
+            ( model, Cmd.batch [ Browser.Navigation.pushUrl model.navKey ("#" ++ sectionId), Ports.scrollToElement sectionId ] )
+
+        UrlRequested urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model, Browser.Navigation.pushUrl model.navKey (Url.toString url) )
+
+                Browser.External href ->
+                    ( model, Browser.Navigation.load href )
+
+        UrlChanged url ->
+            ( model, Cmd.none )
 
 
 recalculateVisibleGroups : Model -> Model

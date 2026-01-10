@@ -1,4 +1,4 @@
-port module Ports exposing (saveViewMode, loadViewMode, saveSelectedFeedTypes, loadSelectedFeedTypes, performSearch, searchResults, scrollToTop, onScroll, focusMobileSearch)
+port module Ports exposing (saveViewMode, loadViewMode, saveSelectedFeedTypes, loadSelectedFeedTypes, performSearch, searchResults, scrollToTop, onScroll, focusMobileSearch, scrollToElement)
 
 {-| Ports for communicating with JavaScript for localStorage persistence, search, and scroll
 -}
@@ -47,3 +47,8 @@ port onScroll : (Float -> msg) -> Sub msg
 {-| Send command to focus mobile search input
 -}
 port focusMobileSearch : () -> Cmd msg
+
+
+{-| Send command to scroll to element by ID
+-}
+port scrollToElement : String -> Cmd msg

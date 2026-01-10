@@ -88,6 +88,14 @@ app.ports.scrollToTop.subscribe(function() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
+// Handle scroll to element by ID
+app.ports.scrollToElement.subscribe(function(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+});
+
 // Handle focus mobile search
 app.ports.focusMobileSearch.subscribe(function() {
   const el = document.getElementById('mobile-search-input');

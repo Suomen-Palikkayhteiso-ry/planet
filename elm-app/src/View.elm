@@ -13,12 +13,12 @@ import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Keyed
 import Html.Lazy exposing (lazy2)
-import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..))
+import Types exposing (Model, MonthGroup, Msg(..), ViewMode(..), ViewModel)
 
 
 {-| Main view function
 -}
-view : Model -> Html Msg
+view : ViewModel -> Html Msg
 view model =
     div [ Attr.class "min-h-screen bg-gray-50" ]
         [ -- Skip to content link for accessibility
@@ -93,9 +93,9 @@ renderTimelineNav groups =
             (List.map
                 (\group ->
                     li []
-                        [ a
-                            [ Attr.href ("#" ++ group.monthId)
-                            , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline"
+                        [ button
+                            [ Events.onClick (NavigateToSection group.monthId)
+                            , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline text-left w-full"
                             ]
                             [ text group.monthLabel ]
                         ]
@@ -154,7 +154,7 @@ renderFeedFilterNav selectedFeedTypes searchText viewMode =
         ]
 
 
-renderMobileSidebar : Model -> Html Msg
+renderMobileSidebar : ViewModel -> Html Msg
 renderMobileSidebar model =
     div
         [ Attr.class ("md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-40 transform overflow-y-auto " ++
@@ -225,9 +225,9 @@ renderMobileSidebar model =
                 (List.map
                     (\group ->
                         li []
-                            [ a
-                                [ Attr.href ("#" ++ group.monthId)
-                                , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline"
+                            [ button
+                                [ Events.onClick (NavigateToSection group.monthId)
+                                , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline text-left w-full"
                                 , Events.onClick ToggleSidebar
                                 ]
                                 [ text group.monthLabel ]

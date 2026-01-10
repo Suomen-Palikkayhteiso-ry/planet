@@ -15,7 +15,7 @@ import RemoteData
 import Test exposing (Test, describe, test)
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Types exposing (Model, Msg(..), ViewMode(..))
+import Types exposing (Model, Msg(..), ViewMode(..), ViewModel)
 import View
 
 
@@ -26,6 +26,7 @@ suite =
             [ test "renders main container" <|
                 \_ ->
                     let
+                        model : ViewModel
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
@@ -42,6 +43,7 @@ suite =
             , test "renders skip to content link" <|
                 \_ ->
                     let
+                        model : ViewModel
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
@@ -66,6 +68,7 @@ suite =
                             , isSidebarVisible = False, searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , navKey = "dummy"
                             }
                     in
                     View.view model
@@ -90,8 +93,7 @@ suite =
                         |> Query.has [ Selector.text "Koottu 2026-01-09" ]
             , test "renders title" <|
                 \_ ->
-                    let
-                        model =
+                    let                        model : ViewModel                        model =
                             { items = []
                             , generatedAt = "2026-01-09"
                             , selectedFeedTypes = [ Feed, YouTube, Image ]

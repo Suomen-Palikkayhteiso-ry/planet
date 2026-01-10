@@ -3,6 +3,7 @@ module Types exposing
     , MonthGroup
     , Msg(..)
     , ViewMode(..)
+    , ViewModel
     , SearchItem
     )
 
@@ -12,9 +13,12 @@ module Types exposing
 
 -}
 
+import Browser
+import Browser.Navigation
 import Data exposing (AppItem)
 import Http
 import RemoteData exposing (RemoteData)
+import Url
 
 
 {-| View mode for displaying items
@@ -37,6 +41,23 @@ type alias SearchItem =
 {-| The application model containing all feed items, generation timestamp, selected feed types, search text, and view mode
 -}
 type alias Model =
+    { items : List AppItem
+    , generatedAt : String
+    , selectedFeedTypes : List Data.FeedType
+    , searchText : String
+    , viewMode : ViewMode
+    , visibleGroups : List MonthGroup
+    , isSidebarVisible : Bool
+    , searchIndex : RemoteData Http.Error (List SearchItem)
+    , searchedIds : List Int
+    , scrollY : Float
+    , navKey : Browser.Navigation.Key
+    }
+
+
+{-| View model containing all fields needed for rendering, excluding navigation key
+-}
+type alias ViewModel =
     { items : List AppItem
     , generatedAt : String
     , selectedFeedTypes : List Data.FeedType
@@ -74,3 +95,6 @@ type Msg
     | LoadSelectedFeedTypes String
     | ScrollY Float
     | ScrollToTop
+    | NavigateToSection String
+    | UrlRequested Browser.UrlRequest
+    | UrlChanged Url.Url

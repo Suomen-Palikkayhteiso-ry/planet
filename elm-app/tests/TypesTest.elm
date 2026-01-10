@@ -21,7 +21,6 @@ suite =
             [ test "Model contains items, generatedAt, selectedFeedTypes, and searchText" <|
                 \_ ->
                     let
-                        model : Model
                         model =
                             { items = []
                             , generatedAt = "2026-01-09"
@@ -33,6 +32,7 @@ suite =
                             , searchIndex = RemoteData.NotAsked
                             , searchedIds = []
                             , scrollY = 0
+                            , navKey = "dummy" -- dummy value for testing
                             }
                     in
                     Expect.equal model.generatedAt "2026-01-09"
