@@ -78,7 +78,7 @@ view model =
                 , Attr.style "mix-blend-mode" "difference"
                 , Attr.style "font-size" "2em"
                 , Attr.style "cursor" "pointer"
-                , Attr.attribute "aria-label" "Scroll to top"
+                , Attr.attribute "aria-label" (I18n.translate model.lang I18n.ScrollToTop)
                 ]
                 [ text "↑" ]
           else
@@ -112,7 +112,8 @@ renderFeedFilterNav lang selectedFeedTypes searchText viewMode =
     nav [ Attr.class "hidden md:block w-48 bg-white shadow-lg p-4 sticky top-0 h-screen overflow-y-auto" ]
         [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.FeedFilters) ]
         , div [ Attr.class "mb-4" ]
-            [ input
+            [ label [ Attr.class "sr-only" ] [ text (I18n.translate lang I18n.Search) ]
+            , input
                 [ Attr.type_ "text"
                 , Attr.placeholder (I18n.translate lang I18n.SearchPlaceholder)
                 , Attr.value searchText
@@ -177,7 +178,8 @@ renderMobileSidebar model =
           nav [ Attr.class "p-4" ]
             [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Filters) ]
             , div [ Attr.class "mb-4" ]
-                [ input
+                [ label [ Attr.for "mobile-search-input", Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Search) ]
+                , input
                     [ Attr.type_ "text"
                     , Attr.id "mobile-search-input"
                     , Attr.placeholder (I18n.translate model.lang I18n.SearchPlaceholder)
@@ -222,7 +224,7 @@ renderMobileSidebar model =
             ]
         , -- Timeline navigation
           nav [ Attr.class "p-4 border-t border-gray-300" ]
-            [ h2 [ Attr.class "sr-only" ] [ text "Aikajana" ]
+            [ h2 [ Attr.class "sr-only" ] [ text (I18n.translate model.lang I18n.Timeline) ]
             , ul [ Attr.class "space-y-2" ]
                 (List.map
                     (\group ->

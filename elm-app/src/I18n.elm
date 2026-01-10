@@ -18,6 +18,7 @@ type MsgKey
     | CloseMenu
     | OpenMenu
     | Timeline
+    | Search
     | SearchPlaceholder
     | FeedFilters
     | Filters
@@ -27,6 +28,7 @@ type MsgKey
     | Compiled
     | Description
     | DownloadOpml
+    | ScrollToTop
 
 
 {-| Translate a key to the given language
@@ -53,6 +55,9 @@ translate lang key =
 
                 Timeline ->
                     "Aikajana"
+
+                Search ->
+                    "Haku"
 
                 SearchPlaceholder ->
                     "Hae..."
@@ -81,6 +86,9 @@ translate lang key =
                 DownloadOpml ->
                     "Lataa OPML"
 
+                ScrollToTop ->
+                    "Siirry ylös"
+
         Types.En ->
             case key of
                 SkipToContent ->
@@ -100,6 +108,9 @@ translate lang key =
 
                 Timeline ->
                     "Timeline"
+
+                Search ->
+                    "Search"
 
                 SearchPlaceholder ->
                     "Search..."
@@ -127,3 +138,6 @@ translate lang key =
 
                 DownloadOpml ->
                     "Download OPML"
+
+                ScrollToTop ->
+                    "Scroll to top"
