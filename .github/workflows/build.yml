@@ -59,9 +59,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: planet
-          key: planet-bin-
+          key: planet-bin-v2
           restore-keys: |
-            planet-bin-
+            planet-bin-v2
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

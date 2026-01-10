@@ -22,7 +22,7 @@ jobs:
         id: cache-planet-cli
         with:
           path: planet
-          key: planet-bin-
+          key: planet-bin-v2
 
       - name: Make Planet executable
         run: chmod +x planet
