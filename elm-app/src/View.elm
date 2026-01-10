@@ -30,7 +30,7 @@ view model =
         , -- Hamburger menu button for mobile
           button
             [ Events.onClick ToggleSidebar
-            , Attr.class "md:hidden fixed top-4 right-4 z-40 p-3 rounded-none"
+            , Attr.class "md:hidden fixed top-4 right-4 z-40 p-3 rounded-none text-white"
             , Attr.style "cursor" "pointer"
             , Attr.style "font-size" "2em"
             , Attr.style "padding-top" "0"
