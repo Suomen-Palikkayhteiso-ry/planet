@@ -73,10 +73,12 @@ view model =
           if model.scrollY > 200 then
             button
                 [ Events.onClick ScrollToTop
-                , Attr.class "fixed bottom-4 right-4 z-50 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-opacity"
+                , Attr.class "fixed bottom-4 right-4 z-50 p-3 text-white"
+                , Attr.style "mix-blend-mode" "difference"
+                , Attr.style "font-size" "2em"
                 , Attr.attribute "aria-label" "Scroll to top"
                 ]
-                [ text "↑" ]
+                [ text "⬆️" ]
           else
             text ""
         ]
