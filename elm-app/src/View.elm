@@ -33,6 +33,7 @@ view model =
             , Attr.class "md:hidden fixed top-4 right-4 z-40 p-3 rounded-none"
             , Attr.style "cursor" "pointer"
             , Attr.style "font-size" "2em"
+            , Attr.style "padding-top" "0"
             , Attr.attribute "aria-label" "Avaa valikko"
             ]
             [ text "☰" ]
@@ -203,7 +204,7 @@ renderMobileSidebar model =
                 ]
             ]
         , -- Timeline navigation
-          nav [ Attr.class "p-4 border-t" ]
+          nav [ Attr.class "p-4 border-t border-gray-300" ]
             [ h2 [ Attr.class "sr-only" ] [ text "Aikajana" ]
             , ul [ Attr.class "space-y-2" ]
                 (List.map
