@@ -91,7 +91,7 @@ renderFeedFilterNav selectedFeedTypes searchText =
                 (\feedType ->
                     button
                         [ Events.onClick (ToggleFeedType feedType)
-                        , Attr.class ("text-2xl p-2 rounded-md border " ++
+                        , Attr.class ("cursor-pointer text-2xl p-2 rounded-md border " ++
                             if List.member feedType selectedFeedTypes then
                                 "bg-blue-100 border-blue-300 text-blue-700"
                             else

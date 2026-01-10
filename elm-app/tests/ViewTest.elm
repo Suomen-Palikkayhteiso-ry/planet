@@ -282,7 +282,8 @@ suite =
                     in
                     View.view model
                         |> Query.fromHtml
-                        |> Query.has [ Selector.tag "button" ]
+                        |> Query.findAll [ Selector.tag "button" ]
+                        |> Query.each (Query.has [ Selector.class "cursor-pointer" ])
             ]
         ]
 
