@@ -409,6 +409,36 @@ suite =
                     View.view model
                         |> Query.fromHtml
                         |> Query.has [ Selector.attribute (Html.Attributes.attribute "aria-label" "Avaa valikko") ]
+            , test "renders hamburger menu button as close when sidebar open" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.attribute (Html.Attributes.attribute "aria-label" "Sulje valikko") ]
+            , test "renders hamburger menu button with x when sidebar open" <|
+                \_ ->
+                    let
+                        model =
+                            { items = []
+                            , generatedAt = "2026-01-09"
+                            , selectedFeedTypes = [ Feed, YouTube, Image ]
+                            , searchText = "", viewMode = Types.Full, visibleGroups = []
+                            , isSidebarVisible = True, searchIndex = RemoteData.NotAsked
+                            , searchedIds = []
+                            }
+                    in
+                    View.view model
+                        |> Query.fromHtml
+                        |> Query.has [ Selector.text "✕" ]
             , test "renders mobile sidebar when visible" <|
                 \_ ->
                     let

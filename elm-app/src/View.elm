@@ -34,9 +34,9 @@ view model =
             , Attr.style "cursor" "pointer"
             , Attr.style "font-size" "2em"
             , Attr.style "padding-top" "0"
-            , Attr.attribute "aria-label" "Avaa valikko"
+            , Attr.attribute "aria-label" (if model.isSidebarVisible then "Sulje valikko" else "Avaa valikko")
             ]
-            [ text "☰" ]
+            [ text (if model.isSidebarVisible then "✕" else "☰") ]
         , div [ Attr.class "flex" ]
             [ -- Timeline navigation
               renderTimelineNav model.visibleGroups
@@ -213,6 +213,7 @@ renderMobileSidebar model =
                             [ a
                                 [ Attr.href ("#" ++ group.monthId)
                                 , Attr.class "text-sm text-gray-600 hover:text-blue-600 hover:underline"
+                                , Events.onClick ToggleSidebar
                                 ]
                                 [ text group.monthLabel ]
                             ]
