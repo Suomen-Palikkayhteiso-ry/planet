@@ -172,19 +172,19 @@ renderFullCard item =
         [ -- Card image
           case item.itemThumbnail of
             Just url ->
-                div [ Attr.class "aspect-video bg-gray-100" ]
+                div [ Attr.class "aspect-[4/3] bg-gray-100" ]
                     [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)") ]
                         [ img
                             [ Attr.src url
                             , Attr.alt item.itemTitle
-                            , Attr.class "w-full h-full object-cover"
+                            , Attr.class ("w-full h-full object-cover" ++ (if item.itemType /= YouTube then " object-top" else ""))
                             ]
                             []
                         ]
                     ]
 
             Nothing ->
-                div [ Attr.class "aspect-video bg-gray-200 flex items-center justify-center" ]
+                div [ Attr.class "aspect-[4/3] bg-gray-200 flex items-center justify-center" ]
                     [ span [ Attr.class "text-4xl", Attr.attribute "aria-label" (feedTypeName item.itemType) ] [ text (feedTypeIcon item.itemType) ]
                     ]
         , -- Card content
@@ -243,18 +243,22 @@ renderThumbnailCard item =
         [ -- Card image only
           case item.itemThumbnail of
             Just url ->
-                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)") ]
-                    [ img
-                        [ Attr.src url
-                        , Attr.alt item.itemTitle
-                        , Attr.class "w-full h-32 object-cover"
+                div [ Attr.class "aspect-[4/3] bg-gray-100" ]
+                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)") ]
+                        [ img
+                            [ Attr.src url
+                            , Attr.alt item.itemTitle
+                            , Attr.class ("w-full h-full object-cover" ++ (if item.itemType /= YouTube then " object-top" else ""))
+                            ]
+                            []
                         ]
-                        []
                     ]
 
             Nothing ->
-                a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)"), Attr.class "block h-32 bg-gray-200 flex items-center justify-center" ]
-                    [ span [ Attr.class "text-2xl", Attr.attribute "aria-label" (feedTypeName item.itemType) ] [ text (feedTypeIcon item.itemType) ]
+                div [ Attr.class "aspect-[4/3] bg-gray-200 flex items-center justify-center" ]
+                    [ a [ Attr.href item.itemLink, Attr.target "_blank", Attr.rel "noopener noreferrer", Attr.attribute "aria-label" (item.itemTitle ++ " (avaa uudessa ikkunassa)") ]
+                        [ span [ Attr.class "text-2xl", Attr.attribute "aria-label" (feedTypeName item.itemType) ] [ text (feedTypeIcon item.itemType) ]
+                        ]
                     ]
         ]
 
