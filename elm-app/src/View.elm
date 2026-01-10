@@ -31,7 +31,7 @@ view model =
         [ -- Skip to content link for accessibility
           a
             [ Attr.href "#main-content"
-            , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded"
+            , Attr.class "sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-blue-600 focus:text-white focus:rounded-none"
             ]
             [ text "Siirry pääsisältöön" ]
         , div [ Attr.class "flex" ]
@@ -82,7 +82,7 @@ renderFeedFilterNav selectedFeedTypes searchText =
                 , Attr.placeholder "Hae..."
                 , Attr.value searchText
                 , Events.onInput UpdateSearchText
-                , Attr.class "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                , Attr.class "w-full px-3 py-2 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                 ]
                 []
             ]
@@ -91,7 +91,7 @@ renderFeedFilterNav selectedFeedTypes searchText =
                 (\feedType ->
                     button
                         [ Events.onClick (ToggleFeedType feedType)
-                        , Attr.class ("cursor-pointer text-2xl p-2 rounded-md border " ++
+                        , Attr.class ("cursor-pointer text-2xl p-2 rounded-none border " ++
                             if List.member feedType selectedFeedTypes then
                                 "bg-blue-100 border-blue-300 text-blue-700"
                             else
@@ -141,7 +141,7 @@ renderMonthSection group =
 
 renderCard : AppItem -> Html Msg
 renderCard item =
-    div [ Attr.class "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
+    div [ Attr.class "bg-white rounded-none shadow-md overflow-hidden hover:shadow-lg transition-shadow" ]
         [ -- Card image
           case item.itemThumbnail of
             Just url ->
