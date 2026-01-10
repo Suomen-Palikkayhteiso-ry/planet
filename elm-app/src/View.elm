@@ -76,6 +76,7 @@ view model =
                 , Attr.class "fixed bottom-4 right-4 z-50 p-3 text-white"
                 , Attr.style "mix-blend-mode" "difference"
                 , Attr.style "font-size" "2em"
+                , Attr.style "cursor" "pointer"
                 , Attr.attribute "aria-label" "Scroll to top"
                 ]
                 [ text "⬆️" ]
