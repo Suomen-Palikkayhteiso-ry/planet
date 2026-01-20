@@ -40,5 +40,16 @@ title = "Palikkatakomo"
 url = "https://palikkatakomo.kuvat.fi/kuvat/rss/"
 
 [[feeds]]
+# Kristallikuningas
 type = "youtube"
 url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC2oUI4QDXFBJ6kHorUvV4TA"
+
+[[feeds]]
+# BrickDevil
+type = "youtube"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCevQ7uLnqJYWeTDLtc8I4uw"
+
+[[feeds]]
+# Vilzu
+type = "youtube"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCIDvVMnuu8WAeIXA_GsnNwA"
