@@ -38,3 +38,7 @@ url = "https://www.flickr.com/services/feeds/photos_public.gne?id=63411232@N00&l
 type = "kuvatfi"
 title = "Palikkatakomo"
 url = "https://palikkatakomo.kuvat.fi/kuvat/rss/"
+
+[[feeds]]
+type = "youtube"
+url = "https://www.youtube.com/feeds/videos.xml?channel_id=UC2oUI4QDXFBJ6kHorUvV4TA"
